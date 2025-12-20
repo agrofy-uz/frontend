@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+* {
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Dark mode uchun body sozlamalari */
+body[data-mantine-color-scheme='dark'] {
+  background-color: var(--mantine-color-dark-7);
+  color: var(--mantine-color-dark-0);
+}
+
+body[data-mantine-color-scheme='light'] {
+  background-color: var(--mantine-color-gray-0);
+  color: var(--mantine-color-gray-9);
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.active[data-active] {
+  background-color: var(--mantine-color-gray-2) !important;
+  color: var(--mantine-color-gray-8) !important;
+}
+
+/* Dark mode uchun active state */
+[data-mantine-color-scheme='dark'] .active[data-active] {
+  background-color: var(--mantine-color-dark-5) !important;
+  color: var(--mantine-color-dark-0) !important;
+}
+
+.empty-star path {
+  fill: var(--mantine-color-gray-2) !important;
+}
+
+[data-mantine-color-scheme='dark'] .empty-star path {
+  fill: var(--mantine-color-dark-4) !important;
+}
+
+.full-star path {
+  fill: #fdb022 !important;
+}
+
+/* Dark mode uchun full-star */
+[data-mantine-color-scheme='dark'] .full-star path {
+  fill: #fac515 !important;
+}
+
+.white-color path {
+  fill: #fff !important;
+}
+
+/* Dark mode uchun white-color */
+[data-mantine-color-scheme='dark'] .white-color path {
+  fill: var(--mantine-color-dark-0) !important;
+}
+
+.gray path {
+  fill: #292d32 !important;
+}
+
+[data-mantine-color-scheme='dark'] .gray path {
+  fill: var(--mantine-color-dark-2) !important;
+}
+
+.primary-color path {
+  fill: var(--mantine-color-green-6) !important;
+}
+
+/* Dark mode uchun primary-color */
+[data-mantine-color-scheme='dark'] .primary-color path {
+  fill: var(--mantine-color-green-5) !important;
+}
+
+img {
+  user-select: none;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+/* Dark mode uchun umumiy sozlamalar */
+[data-mantine-color-scheme='dark'] {
+  color-scheme: dark;
+}
+
+[data-mantine-color-scheme='dark'] a {
+  color: var(--mantine-color-green-5);
+}
+
+[data-mantine-color-scheme='dark'] a:hover {
+  color: var(--mantine-color-green-4);
+}
+
+/* Dark mode uchun input va form elementlar */
+[data-mantine-color-scheme='dark'] input,
+[data-mantine-color-scheme='dark'] textarea,
+[data-mantine-color-scheme='dark'] select {
+  background-color: var(--mantine-color-dark-6);
+  color: var(--mantine-color-dark-0);
+  border-color: var(--mantine-color-dark-4);
+}
+
+[data-mantine-color-scheme='dark'] input:focus,
+[data-mantine-color-scheme='dark'] textarea:focus,
+[data-mantine-color-scheme='dark'] select:focus {
+  border-color: var(--mantine-color-green-6);
+}
+
+/* Dark mode uchun card va surface elementlar */
+[data-mantine-color-scheme='dark'] [data-mantine-component='Card'],
+[data-mantine-color-scheme='dark'] .mantine-Card-root {
+  background-color: var(--mantine-color-dark-6);
+  border-color: var(--mantine-color-dark-4);
+}
+
+/* Dark mode uchun border va divider */
+[data-mantine-color-scheme='dark'] hr,
+[data-mantine-color-scheme='dark'] .divider {
+  border-color: var(--mantine-color-dark-4);
+}
