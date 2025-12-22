@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { useColorScheme } from '@mantine/hooks';
+import type { ColorScheme } from '@mantine/core';
 
 interface ThemeState {
-  colorScheme: ReturnType<typeof useColorScheme>;
+  colorScheme: ColorScheme;
   toggleColorScheme: () => void;
-  setColorScheme: (scheme: ReturnType<typeof useColorScheme>) => void;
+  setColorScheme: (scheme: ColorScheme) => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
@@ -16,8 +16,7 @@ export const useThemeStore = create<ThemeState>()(
         set((state) => ({
           colorScheme: state.colorScheme === 'light' ? 'dark' : 'light',
         })),
-      setColorScheme: (scheme: ReturnType<typeof useColorScheme>) =>
-        set({ colorScheme: scheme }),
+      setColorScheme: (scheme: ColorScheme) => set({ colorScheme: scheme }),
     }),
     {
       name: 'theme-storage',

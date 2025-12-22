@@ -1,8 +1,21 @@
-# Agrofy Frontend
+# Agrofy Frontend Template
 
-Bu loyiha React + TypeScript + Vite stack'ida yaratilgan. Dark mode va light mode'ni qo'llab-quvvatlaydi.
+Bu minimal React + TypeScript + Vite shablon. Yangi loyiha boshlash uchun tayyor.
 
-## O'rnatish
+## ✨ Xususiyatlar
+
+- ✅ **React 19** + **TypeScript** - Zamonaviy stack
+- ✅ **Vite** - Tez build va HMR
+- ✅ **Mantine UI** - Komponent kutubxonasi
+- ✅ **Dark Mode / Light Mode** - Tugma bilan o'zgartirish
+- ✅ **React Router** - Routing
+- ✅ **Zustand** - State management
+- ✅ **React Query** - Data fetching
+- ✅ **i18next** - Ko'p tillilik (UZ, RU, EN)
+- ✅ **Axios** - HTTP client
+- ✅ **ESLint + Prettier** - Code quality
+
+## 🚀 O'rnatish
 
 ```bash
 npm install
@@ -10,7 +23,7 @@ npm install
 yarn install
 ```
 
-## Ishga tushirish
+## 🏃 Ishga tushirish
 
 ```bash
 npm run dev
@@ -18,19 +31,9 @@ npm run dev
 yarn dev
 ```
 
-## Dark Mode
+Loyiha `http://localhost:3000` da ochiladi.
 
-Dark mode funksiyasi qo'shilgan. Foydalanish uchun `ThemeToggle` komponentidan foydalaning:
-
-```tsx
-import { ThemeToggle } from '@/shared/ui/ThemeToggle';
-
-<ThemeToggle />
-```
-
-Dark mode holati `useThemeStore` hook orqali boshqariladi va localStorage'da saqlanadi.
-
-## Build
+## 📦 Build
 
 ```bash
 npm run build
@@ -38,3 +41,109 @@ npm run build
 yarn build
 ```
 
+## 📁 Struktura
+
+```
+src/
+├── app/              # Asosiy app struktura
+│   ├── layout/       # Layout komponentlar (Header, Footer)
+│   ├── providers/    # Global providers (Mantine, Router, Query)
+│   └── routers/       # Routing konfiguratsiyasi
+├── pages/            # Sahifalar
+│   └── home/         # Home sahifa (misol)
+├── shared/           # Umumiy fayllar
+│   ├── api/          # API konfiguratsiyasi
+│   ├── lib/          # Utility funksiyalar
+│   ├── store/        # Zustand store'lar (auth, theme)
+│   ├── ui/           # UI komponentlar (Button, Container)
+│   └── theme.ts      # Mantine theme
+└── assets/           # Static fayllar
+```
+
+## 🎨 Dark Mode
+
+Dark mode funksiyasi qo'shilgan. Header'da toggle tugmasi mavjud.
+
+```tsx
+import { useThemeStore } from '@/shared/store/themeStore';
+
+const { colorScheme, toggleColorScheme } = useThemeStore();
+```
+
+## 🔐 Authentication
+
+Minimal auth store mavjud. Loyihaga moslashtirish kerak:
+
+```tsx
+import { useAuthStore } from '@/shared/store/authStore';
+
+const { isAuthenticated, user, login, logout } = useAuthStore();
+```
+
+## 🌐 API
+
+API konfiguratsiyasi `src/shared/api/api.interface.ts` faylida.
+
+`.env` faylini yarating:
+
+```env
+VITE_API_URL=http://localhost:8000/api
+```
+
+Yangi API servis yaratish:
+
+```tsx
+// src/shared/api/services/example/example.api.ts
+import api from '@/shared/api/api.interface';
+
+export const getExample = () => {
+  return api.get('/example');
+};
+```
+
+## 🌍 i18n (Ko'p tillilik)
+
+Tarjimalar `locales/` papkasida. Foydalanish:
+
+```tsx
+import { useTranslation } from 'react-i18next';
+
+const { t } = useTranslation();
+<h1>{t('common.welcome')}</h1>;
+```
+
+## 📝 Yangi loyiha boshlash
+
+1. Bu papkani copy qiling
+2. `package.json` da nom va ma'lumotlarni o'zgartiring
+3. `.env` faylini yarating va API URL'ni o'rnating
+4. `src/pages` da yangi sahifalar yarating
+5. `src/shared/api/services` da API servislarni yarating
+6. `locales/` da tarjimalarni to'ldiring
+
+## 🛠️ Foydali komandalar
+
+```bash
+# Development
+npm run dev
+
+# Build
+npm run build
+
+# Lint
+npm run lint
+
+# Format
+npm run format
+
+# Preview build
+npm run preview
+```
+
+## 📄 License
+
+ISC
+
+---
+
+**Eslatma:** Bu minimal shablon. Yangi loyiha boshlash uchun tayyor. Barcha keraksiz kodlar tozalanagan.

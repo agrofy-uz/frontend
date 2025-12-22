@@ -20,15 +20,27 @@ body {
     color 0.3s ease;
 }
 
-/* Dark mode uchun body sozlamalari */
-body[data-mantine-color-scheme='dark'] {
-  background-color: var(--mantine-color-dark-7);
-  color: var(--mantine-color-dark-0);
+/* Body BG Mantine color-scheme atributi odatda html tagida bo'ladi */
+html[data-mantine-color-scheme='dark'] {
+  --mantine-color-body: var(--mantine-color-dark-7);
 }
 
-body[data-mantine-color-scheme='light'] {
-  background-color: var(--mantine-color-gray-0);
-  color: var(--mantine-color-gray-9);
+html[data-mantine-color-scheme='dark'],
+html[data-mantine-color-scheme='dark'] body,
+html[data-mantine-color-scheme='dark'] #root {
+  background-color: var(--mantine-color-dark-7) !important;
+  color: var(--mantine-color-dark-0) !important;
+}
+
+html[data-mantine-color-scheme='light'] {
+  --mantine-color-body: var(--mantine-color-gray-0);
+}
+
+html[data-mantine-color-scheme='light'],
+html[data-mantine-color-scheme='light'] body,
+html[data-mantine-color-scheme='light'] #root {
+  background-color: var(--mantine-color-gray-0) !important;
+  color: var(--mantine-color-gray-9) !important;
 }
 
 #root {
@@ -57,16 +69,16 @@ body[data-mantine-color-scheme='light'] {
 }
 
 .full-star path {
-  fill: #fdb022 !important;
+  fill: var(--mantine-color-yellow-5) !important;
 }
 
 /* Dark mode uchun full-star */
 [data-mantine-color-scheme='dark'] .full-star path {
-  fill: #fac515 !important;
+  fill: var(--mantine-color-yellow-4) !important;
 }
 
 .white-color path {
-  fill: #fff !important;
+  fill: var(--mantine-color-gray-0) !important;
 }
 
 /* Dark mode uchun white-color */
@@ -75,7 +87,7 @@ body[data-mantine-color-scheme='light'] {
 }
 
 .gray path {
-  fill: #292d32 !important;
+  fill: var(--mantine-color-gray-9) !important;
 }
 
 [data-mantine-color-scheme='dark'] .gray path {

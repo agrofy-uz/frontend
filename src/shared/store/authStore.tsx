@@ -1,7 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { IUser } from '../api/services/header';
 import { localStorageHelper } from '../lib/localStorage';
+
+// Minimal user type - loyihaga moslashtirish kerak
+export interface IUser {
+  id: number;
+  name: string;
+  email?: string;
+  access_token: string;
+  refresh_token: string;
+}
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -13,7 +21,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    set => ({
+    (set) => ({
       isAuthenticated: false,
       user: null,
       login: (user: IUser) => {
