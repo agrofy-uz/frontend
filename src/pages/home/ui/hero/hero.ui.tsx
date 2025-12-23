@@ -171,6 +171,7 @@ function Hero() {
                 fw={700}
                 lh={1.1}
                 ta={{ base: 'center', md: 'start' }}
+                className="textPrimary"
               >
                 {HERO_TITLE.prefix} <br />
                 <span style={{ color: theme?.colors?.green?.[6] }}>

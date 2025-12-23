@@ -54,7 +54,7 @@ function Regions() {
                 order={2}
                 fz={{ base: 24, sm: 28, md: 32 }}
                 fw={700}
-                c="gray.9"
+                className="textPrimary"
                 style={{ flex: 1 }}
               >
                 {REGIONS_TITLE}

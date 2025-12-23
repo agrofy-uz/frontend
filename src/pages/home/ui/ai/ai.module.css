@@ -3,6 +3,45 @@
   background-color: var(--mantine-color-gray-1);
 }
 
+html[data-mantine-color-scheme='dark'] .section {
+  background-color: var(--mantine-color-dark-7);
+}
+
+.headingTitle {
+  color: var(--mantine-color-gray-9);
+}
+
+html[data-mantine-color-scheme='dark'] .headingTitle {
+  color: var(--mantine-color-dark-0);
+}
+
+.headingSubtitle {
+  color: var(--mantine-color-dimmed);
+}
+
+html[data-mantine-color-scheme='dark'] .headingSubtitle {
+  color: var(--mantine-color-dark-2);
+}
+
+.title {
+  margin-top: 6px;
+  color: var(--mantine-color-gray-9);
+}
+
+html[data-mantine-color-scheme='dark'] .title {
+  color: var(--mantine-color-dark-0);
+}
+
+.desc {
+  max-width: 280px;
+  margin: 0 auto;
+  color: var(--mantine-color-dimmed);
+}
+
+html[data-mantine-color-scheme='dark'] .desc {
+  color: var(--mantine-color-dark-2);
+}
+
 .heading {
   text-align: center;
 }
@@ -119,11 +158,21 @@ html[data-mantine-color-scheme='dark'] .iconBox {
 
 .title {
   margin-top: 6px;
+  color: var(--mantine-color-gray-9);
+}
+
+html[data-mantine-color-scheme='dark'] .title {
+  color: var(--mantine-color-dark-0);
 }
 
 .desc {
   max-width: 280px;
   margin: 0 auto;
+  color: var(--mantine-color-dimmed);
+}
+
+html[data-mantine-color-scheme='dark'] .desc {
+  color: var(--mantine-color-dark-2);
 }
 
 .connector {

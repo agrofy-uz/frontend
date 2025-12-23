@@ -22,15 +22,15 @@ function AI() {
               fz={{ base: 28, sm: 32, md: 40 }}
               fw={700}
               ta="center"
-              c="gray.9"
+              className="textPrimary"
             >
               {AI_TITLE}
             </Title>
             <Text
               fz={{ base: 'sm', md: 'md' }}
-              c="dimmed"
               ta="center"
               maw={600}
+              className="textSecondary"
             >
               {AI_SUBTITLE}
             </Text>
@@ -81,19 +81,17 @@ function AI() {
                             fz="lg"
                             fw={700}
                             ta="center"
-                            c="gray.9"
                             lh={1.25}
-                            className={styles.title}
+                            className={`${styles.title} textPrimary`}
                           >
                             {step.title}
                           </Title>
 
                           <Text
                             fz="sm"
-                            c="dimmed"
                             ta="center"
                             lh={1.7}
-                            className={styles.desc}
+                            className={`${styles.desc} textSecondary`}
                           >
                             {step.description}
                           </Text>

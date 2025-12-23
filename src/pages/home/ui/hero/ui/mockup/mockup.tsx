@@ -18,15 +18,7 @@ const Mockup = () => {
         {/* Desktop mockup */}
         <Card radius="xl" shadow="xl" withBorder p={0}>
           {/* Top bar */}
-          <Group
-            gap="xs"
-            px="md"
-            py="sm"
-            bg="gray.1"
-            style={{
-              borderBottom: '1px solid var(--mantine-color-gray-3)',
-            }}
-          >
+          <Group gap="xs" px="md" py="sm" className={styles.topBar}>
             <Group gap={6}>
               <Box w={12} h={12} bg="red.5" style={{ borderRadius: '50%' }} />
               <Box
@@ -41,12 +33,12 @@ const Mockup = () => {
               mx="auto"
               py="2px"
               px="sm"
+              className={styles.chatInput}
               style={{
                 borderRadius: 6,
-                backgroundColor: 'var(--mantine-color-gray-0)',
               }}
             >
-              <Text size="xs" c="gray.6">
+              <Text size="xs" className="textSecondary">
                 agrofy.uz
               </Text>
             </Box>
@@ -117,7 +109,12 @@ const Mockup = () => {
             {/* Stats */}
             <Grid mt="lg">
               <Grid.Col span={4}>
-                <Card bg="gray.1" radius="md" p="xs" ta="center">
+                <Card
+                  className={styles.statCard}
+                  radius="md"
+                  p="xs"
+                  ta="center"
+                >
                   <Text size="xs" c="dimmed">
                     Humidity
                   </Text>
@@ -127,7 +124,12 @@ const Mockup = () => {
                 </Card>
               </Grid.Col>
               <Grid.Col span={4}>
-                <Card bg="gray.1" radius="md" p="xs" ta="center">
+                <Card
+                  className={styles.statCard}
+                  radius="md"
+                  p="xs"
+                  ta="center"
+                >
                   <Text size="xs" c="dimmed">
                     Temp
                   </Text>
@@ -137,7 +139,12 @@ const Mockup = () => {
                 </Card>
               </Grid.Col>
               <Grid.Col span={4}>
-                <Card bg="gray.1" radius="md" p="xs" ta="center">
+                <Card
+                  className={styles.statCard}
+                  radius="md"
+                  p="xs"
+                  ta="center"
+                >
                   <Text size="xs" c="dimmed">
                     Wind
                   </Text>
@@ -162,11 +169,7 @@ const Mockup = () => {
           left={{ base: '18%', md: -40 }}
           p={0}
         >
-          <Box
-            py={6}
-            bg="gray.1"
-            style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
-          >
+          <Box py={6} className={styles.mobileTopBar}>
             <Box
               mx="auto"
               w={48}

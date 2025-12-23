@@ -9,6 +9,7 @@ import { FaTractor } from 'react-icons/fa';
 import { FaBuilding } from 'react-icons/fa';
 import { FaShip } from 'react-icons/fa';
 import { FaLandmark } from 'react-icons/fa';
+import styles from './audience.module.css';
 
 // Icon mapping
 const iconMap = {
@@ -20,7 +21,7 @@ const iconMap = {
 
 function Audience() {
   return (
-    <Box py={{ base: 'xl', md: 80 }} bg="gray.1">
+    <Box py={{ base: 'xl', md: 80 }} className={styles.section}>
       <Container>
         <Stack gap="xl" align="center">
           {/* Title and Subtitle */}
@@ -30,7 +31,7 @@ function Audience() {
               fz={{ base: 28, sm: 32, md: 40 }}
               fw={700}
               ta="center"
-              c="gray.9"
+              className="textPrimary"
             >
               {AUDIENCE_TITLE}
             </Title>
@@ -53,26 +54,9 @@ function Audience() {
                   <Card
                     padding="xl"
                     radius="md"
-                    bg="gray.0"
                     withBorder
-                    style={{
-                      borderColor: 'var(--mantine-color-gray-2)',
-                      height: '100%',
-                      transition:
-                        'border-color 0.3s ease, box-shadow 0.3s ease',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        'var(--mantine-color-green-5)';
-                      e.currentTarget.style.boxShadow =
-                        '0 4px 12px rgba(0, 0, 0, 0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor =
-                        'var(--mantine-color-gray-2)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
+                    className={styles.card}
+                    style={{ height: '100%' }}
                   >
                     <Stack gap="md">
                       {/* Icon */}
@@ -88,7 +72,7 @@ function Audience() {
                       )}
 
                       {/* Title */}
-                      <Title order={4} fz="lg" fw={600} c="gray.9">
+                      <Title order={4} fz="lg" fw={600} className="textPrimary">
                         {card.title}
                       </Title>
 

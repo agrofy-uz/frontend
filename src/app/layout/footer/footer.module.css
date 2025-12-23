@@ -1,0 +1,66 @@
+.footer {
+  background-color: var(--mantine-color-gray-2);
+  margin-top: auto;
+}
+
+html[data-mantine-color-scheme='dark'] .footer {
+  background-color: var(--mantine-color-dark-7);
+}
+
+.topSection {
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+}
+
+html[data-mantine-color-scheme='dark'] .topSection {
+  border-bottom-color: var(--mantine-color-dark-4);
+}
+
+.bottomSection {
+  border-top-color: var(--mantine-color-gray-3);
+}
+
+html[data-mantine-color-scheme='dark'] .bottomSection {
+  border-top-color: var(--mantine-color-dark-4);
+}
+
+.socialLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: var(--mantine-color-gray-2);
+  color: var(--mantine-color-gray-6);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+  border: 1px solid transparent;
+}
+
+html[data-mantine-color-scheme='dark'] .socialLink {
+  background-color: var(--mantine-color-dark-5);
+  color: var(--mantine-color-dark-2);
+}
+
+.socialLink:hover {
+  background-color: var(--mantine-color-green-6);
+  color: white;
+  border-color: var(--mantine-color-green-6);
+}
+
+html[data-mantine-color-scheme='dark'] .socialLink:hover {
+  background-color: var(--mantine-color-green-6);
+  color: white;
+  border-color: var(--mantine-color-green-6);
+}
+
+.navLink {
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.navLink:hover {
+  color: var(--mantine-color-green-6);
+}

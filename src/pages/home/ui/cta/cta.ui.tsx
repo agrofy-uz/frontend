@@ -22,7 +22,7 @@ function CTA() {
             fw={700}
             ta="center"
             lh={1.2}
-            className={styles.title}
+            className="textPrimary"
           >
             {CTA_TITLE.prefix} <br />
             {CTA_TITLE.highlight}

@@ -7,6 +7,7 @@ import {
 } from './product.const';
 import { IoChatbubbles } from 'react-icons/io5';
 import { FaTint, FaEye, FaShoppingCart, FaGlobe } from 'react-icons/fa';
+import styles from './product.module.css';
 
 // Icon mapping
 const iconMap = {
@@ -29,7 +30,7 @@ function Product() {
               fz={{ base: 28, sm: 32, md: 40 }}
               fw={700}
               ta="center"
-              c="gray.9"
+              className="textPrimary"
             >
               {PRODUCT_TITLE}
             </Title>
@@ -57,24 +58,8 @@ function Product() {
                     padding="lg"
                     radius="md"
                     withBorder
-                    style={{
-                      borderColor: 'var(--mantine-color-gray-2)',
-                      height: '100%',
-                      transition:
-                        'border-color 0.3s ease, box-shadow 0.3s ease',
-                      cursor: 'pointer',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        'var(--mantine-color-green-5)';
-                      e.currentTarget.style.boxShadow =
-                        '0 4px 12px rgba(0, 0, 0, 0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor =
-                        'var(--mantine-color-gray-2)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
+                    className={styles.card}
+                    style={{ height: '100%' }}
                   >
                     <Stack gap="md">
                       {/* Icon */}
@@ -89,7 +74,7 @@ function Product() {
                       )}
 
                       {/* Title */}
-                      <Title order={4} fz="lg" fw={600} c="gray.9">
+                      <Title order={4} fz="lg" fw={600} className="textPrimary">
                         {module.title}
                       </Title>
 

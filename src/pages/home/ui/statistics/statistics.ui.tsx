@@ -9,6 +9,7 @@ import {
   PARTNERS_DATA,
   formatNumber,
 } from './statistics.const';
+import styles from './statistics.module.css';
 
 // Icon components
 const statsIcons = [
@@ -120,7 +121,11 @@ function Statistics() {
   const partners = PARTNERS_DATA;
 
   return (
-    <Box ref={sectionRef} bg="gray.1" py={{ base: 'xl', md: 80 }}>
+    <Box
+      ref={sectionRef}
+      className={styles.section}
+      py={{ base: 'xl', md: 80 }}
+    >
       <Container>
         <Stack gap="xl">
           {/* Top Section - Key Metrics */}
@@ -136,7 +141,11 @@ function Statistics() {
                   style={{ textAlign: 'center' }}
                 >
                   <Box>{stat.icon}</Box>
-                  <Text fz={{ base: 32, md: 40 }} fw={700} c="gray.9">
+                  <Text
+                    fz={{ base: 32, md: 40 }}
+                    fw={700}
+                    className="textPrimary"
+                  >
                     {formatNumber(counts[index], stat.target)}
                     {stat.suffix}
                   </Text>
@@ -156,7 +165,11 @@ function Statistics() {
                 style={{ textAlign: 'center' }}
               >
                 <Box>{stats[2].icon}</Box>
-                <Text fz={{ base: 32, md: 40 }} fw={700} c="gray.9">
+                <Text
+                  fz={{ base: 32, md: 40 }}
+                  fw={700}
+                  className="textPrimary"
+                >
                   {formatNumber(counts[2], stats[2].target)}
                   {stats[2].suffix}
                 </Text>
@@ -172,14 +185,7 @@ function Statistics() {
             <Grid w={{ base: '100%', md: '80%' }}>
               {benefits.map((benefit, index) => (
                 <Grid.Col key={index} span={{ base: 12, md: 6 }}>
-                  <Card
-                    radius="md"
-                    padding="lg"
-                    bg="gray.0"
-                    style={{
-                      border: '1px solid var(--mantine-color-gray-2)',
-                    }}
-                  >
+                  <Card radius="md" padding="lg" className={styles.benefitCard}>
                     <Flex align="center" gap="md">
                       <Box>{benefit.icon}</Box>
                       <Stack gap={4}>
