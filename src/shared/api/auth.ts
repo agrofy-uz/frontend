@@ -24,6 +24,11 @@ export interface UserResponse {
   email?: string;
   name?: string;
   role: string;
+  phone?: string;
+  telegram_id?: number;
+  username?: string;
+  created_at?: string;
+  is_active?: boolean;
 }
 
 export interface VerifyOtpResponse {

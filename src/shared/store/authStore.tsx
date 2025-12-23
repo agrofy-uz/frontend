@@ -3,9 +3,13 @@ import { persist } from 'zustand/middleware';
 
 export interface IUser {
   id: string;
-  name?: string;
-  email?: string;
-  role: string;
+  phone_number: string;
+  telegram_id: number;
+  first_name: string | null;
+  last_name: string | null;
+  username: string | null;
+  created_at: string | null;
+  is_active: boolean | null;
 }
 
 interface AuthState {

@@ -10,7 +10,7 @@ import {
   Skeleton,
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
-import { FaTelegram, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaTelegram, FaTimesCircle } from 'react-icons/fa';
 import { authApi } from '@/shared/api/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -78,19 +78,33 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
       const response = await authApi.verifyOtp(loginSessionId, otp);
 
       if (response.user && response.access_token && response.refresh_token) {
-        // Auth store'ga saqlash
-        login(response.user, response.access_token, response.refresh_token);
+        // API response'ni authStore formatiga transform qilish
+        const nameParts = response.user.name?.split(' ') || [];
+        const userData = {
+          id: response.user.id,
+          phone_number: response.user.phone || '',
+          telegram_id: response.user.telegram_id || 0,
+          first_name: nameParts[0] || null,
+          last_name: nameParts.slice(1).join(' ') || null,
+          username: response.user.username || null,
+          created_at: response.user.created_at || null,
+          is_active: response.user.is_active ?? true,
+        };
 
-        // Muvaffaqiyatli xabar
+        // Auth store'ga saqlash
+        login(userData, response.access_token, response.refresh_token);
+
         openNotification({
           title: 'Muvaffaqiyatli kirildi!',
           type: 'success',
           icon: <FaCheckCircle size={24} />,
         });
 
-        // Dashboard'ga redirect
-        navigate('/dashboard');
+        // Modal'ni yopish
         onClose();
+
+        // Redirect qilish
+        navigate('/dashboard');
       }
     } catch (err: unknown) {
       const errorMessage = getErrorMessage(err);
