@@ -5,6 +5,7 @@ import { Product } from './ui/product';
 import { AI } from './ui/ai';
 import { Platforms } from './ui/platforms';
 import { Audience } from './ui/audience';
+import { Regions } from './ui/regions';
 function Home() {
   return (
     <Box>
@@ -14,6 +15,7 @@ function Home() {
       <AI />
       <Platforms />
       <Audience />
+      <Regions />
     </Box>
   );
 }

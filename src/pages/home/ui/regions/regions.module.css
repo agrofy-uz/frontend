@@ -1,0 +1,342 @@
+.section {
+  position: relative;
+  overflow: hidden;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      900px 420px at 15% 20%,
+      rgba(102, 198, 28, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 380px at 85% 60%,
+      rgba(102, 198, 28, 0.08),
+      transparent 55%
+    );
+  pointer-events: none;
+}
+
+.section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--mantine-color-green-4) 1px,
+    transparent 0
+  );
+  background-size: 24px 24px;
+  pointer-events: none;
+  mask-image: radial-gradient(
+    closest-side,
+    rgba(0, 0, 0, 0.9),
+    transparent 75%
+  );
+}
+
+.circleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 280px;
+  height: 280px;
+  position: relative;
+  margin-right: 100px;
+  isolation: isolate;
+}
+
+.outerDashedCircle {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border: 3px dashed var(--mantine-color-green-3);
+  border-radius: 50%;
+}
+
+.outerDashedCircleSoft {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border: 2px dashed rgba(102, 198, 28, 0.28);
+  border-radius: 50%;
+  animation: rotateReverse 34s linear infinite;
+}
+
+.outerRotatingCircle {
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  border: 3px solid var(--mantine-color-green-2);
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateDot {
+  from {
+    transform: rotate(0deg) translateX(180px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(180px) rotate(-360deg);
+  }
+}
+
+@keyframes rotateReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.dots {
+  position: absolute;
+  width: 460px;
+  height: 460px;
+  left: -90px;
+  top: -90px;
+  transform: translate(-50%, -50%);
+  animation: rotate 20s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+.dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--mantine-color-green-5);
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  margin-left: -4px;
+  margin-top: -4px;
+}
+
+/* 6 ta dot - har 60 gradusda (360/6 = 60 gradus), markazdan 170px masofada (mainCircle tashqarisida) */
+.dot:nth-child(1) {
+  transform: translate(-50%, -50%) rotate(0deg) translateY(-170px);
+}
+
+.dot:nth-child(2) {
+  transform: translate(-50%, -50%) rotate(60deg) translateY(-170px);
+}
+
+.dot:nth-child(3) {
+  transform: translate(-50%, -50%) rotate(120deg) translateY(-170px);
+}
+
+.dot:nth-child(4) {
+  transform: translate(-50%, -50%) rotate(180deg) translateY(-170px);
+}
+
+.dot:nth-child(5) {
+  transform: translate(-50%, -50%) rotate(240deg) translateY(-170px);
+}
+
+.dot:nth-child(6) {
+  transform: translate(-50%, -50%) rotate(300deg) translateY(-170px);
+}
+
+.mainCircle {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background-color: var(--mantine-color-green-1);
+  border: 2px solid var(--mantine-color-green-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  animation: float 7s ease-in-out infinite;
+}
+
+.mainCircle::before {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(102, 198, 28, 0.18),
+    transparent 60%
+  );
+  filter: blur(2px);
+  z-index: -1;
+  animation: pulseGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.globeIcon {
+  color: var(--mantine-color-green-5);
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.statNumber {
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--mantine-color-gray-9);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 16px;
+  color: var(--mantine-color-dimmed);
+  margin-top: 4px;
+}
+
+@media (max-width: 767px) {
+  .circleContainer {
+    width: 240px;
+    height: 240px;
+    margin-right: 0;
+  }
+
+  .outerDashedCircle {
+    width: 280px;
+    height: 280px;
+  }
+
+  .outerRotatingCircle {
+    width: 320px;
+    height: 320px;
+  }
+
+  .outerDashedCircleSoft {
+    width: 300px;
+    height: 300px;
+  }
+
+  .dots {
+    width: 320px;
+    height: 320px;
+    transform-origin: 50% 50%;
+  }
+
+  .dot:nth-child(1) {
+    transform: translate(-50%, -50%) rotate(0deg) translateY(-156px);
+  }
+
+  .dot:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(60deg) translateY(-156px);
+  }
+
+  .dot:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(120deg) translateY(-156px);
+  }
+
+  .dot:nth-child(4) {
+    transform: translate(-50%, -50%) rotate(180deg) translateY(-156px);
+  }
+
+  .dot:nth-child(5) {
+    transform: translate(-50%, -50%) rotate(240deg) translateY(-156px);
+  }
+
+  .dot:nth-child(6) {
+    transform: translate(-50%, -50%) rotate(300deg) translateY(-156px);
+  }
+
+  .mainCircle {
+    width: 240px;
+    height: 240px;
+  }
+
+  .statNumber {
+    font-size: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .circleContainer {
+    margin-right: 0;
+  }
+}
+
+.kpiRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.kpiPill {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--mantine-color-gray-2);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+html[data-mantine-color-scheme='dark'] .kpiPill {
+  background: rgba(37, 38, 43, 0.55);
+  border-color: var(--mantine-color-dark-4);
+}
+
+.kpiValue {
+  font-weight: 800;
+  color: var(--mantine-color-green-7);
+}
+
+html[data-mantine-color-scheme='dark'] .kpiValue {
+  color: var(--mantine-color-green-5);
+}
+
+.kpiLabel {
+  color: var(--mantine-color-dimmed);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outerRotatingCircle,
+  .dots,
+  .outerDashedCircleSoft,
+  .mainCircle {
+    animation: none !important;
+  }
+}
