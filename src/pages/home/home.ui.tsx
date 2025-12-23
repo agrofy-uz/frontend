@@ -6,6 +6,8 @@ import { AI } from './ui/ai';
 import { Platforms } from './ui/platforms';
 import { Audience } from './ui/audience';
 import { Regions } from './ui/regions';
+import { CTA } from './ui/cta';
+
 function Home() {
   return (
     <Box>
@@ -16,6 +18,7 @@ function Home() {
       <Platforms />
       <Audience />
       <Regions />
+      <CTA />
     </Box>
   );
 }
