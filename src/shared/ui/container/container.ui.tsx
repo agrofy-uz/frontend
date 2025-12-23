@@ -12,8 +12,8 @@ const Container = ({ children, ...props }: ContainerProps) => {
     <MantineContainer
       maw={{
         xs: '100%',
-        md: 980,
-        xl: 1172,
+        md: 1172,
+        xl: 1440,
       }}
       px={{
         xs: 12,

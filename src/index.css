@@ -151,3 +151,16 @@ img {
 [data-mantine-color-scheme='dark'] .divider {
   border-color: var(--mantine-color-dark-4);
 }
+
+/* Pulse animation - green 5 va 6 o'rtasida yonib-o'chib turishi */
+@keyframes pulse-green {
+  0%,
+  100% {
+    background-color: #97e756; /* green[5] */
+    opacity: 1;
+  }
+  50% {
+    background-color: #4eaa08; /* green[6] */
+    opacity: 0.8;
+  }
+}
