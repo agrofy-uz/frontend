@@ -11,9 +11,15 @@ interface MobileDrawerProps {
   opened: boolean;
   onClose: () => void;
   navItems: NavItem[];
+  onLoginClick?: () => void;
 }
 
-const MobileDrawer = ({ opened, onClose, navItems }: MobileDrawerProps) => {
+const MobileDrawer = ({
+  opened,
+  onClose,
+  navItems,
+  onLoginClick,
+}: MobileDrawerProps) => {
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
@@ -103,7 +109,7 @@ const MobileDrawer = ({ opened, onClose, navItems }: MobileDrawerProps) => {
 
       {/* Start button - eng pastida */}
       <Flex justify="center" p="md" pb="xl">
-        <Button w="100%" h={44}>
+        <Button w="100%" h={44} onClick={onLoginClick}>
           Start Free
         </Button>
       </Flex>

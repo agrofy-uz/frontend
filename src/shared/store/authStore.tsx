@@ -1,20 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { localStorageHelper } from '../lib/localStorage';
 
-// Minimal user type - loyihaga moslashtirish kerak
 export interface IUser {
-  id: number;
-  name: string;
+  id: string;
+  name?: string;
   email?: string;
-  access_token: string;
-  refresh_token: string;
+  role: string;
 }
 
 interface AuthState {
   isAuthenticated: boolean;
   user: IUser | null;
-  login: (user: IUser) => void;
+  accessToken: string | null;
+  refreshToken: string | null;
+  login: (user: IUser, accessToken: string, refreshToken: string) => void;
   logout: () => void;
   updateUser: (user: IUser) => void;
 }
@@ -24,15 +23,23 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
-      login: (user: IUser) => {
-        set({ isAuthenticated: true, user });
-        localStorageHelper.set('access_token', user.access_token);
-        localStorageHelper.set('refresh_token', user.refresh_token);
+      accessToken: null,
+      refreshToken: null,
+      login: (user: IUser, accessToken: string, refreshToken: string) => {
+        set({
+          isAuthenticated: true,
+          user,
+          accessToken,
+          refreshToken,
+        });
       },
       logout: () => {
-        localStorageHelper.remove('access_token');
-        localStorageHelper.remove('refresh_token');
-        set({ isAuthenticated: false, user: null });
+        set({
+          isAuthenticated: false,
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+        });
       },
       updateUser: (user: IUser) => {
         set({ user });

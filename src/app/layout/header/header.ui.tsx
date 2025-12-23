@@ -9,6 +9,7 @@ import {
 import { Container } from '@/shared/ui/container';
 import { Button } from '@/shared/ui/button';
 import { MobileDrawer } from './ui/mobile';
+import { LoginModal } from '@/shared/ui/login-modal';
 import { FaBars } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 
@@ -16,6 +17,7 @@ function Header() {
   const { colorScheme } = useMantineColorScheme();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpened, setDrawerOpened] = useState(false);
+  const [loginModalOpened, setLoginModalOpened] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,7 +131,11 @@ function Header() {
               >
                 <FaBars size={18} />
               </ActionIcon>
-              <Button h={35} visibleFrom="md">
+              <Button
+                h={35}
+                visibleFrom="md"
+                onClick={() => setLoginModalOpened(true)}
+              >
                 Start Free
               </Button>
             </Flex>
@@ -142,6 +148,16 @@ function Header() {
         opened={drawerOpened}
         onClose={() => setDrawerOpened(false)}
         navItems={navItems}
+        onLoginClick={() => {
+          setDrawerOpened(false);
+          setLoginModalOpened(true);
+        }}
+      />
+
+      {/* Login Modal */}
+      <LoginModal
+        opened={loginModalOpened}
+        onClose={() => setLoginModalOpened(false)}
       />
     </>
   );

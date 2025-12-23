@@ -2,6 +2,8 @@ import { Button } from '@/shared/ui/button';
 import { Container } from '@/shared/ui/container';
 import { Text, Box, Flex, Stack, Title } from '@mantine/core';
 import { FaArrowRight } from 'react-icons/fa6';
+import { LoginModal } from '@/shared/ui/login-modal';
+import { useState } from 'react';
 import {
   CTA_TITLE,
   CTA_DESCRIPTION,
@@ -11,6 +13,8 @@ import {
 import styles from './cta.module.css';
 
 function CTA() {
+  const [loginModalOpened, setLoginModalOpened] = useState(false);
+
   return (
     <Box className={styles.section}>
       <Container>
@@ -48,6 +52,7 @@ function CTA() {
               rightSection={<FaArrowRight size={16} />}
               size="lg"
               w={{ base: '100%', sm: 'auto' }}
+              onClick={() => setLoginModalOpened(true)}
             >
               {CTA_BUTTON_PRIMARY}
             </Button>
@@ -58,6 +63,10 @@ function CTA() {
           </Text> */}
         </Stack>
       </Container>
+      <LoginModal
+        opened={loginModalOpened}
+        onClose={() => setLoginModalOpened(false)}
+      />
     </Box>
   );
 }
