@@ -29,6 +29,7 @@ function Regions() {
           align="center"
           justify="space-between"
           gap={{ base: 'xl', md: 'xl' }}
+          pb={{ base: '100px', md: 0 }}
         >
           {/* Left Side - Content */}
           <Stack gap="lg" style={{ flex: 1, maxWidth: '600px' }}>
@@ -104,7 +105,7 @@ function Regions() {
                       </Box>
                     )}
                     <Box style={{ flex: 1 }}>
-                      <Text fw={600} fz="md" c="gray.9" mb={4}>
+                      <Text fw={600} fz="md" mb={4} className="textPrimary">
                         {feature.title}:
                       </Text>
                       <Text fz="sm" c="dimmed" lh={1.6}>

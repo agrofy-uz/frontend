@@ -2,13 +2,37 @@ import { Drawer, Flex, Stack, Anchor, Text, ActionIcon } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
 import { FaTimes } from 'react-icons/fa';
 
+interface NavItem {
+  label: string;
+  href: string;
+}
+
 interface MobileDrawerProps {
   opened: boolean;
   onClose: () => void;
-  navItems: string[];
+  navItems: NavItem[];
 }
 
 const MobileDrawer = ({ opened, onClose, navItems }: MobileDrawerProps) => {
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    e.preventDefault();
+    onClose();
+    const element = document.querySelector(href);
+    if (element) {
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
   return (
     <Drawer
       opened={opened}
@@ -53,9 +77,9 @@ const MobileDrawer = ({ opened, onClose, navItems }: MobileDrawerProps) => {
       <Stack gap={0} p="md">
         {navItems.map((item) => (
           <Anchor
-            key={item}
-            href="#"
-            onClick={onClose}
+            key={item.label}
+            href={item.href}
+            onClick={(e) => handleNavClick(e, item.href)}
             style={{
               textDecoration: 'none',
               color: 'var(--mantine-color-text)',
@@ -72,7 +96,7 @@ const MobileDrawer = ({ opened, onClose, navItems }: MobileDrawerProps) => {
               e.currentTarget.style.color = 'var(--mantine-color-text)';
             }}
           >
-            {item}
+            {item.label}
           </Anchor>
         ))}
       </Stack>

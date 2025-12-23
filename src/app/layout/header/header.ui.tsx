@@ -27,7 +27,32 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = ['Product', 'AI', 'Solutions', 'Pricing', 'Partners'];
+  const navItems = [
+    { label: 'Product', href: '#product' },
+    { label: 'AI', href: '#ai' },
+    { label: 'Solutions', href: '#platforms' },
+    { label: 'Pricing', href: '#cta' },
+    { label: 'Partners', href: '#statistics' },
+  ];
+
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    e.preventDefault();
+    const element = document.querySelector(href);
+    if (element) {
+      const headerOffset = 80;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   return (
     <>
@@ -70,8 +95,9 @@ function Header() {
             <Group gap="xl" visibleFrom="md">
               {navItems.map((item) => (
                 <Anchor
-                  key={item}
-                  href="#"
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item.href)}
                   style={{
                     textDecoration: 'none',
                     color: 'var(--mantine-color-text)',
@@ -87,7 +113,7 @@ function Header() {
                     e.currentTarget.style.color = 'var(--mantine-color-text)';
                   }}
                 >
-                  {item}
+                  {item.label}
                 </Anchor>
               ))}
             </Group>

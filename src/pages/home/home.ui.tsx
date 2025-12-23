@@ -11,14 +11,30 @@ import { CTA } from './ui/cta';
 function Home() {
   return (
     <Box>
-      <Hero />
-      <Statistics />
-      <Product />
-      <AI />
-      <Platforms />
-      <Audience />
-      <Regions />
-      <CTA />
+      <Box id="hero">
+        <Hero />
+      </Box>
+      <Box id="statistics">
+        <Statistics />
+      </Box>
+      <Box id="product">
+        <Product />
+      </Box>
+      <Box id="ai">
+        <AI />
+      </Box>
+      <Box id="platforms">
+        <Platforms />
+      </Box>
+      <Box id="audience">
+        <Audience />
+      </Box>
+      <Box id="regions">
+        <Regions />
+      </Box>
+      <Box id="cta">
+        <CTA />
+      </Box>
     </Box>
   );
 }

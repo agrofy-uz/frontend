@@ -32,7 +32,11 @@ function Footer() {
           className={styles.topSection}
         >
           {/* Left Side - Logo, Tagline, Social */}
-          <Stack gap="md" w="30%" maw={{ base: '100%', md: 350 }}>
+          <Stack
+            gap="md"
+            w={{ base: '100%', md: '30%' }}
+            maw={{ base: '100%', md: 350 }}
+          >
             <Text fw={700} fz={{ base: 'xl', md: 'xl' }} c="green.6">
               {FOOTER_LOGO}
             </Text>
@@ -58,13 +62,7 @@ function Footer() {
           </Stack>
 
           {/* Right Side - Navigation Columns */}
-          <Flex
-            w="70%"
-            justify="space-between"
-            direction={{ base: 'column', sm: 'row' }}
-            gap={{ base: 'xl', sm: 'xl', md: 'xl' }}
-            wrap="wrap"
-          >
+          <Box w={{ base: '100%', md: '70%' }} className={styles.navColumns}>
             {FOOTER_NAV_COLUMNS.map((column) => (
               <Stack key={column.title} gap="sm">
                 <Text fw={600} fz="sm" className="textPrimary">
@@ -85,7 +83,7 @@ function Footer() {
                 </Stack>
               </Stack>
             ))}
-          </Flex>
+          </Box>
         </Flex>
 
         {/* Bottom Section */}

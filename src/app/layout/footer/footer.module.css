@@ -9,6 +9,7 @@ html[data-mantine-color-scheme='dark'] .footer {
 
 .topSection {
   border-bottom: 1px solid var(--mantine-color-gray-3);
+  gap: var(--mantine-spacing-xl);
 }
 
 html[data-mantine-color-scheme='dark'] .topSection {
@@ -63,4 +64,18 @@ html[data-mantine-color-scheme='dark'] .socialLink:hover {
 
 .navLink:hover {
   color: var(--mantine-color-green-6);
+}
+
+.navColumns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--mantine-spacing-xl);
+}
+
+@media (min-width: 768px) {
+  .navColumns {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
 }

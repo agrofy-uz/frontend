@@ -49,6 +49,17 @@
   position: relative;
   margin-right: 100px;
   isolation: isolate;
+
+  @media (max-width: 768px) {
+    margin-right: 0;
+    margin-top: 100px;
+    width: 80%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 
 .outerDashedCircle {
