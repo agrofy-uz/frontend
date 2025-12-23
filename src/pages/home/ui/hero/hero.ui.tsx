@@ -66,7 +66,7 @@ function Hero() {
             wrap="nowrap"
           >
             <Flex
-              maw={{ base: '100%', md: 500 }}
+              maw={{ base: '100%', md: 600 }}
               w="100%"
               direction="column"
               align={{ base: 'center', md: 'start' }}
@@ -76,7 +76,7 @@ function Hero() {
               <Badge
                 bg={theme?.colors?.green?.[2]}
                 c={theme?.colors?.green?.[8]}
-                size="md"
+                size="lg"
                 leftSection={
                   <Box
                     w={10}
@@ -93,7 +93,7 @@ function Hero() {
                 AI-Powered Agriculture Platform
               </Badge>
               <Text
-                fz={{ base: 28, sm: 32, md: 40 }}
+                fz={{ base: 28, sm: 32, md: 60 }}
                 fw={700}
                 lh={1.1}
                 ta={{ base: 'center', md: 'start' }}
@@ -107,7 +107,7 @@ function Hero() {
                 mb="lg"
                 c="dimmed"
                 ta={{ base: 'center', md: 'start' }}
-                fz={{ base: 'sm', md: 'md' }}
+                fz={{ base: 'sm', md: 'lg' }}
               >
                 Agrofy helps farmers and agribusinesses increase productivity
                 using artificial intelligence. From chat assistance to smart
