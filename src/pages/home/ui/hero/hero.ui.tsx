@@ -6,6 +6,13 @@ import { Text, Box, Flex, Card } from '@mantine/core';
 import theme from '@/shared/theme';
 import { Mockup } from './ui/mockup';
 import { IoChatbox } from 'react-icons/io5';
+import {
+  HERO_BADGE_TEXT,
+  HERO_TITLE,
+  HERO_DESCRIPTION,
+  HERO_BUTTON_TEXT,
+  HERO_STATS,
+} from './hero.const';
 
 function Hero() {
   return (
@@ -90,7 +97,7 @@ function Hero() {
                   />
                 }
               >
-                AI-Powered Agriculture Platform
+                {HERO_BADGE_TEXT}
               </Badge>
               <Text
                 fz={{ base: 28, sm: 32, md: 60 }}
@@ -98,9 +105,9 @@ function Hero() {
                 lh={1.1}
                 ta={{ base: 'center', md: 'start' }}
               >
-                The complete AI ecosystem for <br />
+                {HERO_TITLE.prefix} <br />
                 <span style={{ color: theme?.colors?.green?.[6] }}>
-                  modern agriculture
+                  {HERO_TITLE.highlight}
                 </span>
               </Text>
               <Text
@@ -109,16 +116,14 @@ function Hero() {
                 ta={{ base: 'center', md: 'start' }}
                 fz={{ base: 'sm', md: 'lg' }}
               >
-                Agrofy helps farmers and agribusinesses increase productivity
-                using artificial intelligence. From chat assistance to smart
-                irrigation — all in one platform.
+                {HERO_DESCRIPTION}
               </Text>
               <Button
                 onClick={() => console.log('Button clicked')}
                 leftSection={<IoChatbox />}
                 w={{ base: '100%', md: 'auto' }}
               >
-                Start with AI Chat
+                {HERO_BUTTON_TEXT}
               </Button>
               <Flex
                 gap={{ base: 'sm', md: 'md' }}
@@ -126,67 +131,42 @@ function Hero() {
                 mt="lg"
                 wrap="wrap"
               >
-                <Card
-                  bg="transparent"
-                  bdrs={0}
-                  withBorder={false}
-                  style={{
-                    borderRight: '1px solid var(--mantine-color-gray-3)',
-                    paddingRight: '1rem',
-                  }}
-                >
-                  <Text ta="center" fz={{ base: 20, md: 24 }} fw={700} lh={1.2}>
-                    1M+
+                {HERO_STATS.map((stat, index) => (
+                  <Card
+                    key={index}
+                    bg="transparent"
+                    bdrs={0}
+                    withBorder={false}
+                    style={
+                      index < 2
+                        ? {
+                            borderRight:
+                              '1px solid var(--mantine-color-gray-3)',
+                            paddingRight: '1rem',
+                          }
+                        : undefined
+                    }
+                  >
                     <Text
-                      span
-                      c="dimmed"
-                      display="block"
-                      fz={{ base: 12, md: 14 }}
-                      fw={400}
-                      mt={2}
+                      ta="center"
+                      fz={{ base: 20, md: 24 }}
+                      fw={700}
+                      lh={1.2}
                     >
-                      Active Users
+                      {stat.value}
+                      <Text
+                        span
+                        c="dimmed"
+                        display="block"
+                        fz={{ base: 12, md: 14 }}
+                        fw={400}
+                        mt={2}
+                      >
+                        {stat.label}
+                      </Text>
                     </Text>
-                  </Text>
-                </Card>
-                <Card
-                  bg="transparent"
-                  bdrs={0}
-                  withBorder={false}
-                  style={{
-                    borderRight: '1px solid var(--mantine-color-gray-3)',
-                    paddingRight: '1rem',
-                  }}
-                >
-                  <Text ta="center" fz={{ base: 20, md: 24 }} fw={700} lh={1.2}>
-                    100K+
-                    <Text
-                      span
-                      c="dimmed"
-                      display="block"
-                      fz={{ base: 12, md: 14 }}
-                      fw={400}
-                      mt={2}
-                    >
-                      Farms
-                    </Text>
-                  </Text>
-                </Card>
-                <Card bg="transparent" bdrs={0} withBorder={false}>
-                  <Text ta="center" fz={{ base: 20, md: 24 }} fw={700} lh={1.2}>
-                    50+
-                    <Text
-                      span
-                      c="dimmed"
-                      display="block"
-                      fz={{ base: 12, md: 14 }}
-                      fw={400}
-                      mt={2}
-                    >
-                      Countries
-                    </Text>
-                  </Text>
-                </Card>
+                  </Card>
+                ))}
               </Flex>
             </Flex>
             <Flex direction="column" align="center" justify="center" gap="md">

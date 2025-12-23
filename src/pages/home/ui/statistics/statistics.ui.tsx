@@ -1,71 +1,126 @@
 import { Box, Flex, Text, Grid, Card, Stack, Badge } from '@mantine/core';
 import { Container } from '@/shared/ui/container';
-import { FaUsers, FaMapMarkedAlt } from 'react-icons/fa';
-import { FaGlobe } from 'react-icons/fa';
+import { FaUsers, FaMapMarkedAlt, FaGlobe } from 'react-icons/fa';
 import { FaArrowTrendUp, FaArrowTrendDown } from 'react-icons/fa6';
+import { useEffect, useRef, useState } from 'react';
+import {
+  STATS_DATA,
+  BENEFITS_DATA,
+  PARTNERS_DATA,
+  formatNumber,
+} from './statistics.const';
+
+// Icon components
+const statsIcons = [
+  <FaUsers
+    key="users"
+    size={24}
+    style={{ color: 'var(--mantine-color-green-5)' }}
+  />,
+  <FaMapMarkedAlt
+    key="map"
+    size={24}
+    style={{ color: 'var(--mantine-color-green-5)' }}
+  />,
+  <FaGlobe
+    key="globe"
+    size={24}
+    style={{ color: 'var(--mantine-color-green-5)' }}
+  />,
+];
+
+const benefitsIcons = [
+  <FaArrowTrendUp
+    key="up"
+    size={20}
+    style={{ color: 'var(--mantine-color-green-6)' }}
+  />,
+  <FaArrowTrendDown
+    key="down"
+    size={20}
+    style={{ color: 'var(--mantine-color-green-6)' }}
+  />,
+];
 
 function Statistics() {
-  const stats = [
-    {
-      icon: (
-        <FaUsers size={24} style={{ color: 'var(--mantine-color-green-5)' }} />
-      ),
-      number: '1M+',
-      label: 'Active Users',
-    },
-    {
-      icon: (
-        <FaMapMarkedAlt
-          size={24}
-          style={{ color: 'var(--mantine-color-green-5)' }}
-        />
-      ),
-      number: '100K+',
-      label: 'Connected Farms',
-    },
-    {
-      icon: (
-        <FaGlobe size={24} style={{ color: 'var(--mantine-color-green-5)' }} />
-      ),
-      number: '50+',
-      label: 'Countries',
-    },
-  ];
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [counts, setCounts] = useState([0, 0, 0]);
 
-  const benefits = [
-    {
-      icon: (
-        <FaArrowTrendUp
-          size={20}
-          style={{ color: 'var(--mantine-color-green-6)' }}
-        />
-      ),
-      value: '+30%',
-      label: 'Average Productivity Increase',
-    },
-    {
-      icon: (
-        <FaArrowTrendDown
-          size={20}
-          style={{ color: 'var(--mantine-color-green-6)' }}
-        />
-      ),
-      value: '-25%',
-      label: 'Cost Reduction',
-    },
-  ];
+  const stats = STATS_DATA.map((stat, index) => ({
+    ...stat,
+    icon: statsIcons[index],
+  }));
 
-  const partners = [
-    'AgriTech Corp',
-    'FarmFirst',
-    'Global Seeds',
-    'CropGuard',
-    'AquaSmart',
-    'HarvestPro',
-  ];
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const duration = 2000; // 2 soniya
+    const steps = 60;
+    const stepDuration = duration / steps;
+
+    const timers: NodeJS.Timeout[] = [];
+
+    STATS_DATA.forEach((stat, index) => {
+      let currentStep = 0;
+      const increment = stat.target / steps;
+
+      const timer = setInterval(() => {
+        currentStep++;
+        setCounts((prev) => {
+          const newCounts = [...prev];
+          if (newCounts[index] < stat.target) {
+            newCounts[index] = Math.min(
+              newCounts[index] + increment,
+              stat.target
+            );
+          }
+          return newCounts;
+        });
+
+        if (currentStep >= steps) {
+          clearInterval(timer);
+        }
+      }, stepDuration);
+
+      timers.push(timer);
+    });
+
+    return () => {
+      timers.forEach((timer) => clearInterval(timer));
+    };
+  }, [isVisible]);
+
+  const benefits = BENEFITS_DATA.map((benefit, index) => ({
+    ...benefit,
+    icon: benefitsIcons[index],
+  }));
+
+  const partners = PARTNERS_DATA;
 
   return (
-    <Box bg="gray.1" py={{ base: 'xl', md: 80 }}>
+    <Box ref={sectionRef} bg="gray.1" py={{ base: 'xl', md: 80 }}>
       <Container>
         <Stack gap="xl">
           {/* Top Section - Key Metrics */}
@@ -82,7 +137,8 @@ function Statistics() {
                 >
                   <Box>{stat.icon}</Box>
                   <Text fz={{ base: 32, md: 40 }} fw={700} c="gray.9">
-                    {stat.number}
+                    {formatNumber(counts[index], stat.target)}
+                    {stat.suffix}
                   </Text>
                   <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" fw={500}>
                     {stat.label}
@@ -101,7 +157,8 @@ function Statistics() {
               >
                 <Box>{stats[2].icon}</Box>
                 <Text fz={{ base: 32, md: 40 }} fw={700} c="gray.9">
-                  {stats[2].number}
+                  {formatNumber(counts[2], stats[2].target)}
+                  {stats[2].suffix}
                 </Text>
                 <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" fw={500}>
                   {stats[2].label}
