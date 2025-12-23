@@ -6,15 +6,81 @@ import { Text, Box, Flex, Card } from '@mantine/core';
 import theme from '@/shared/theme';
 import { Mockup } from './ui/mockup';
 import { IoChatbox } from 'react-icons/io5';
+import { useEffect, useRef, useState } from 'react';
 import {
   HERO_BADGE_TEXT,
   HERO_TITLE,
   HERO_DESCRIPTION,
   HERO_BUTTON_TEXT,
   HERO_STATS,
+  formatNumber,
 } from './hero.const';
 
 function Hero() {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [counts, setCounts] = useState([0, 0, 0]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.3 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const duration = 2000; // 2 soniya
+    const steps = 60;
+    const stepDuration = duration / steps;
+
+    const timers: NodeJS.Timeout[] = [];
+
+    HERO_STATS.forEach((stat, index) => {
+      let currentStep = 0;
+      const increment = stat.target / steps;
+
+      const timer = setInterval(() => {
+        currentStep++;
+        setCounts((prev) => {
+          const newCounts = [...prev];
+          if (newCounts[index] < stat.target) {
+            newCounts[index] = Math.min(
+              newCounts[index] + increment,
+              stat.target
+            );
+          }
+          return newCounts;
+        });
+
+        if (currentStep >= steps) {
+          clearInterval(timer);
+        }
+      }, stepDuration);
+
+      timers.push(timer);
+    });
+
+    return () => {
+      timers.forEach((timer) => clearInterval(timer));
+    };
+  }, [isVisible]);
+
   return (
     <Box
       style={{
@@ -52,6 +118,7 @@ function Hero() {
 
       {/* Content - header ustida */}
       <Box
+        ref={sectionRef}
         style={{
           position: 'relative',
           zIndex: 1,
@@ -153,7 +220,8 @@ function Hero() {
                       fw={700}
                       lh={1.2}
                     >
-                      {stat.value}
+                      {formatNumber(counts[index], stat.target)}
+                      {stat.suffix}
                       <Text
                         span
                         c="dimmed"
