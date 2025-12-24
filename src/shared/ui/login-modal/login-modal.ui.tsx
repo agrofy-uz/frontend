@@ -3,25 +3,21 @@ import {
   Modal,
   Stack,
   Text,
-  Button as MantineButton,
   Alert,
   Group,
-  Anchor,
   Skeleton,
+  Button as MantineButton,
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
-import { FaCheckCircle, FaTelegram, FaTimesCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaCheckCircle, FaTelegram } from 'react-icons/fa';
 import { authApi } from '@/shared/api/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { OtpInput } from './components/otp-input';
-import {
-  TELEGRAM_BOT_USERNAME,
-  getErrorMessage,
-  getTelegramBotLink,
-} from './login-modal.const';
+import { getErrorMessage, getTelegramBotLink } from './login-modal.const';
 import type { ViewState } from './login-modal.const';
 import { openNotification } from '@/shared/lib/notification';
+import { useMediaQuery } from '@mantine/hooks';
 
 interface LoginModalProps {
   opened: boolean;
@@ -35,7 +31,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { login } = useAuthStore();
-
+  const isMobile = useMediaQuery('(max-width: 768px)');
   // Session boshlash
   const handleStartSession = async () => {
     setError(null);
@@ -48,12 +44,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     } catch (err: unknown) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
-      setViewState('error');
-      openNotification({
-        title: errorMessage,
-        type: 'error',
-        icon: <FaTimesCircle size={24} />,
-      });
+      setViewState('initial');
     }
   };
 
@@ -109,12 +100,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     } catch (err: unknown) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);
-      setViewState('error');
-      openNotification({
-        title: errorMessage,
-        type: 'error',
-        icon: <FaTimesCircle size={24} />,
-      });
+      setViewState('otp');
 
       // Agar 404 bo'lsa, initial state'ga qaytish
       if (errorMessage === 'Session topilmadi. Qayta boshlang.') {
@@ -179,51 +165,56 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
                 Telegram botdan olgan OTP kodni kiriting
               </Text>
 
-              <Alert color="blue" radius="md">
+              <Alert
+                color="blue"
+                radius="md"
+                style={{ cursor: 'pointer' }}
+                onClick={() => window.open(telegramBotLink, '_blank')}
+              >
                 <Stack gap="xs">
                   <Text fz="sm" fw={500}>
                     Telegram botga o'ting:
                   </Text>
-                  <Anchor
-                    href={telegramBotLink}
-                    target="_blank"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                    }}
-                  >
+
+                  <Group gap="xs" c="green">
                     <FaTelegram size={20} />
                     <Text fz="sm" fw={500}>
-                      @{TELEGRAM_BOT_USERNAME}
+                      @agrofy_bot
                     </Text>
-                  </Anchor>
+                  </Group>
                 </Stack>
               </Alert>
 
               <Stack gap="xs" align="center">
-                <OtpInput value={otp} onChange={setOtp} disabled={false} />
+                <OtpInput
+                  value={otp}
+                  onChange={setOtp}
+                  disabled={false}
+                  error={!!error}
+                />
               </Stack>
 
               {error && (
-                <Alert color="red" radius="md">
-                  <Text fz="sm">{error}</Text>
-                </Alert>
+                <Text fz="xs" c="red">
+                  Noto'g'ri OTP kod
+                </Text>
               )}
 
-              <Group gap="sm">
+              <Group gap="sm" wrap="nowrap">
                 <MantineButton
-                  variant="subtle"
                   onClick={handleReset}
-                  style={{ flex: 1 }}
+                  size="md"
+                  fullWidth
+                  variant="outline"
+                  leftSection={<FaArrowLeft size={12} />}
                 >
                   Orqaga
                 </MantineButton>
                 <Button
                   type="submit"
-                  style={{ flex: 1 }}
                   size="md"
                   disabled={otp.length !== 6}
+                  fullWidth
                 >
                   Tasdiqlash
                 </Button>
@@ -245,27 +236,18 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
             <Stack gap="xs" align="center">
               <Group gap="xs" justify="center">
                 {[...Array(6)].map((_, i) => (
-                  <Skeleton key={i} height={56} width={48} radius="md" />
+                  <Skeleton
+                    key={i}
+                    height={56}
+                    width={isMobile ? '36px' : '48px'}
+                    radius="md"
+                  />
                 ))}
               </Group>
             </Stack>
 
             {/* Button skeleton */}
             <Skeleton height={44} radius="md" />
-          </Stack>
-        )}
-
-        {/* Error state */}
-        {viewState === 'error' && (
-          <Stack gap="md" align="center">
-            <Alert color="red" radius="md" style={{ width: '100%' }}>
-              <Text fz="sm">
-                {error || "Xatolik yuz berdi. Qayta urinib ko'ring."}
-              </Text>
-            </Alert>
-            <Button onClick={handleReset} fullWidth>
-              Qayta urinish
-            </Button>
           </Stack>
         )}
       </Stack>

@@ -5,11 +5,6 @@ export const TELEGRAM_BOT_USERNAME = 'agrofy_bot';
 
 export type ViewState = 'initial' | 'otp' | 'loading' | 'error';
 
-// Error messages
-const ERROR_INVALID_OTP = "Noto'g'ri OTP kodi yoki session";
-const ERROR_SESSION_NOT_FOUND = 'Session topilmadi. Qayta boshlang.';
-const ERROR_DEFAULT = "Xatolik yuz berdi. Qayta urinib ko'ring.";
-
 // Helper functions
 export function getErrorMessage(err: unknown): string {
   if (axios.isAxiosError(err)) {
@@ -17,11 +12,11 @@ export function getErrorMessage(err: unknown): string {
     const data = err.response?.data;
 
     if (status === 400) {
-      return ERROR_INVALID_OTP;
+      return "Noto'g'ri OTP kodi yoki session";
     }
 
     if (status === 404) {
-      return ERROR_SESSION_NOT_FOUND;
+      return 'Session topilmadi. Qayta boshlang.';
     }
 
     if (status === 422) {
@@ -58,12 +53,10 @@ export function getErrorMessage(err: unknown): string {
     }
   }
 
-  return ERROR_DEFAULT;
+  return "Xatolik yuz berdi. Qayta urinib ko'ring.";
 }
 
 export function getTelegramBotLink(sessionId: string | null): string {
   const baseUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}`;
-  console.log(baseUrl);
-  console.log('sessionId', sessionId);
   return sessionId ? `${baseUrl}?start=${sessionId}` : baseUrl;
 }

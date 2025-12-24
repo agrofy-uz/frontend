@@ -35,6 +35,9 @@ export const openNotification = ({
           ? 'yellow.2'
           : 'blue.2';
 
+  // Mobile uchun responsive o'lchamlarni aniqlash
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
   return showNotification({
     title,
     message: '',
@@ -43,20 +46,24 @@ export const openNotification = ({
     icon,
     styles: {
       root: {
-        width: 400,
-        borderRadius: '16px',
-        padding: 12,
+        width: isMobile ? 'calc(100vw - 32px)' : 400,
+        maxWidth: isMobile ? 'calc(100vw - 32px)' : 400,
+        borderRadius: isMobile ? '12px' : '16px',
+        padding: isMobile ? 10 : 12,
       },
       icon: {
-        width: 48,
-        height: 48,
-        borderRadius: '12px',
+        width: isMobile ? 36 : 48,
+        height: isMobile ? 36 : 48,
+        borderRadius: isMobile ? '10px' : '12px',
         backgroundColor: `var(--mantine-color-${iconBg.split('.')[0]}-${iconBg.split('.')[1]})`,
-        p: '8px',
+        padding: isMobile ? '6px' : '8px',
+      },
+      title: {
+        fontSize: isMobile ? '14px' : '16px',
       },
       closeButton: {
-        width: 20,
-        height: 20,
+        width: isMobile ? 18 : 20,
+        height: isMobile ? 18 : 20,
         backgroundColor: 'transparent',
         '&:hover': {
           backgroundColor: 'transparent',

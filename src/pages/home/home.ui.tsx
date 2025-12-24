@@ -7,8 +7,20 @@ import { Platforms } from './ui/platforms';
 import { Audience } from './ui/audience';
 import { Regions } from './ui/regions';
 import { CTA } from './ui/cta';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/shared/store/authStore';
 
 function Home() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   return (
     <Box>
       <Box id="hero">
