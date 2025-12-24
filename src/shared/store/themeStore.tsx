@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ColorScheme } from '@mantine/core';
+
+type ColorScheme = 'light' | 'dark';
 
 interface ThemeState {
   colorScheme: ColorScheme;
