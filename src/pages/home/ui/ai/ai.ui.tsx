@@ -2,7 +2,7 @@ import { Box, Card, Flex, Stack, Text, Title } from '@mantine/core';
 import { Container } from '@/shared/ui/container';
 import { FaDatabase, FaLightbulb } from 'react-icons/fa';
 import { FaBrain } from 'react-icons/fa6';
-import { AI_STEPS, AI_SUBTITLE, AI_TITLE } from './ai.const';
+import { AI_STEPS } from './ai.const';
 import styles from './ai.module.css';
 
 const iconMap = {
@@ -24,7 +24,7 @@ function AI() {
               ta="center"
               className="textPrimary"
             >
-              {AI_TITLE}
+              How Agrofy Works
             </Title>
             <Text
               fz={{ base: 'sm', md: 'md' }}
@@ -32,7 +32,8 @@ function AI() {
               maw={600}
               className="textSecondary"
             >
-              {AI_SUBTITLE}
+              A simple three-step process that transforms your farming
+              operations with AI.
             </Text>
           </Stack>
 

@@ -2,24 +2,23 @@ import { Button } from '@/shared/ui/button';
 import { Container } from '@/shared/ui/container';
 import { Badge } from '@/shared/ui/badge';
 import { PlusPattern } from '@/shared/ui/plus-pattern';
+import { LoginModal } from '@/shared/ui/login-modal';
 import { Text, Box, Flex, Card } from '@mantine/core';
 import theme from '@/shared/theme';
 import { Mockup } from './ui/mockup';
 import { IoChatbox } from 'react-icons/io5';
 import { useEffect, useRef, useState } from 'react';
-import {
-  HERO_BADGE_TEXT,
-  HERO_TITLE,
-  HERO_DESCRIPTION,
-  HERO_BUTTON_TEXT,
-  HERO_STATS,
-  formatNumber,
-} from './hero.const';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/shared/store/authStore';
+import { HERO_STATS, formatNumber } from './hero.const';
 
 function Hero() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const [counts, setCounts] = useState([0, 0, 0]);
+  const [loginModalOpened, setLoginModalOpened] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -164,7 +163,7 @@ function Hero() {
                   />
                 }
               >
-                {HERO_BADGE_TEXT}
+                AI-Powered Agriculture Platform
               </Badge>
               <Text
                 fz={{ base: 28, sm: 32, md: 60 }}
@@ -173,9 +172,9 @@ function Hero() {
                 ta={{ base: 'center', md: 'start' }}
                 className="textPrimary"
               >
-                {HERO_TITLE.prefix} <br />
+                The complete AI ecosystem for <br />
                 <span style={{ color: theme?.colors?.green?.[6] }}>
-                  {HERO_TITLE.highlight}
+                  modern agriculture
                 </span>
               </Text>
               <Text
@@ -184,14 +183,22 @@ function Hero() {
                 ta={{ base: 'center', md: 'start' }}
                 fz={{ base: 'sm', md: 'lg' }}
               >
-                {HERO_DESCRIPTION}
+                Agrofy helps farmers and agribusinesses increase productivity
+                using artificial intelligence. From chat assistance to smart
+                irrigation — all in one platform.
               </Text>
               <Button
-                onClick={() => console.log('Button clicked')}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    navigate('/dashboard');
+                  } else {
+                    setLoginModalOpened(true);
+                  }
+                }}
                 leftSection={<IoChatbox />}
                 w={{ base: '100%', md: 'auto' }}
               >
-                {HERO_BUTTON_TEXT}
+                Start with AI Chat
               </Button>
               <Flex
                 gap={{ base: 'sm', md: 'md' }}
@@ -244,6 +251,12 @@ function Hero() {
           </Flex>
         </Container>
       </Box>
+
+      {/* Login Modal */}
+      <LoginModal
+        opened={loginModalOpened}
+        onClose={() => setLoginModalOpened(false)}
+      />
     </Box>
   );
 }

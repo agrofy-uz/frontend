@@ -1,8 +1,3 @@
-export const PLATFORMS_TITLE = 'Available Everywhere You Need It';
-
-export const PLATFORMS_SUBTITLE =
-  'Access Agrofy on any device, anywhere. Your farm data stays synchronized across all platforms.';
-
 export const PLATFORMS = [
   {
     icon: 'web',

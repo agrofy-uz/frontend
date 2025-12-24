@@ -1,10 +1,6 @@
 import { Box, Text, Stack, Grid, Card, Title } from '@mantine/core';
 import { Container } from '@/shared/ui/container';
-import {
-  AUDIENCE_TITLE,
-  AUDIENCE_SUBTITLE,
-  AUDIENCE_CARDS,
-} from './audience.const';
+import { AUDIENCE_CARDS } from './audience.const';
 import { FaTractor } from 'react-icons/fa';
 import { FaBuilding } from 'react-icons/fa';
 import { FaShip } from 'react-icons/fa';
@@ -33,7 +29,7 @@ function Audience() {
               ta="center"
               className="textPrimary"
             >
-              {AUDIENCE_TITLE}
+              Who Is Agrofy For?
             </Title>
             <Text
               fz={{ base: 'sm', md: 'md' }}
@@ -41,7 +37,8 @@ function Audience() {
               ta="center"
               maw={600}
             >
-              {AUDIENCE_SUBTITLE}
+              Tailored solutions for every stakeholder in the agricultural value
+              chain.
             </Text>
           </Stack>
 

@@ -1,13 +1,6 @@
 import { Container } from '@/shared/ui/container';
 import { Text, Flex, Stack, Anchor, Box, Group } from '@mantine/core';
-import {
-  FOOTER_LOGO,
-  FOOTER_TAGLINE,
-  FOOTER_SOCIAL_LINKS,
-  FOOTER_NAV_COLUMNS,
-  FOOTER_COPYRIGHT,
-  FOOTER_LANGUAGE_CURRENCY,
-} from './footer.const';
+import { FOOTER_SOCIAL_LINKS, FOOTER_NAV_COLUMNS } from './footer.const';
 import { ThemeToggle } from './ui/theme-toggle';
 import { FaLinkedin, FaTwitter, FaYoutube, FaInstagram } from 'react-icons/fa';
 import styles from './footer.module.css';
@@ -38,10 +31,11 @@ function Footer() {
             maw={{ base: '100%', md: 350 }}
           >
             <Text fw={700} fz={{ base: 'xl', md: 'xl' }} c="green.6">
-              {FOOTER_LOGO}
+              Agrofy
             </Text>
             <Text fz="sm" c="dimmed" lh={1.6}>
-              {FOOTER_TAGLINE}
+              The complete AI ecosystem for modern agriculture. Empowering
+              farmers worldwide.
             </Text>
             <Group gap="sm" mt="xs">
               {FOOTER_SOCIAL_LINKS.map((social) => {
@@ -101,11 +95,11 @@ function Footer() {
             gap="md"
           >
             <Text fz="sm" c="dimmed">
-              {FOOTER_COPYRIGHT}
+              © {new Date().getFullYear()} Agrofy. All rights reserved.
             </Text>
             <Flex align="center" gap="md">
               <Text fz="sm" c="dimmed">
-                {FOOTER_LANGUAGE_CURRENCY}
+                English USD
               </Text>
               <ThemeToggle />
             </Flex>

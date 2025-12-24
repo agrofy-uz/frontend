@@ -1,8 +1,3 @@
-export const PRODUCT_TITLE = 'One platform, complete agriculture solution';
-
-export const PRODUCT_SUBTITLE =
-  'Five integrated modules designed to cover every aspect of modern farming operations.';
-
 export const PRODUCT_MODULES = [
   {
     icon: 'chat', // AI Agro Chat

@@ -1,12 +1,6 @@
 import { Box, Text, Stack, Flex, Title } from '@mantine/core';
 import { Container } from '@/shared/ui/container';
-import {
-  REGIONS_TITLE,
-  REGIONS_DESCRIPTION,
-  REGIONS_FEATURES,
-  REGIONS_STAT,
-  REGIONS_KPIS,
-} from './regions.const';
+import { REGIONS_FEATURES, REGIONS_STAT, REGIONS_KPIS } from './regions.const';
 import { FaGlobe } from 'react-icons/fa';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import { IoLanguage } from 'react-icons/io5';
@@ -58,13 +52,16 @@ function Regions() {
                 className="textPrimary"
                 style={{ flex: 1 }}
               >
-                {REGIONS_TITLE}
+                Building the Future of Agriculture Across Regions
               </Title>
             </Flex>
 
             {/* Description */}
             <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" lh={1.7}>
-              {REGIONS_DESCRIPTION}
+              Our vision is to empower every farmer on the planet with AI-driven
+              insights. From small family farms to large agribusiness
+              operations, Agrofy adapts to local conditions while maintaining
+              global standards.
             </Text>
 
             {/* KPI pills */}

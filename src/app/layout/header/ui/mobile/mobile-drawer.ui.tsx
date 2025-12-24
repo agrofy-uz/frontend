@@ -1,6 +1,8 @@
 import { Drawer, Flex, Stack, Anchor, Text, ActionIcon } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
 import { FaTimes } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/shared/store/authStore';
 
 interface NavItem {
   label: string;
@@ -20,6 +22,17 @@ const MobileDrawer = ({
   navItems,
   onLoginClick,
 }: MobileDrawerProps) => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
+  const handleButtonClick = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+      onClose();
+    } else {
+      onLoginClick?.();
+    }
+  };
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
@@ -109,8 +122,8 @@ const MobileDrawer = ({
 
       {/* Start button - eng pastida */}
       <Flex justify="center" p="md" pb="xl">
-        <Button w="100%" h={44} onClick={onLoginClick}>
-          Start Free
+        <Button w="100%" h={44} onClick={handleButtonClick}>
+          {isAuthenticated ? 'Dashboard' : 'Start Free'}
         </Button>
       </Flex>
     </Drawer>

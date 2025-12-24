@@ -1,10 +1,6 @@
 import { Box, Text, Stack, Grid, Card, Title } from '@mantine/core';
 import { Container } from '@/shared/ui/container';
-import {
-  PRODUCT_TITLE,
-  PRODUCT_SUBTITLE,
-  PRODUCT_MODULES,
-} from './product.const';
+import { PRODUCT_MODULES } from './product.const';
 import { IoChatbubbles } from 'react-icons/io5';
 import { FaTint, FaEye, FaShoppingCart, FaGlobe } from 'react-icons/fa';
 import styles from './product.module.css';
@@ -32,7 +28,7 @@ function Product() {
               ta="center"
               className="textPrimary"
             >
-              {PRODUCT_TITLE}
+              One platform, complete agriculture solution
             </Title>
             <Text
               fz={{ base: 'sm', md: 'md' }}
@@ -40,7 +36,8 @@ function Product() {
               ta="center"
               maw={600}
             >
-              {PRODUCT_SUBTITLE}
+              Five integrated modules designed to cover every aspect of modern
+              farming operations.
             </Text>
           </Stack>
 

@@ -1,9 +1,3 @@
-export const REGIONS_TITLE =
-  'Building the Future of Agriculture Across Regions';
-
-export const REGIONS_DESCRIPTION =
-  'Our vision is to empower every farmer on the planet with AI-driven insights. From small family farms to large agribusiness operations, Agrofy adapts to local conditions while maintaining global standards.';
-
 export const REGIONS_FEATURES = [
   {
     icon: 'language',

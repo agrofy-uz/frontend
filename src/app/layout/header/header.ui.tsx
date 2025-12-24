@@ -12,12 +12,16 @@ import { MobileDrawer } from './ui/mobile';
 import { LoginModal } from '@/shared/ui/login-modal';
 import { FaBars } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/shared/store/authStore';
 
 function Header() {
   const { colorScheme } = useMantineColorScheme();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpened, setDrawerOpened] = useState(false);
   const [loginModalOpened, setLoginModalOpened] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -134,9 +138,15 @@ function Header() {
               <Button
                 h={35}
                 visibleFrom="md"
-                onClick={() => setLoginModalOpened(true)}
+                onClick={() => {
+                  if (isAuthenticated) {
+                    navigate('/dashboard');
+                  } else {
+                    setLoginModalOpened(true);
+                  }
+                }}
               >
-                Start Free
+                {isAuthenticated ? 'Dashboard' : 'Start Free'}
               </Button>
             </Flex>
           </Flex>

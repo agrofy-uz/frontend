@@ -1,8 +1,3 @@
-export const FOOTER_LOGO = 'Agrofy';
-
-export const FOOTER_TAGLINE =
-  'The complete AI ecosystem for modern agriculture. Empowering farmers worldwide.';
-
 export const FOOTER_SOCIAL_LINKS = [
   {
     name: 'LinkedIn',
@@ -67,7 +62,3 @@ export const FOOTER_NAV_COLUMNS = [
     ],
   },
 ] as const;
-
-export const FOOTER_COPYRIGHT = `© ${new Date().getFullYear()} Agrofy. All rights reserved.`;
-
-export const FOOTER_LANGUAGE_CURRENCY = 'English USD';

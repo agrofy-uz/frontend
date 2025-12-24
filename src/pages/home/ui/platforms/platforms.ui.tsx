@@ -1,10 +1,6 @@
 import { Box, Text, Stack, Grid, Card, Title, Badge } from '@mantine/core';
 import { Container } from '@/shared/ui/container';
-import {
-  PLATFORMS_TITLE,
-  PLATFORMS_SUBTITLE,
-  PLATFORMS,
-} from './platforms.const';
+import { PLATFORMS } from './platforms.const';
 import { FaDesktop } from 'react-icons/fa';
 import { FaMobileAlt } from 'react-icons/fa';
 import { FaApple } from 'react-icons/fa';
@@ -33,7 +29,7 @@ function Platforms() {
               ta="center"
               className="textPrimary"
             >
-              {PLATFORMS_TITLE}
+              Available Everywhere You Need It
             </Title>
             <Text
               fz={{ base: 'sm', md: 'md' }}
@@ -41,7 +37,8 @@ function Platforms() {
               ta="center"
               maw={600}
             >
-              {PLATFORMS_SUBTITLE}
+              Access Agrofy on any device, anywhere. Your farm data stays
+              synchronized across all platforms.
             </Text>
           </Stack>
 

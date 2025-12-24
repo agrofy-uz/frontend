@@ -1,8 +1,3 @@
-export const AUDIENCE_TITLE = 'Who Is Agrofy For?';
-
-export const AUDIENCE_SUBTITLE =
-  'Tailored solutions for every stakeholder in the agricultural value chain.';
-
 export const AUDIENCE_CARDS = [
   {
     icon: 'farmer',

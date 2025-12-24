@@ -1,8 +1,3 @@
-export const AI_TITLE = 'How Agrofy Works';
-
-export const AI_SUBTITLE =
-  'A simple three-step process that transforms your farming operations with AI.';
-
 export const AI_STEPS = [
   {
     number: 1,

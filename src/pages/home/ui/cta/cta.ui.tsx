@@ -4,12 +4,6 @@ import { Text, Box, Flex, Stack, Title } from '@mantine/core';
 import { FaArrowRight } from 'react-icons/fa6';
 import { LoginModal } from '@/shared/ui/login-modal';
 import { useState } from 'react';
-import {
-  CTA_TITLE,
-  CTA_DESCRIPTION,
-  CTA_BUTTON_PRIMARY,
-  //   CTA_PLATFORMS,
-} from './cta.const';
 import styles from './cta.module.css';
 
 function CTA() {
@@ -28,8 +22,8 @@ function CTA() {
             lh={1.2}
             className="textPrimary"
           >
-            {CTA_TITLE.prefix} <br />
-            {CTA_TITLE.highlight}
+            Start Growing Smarter with <br />
+            Agrofy
           </Title>
           {/* Description */}
           <Text
@@ -39,7 +33,9 @@ function CTA() {
             maw={700}
             lh={1.6}
           >
-            {CTA_DESCRIPTION}
+            Join over 1 million farmers and agribusinesses already using AI to
+            transform their operations. Get started for free — no credit card
+            required.
           </Text>
           {/* Buttons */}
           <Flex
@@ -54,13 +50,9 @@ function CTA() {
               w={{ base: '100%', sm: 'auto' }}
               onClick={() => setLoginModalOpened(true)}
             >
-              {CTA_BUTTON_PRIMARY}
+              Start Free
             </Button>
           </Flex>
-          {/* Platforms */}
-          {/* <Text fz="sm" ta="center" className={styles.platforms} mt="md">
-            {CTA_PLATFORMS}
-          </Text> */}
         </Stack>
       </Container>
       <LoginModal
