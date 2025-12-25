@@ -17,7 +17,7 @@ function Home() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard/home', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
