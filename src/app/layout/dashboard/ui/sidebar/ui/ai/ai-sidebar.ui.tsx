@@ -118,16 +118,19 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
             onClick={() => navigate('/dashboard/home')}
             aria-label="Back"
             w="100%"
+            h={36}
+            bd="1.5px solid var(--mantine-color-green-3)"
           >
             <BsArrowLeft size={18} />
           </ActionIcon>
         ) : (
           <Button
             fullWidth
+            h={36}
             variant="subtle"
             leftSection={<BsArrowLeft size={16} />}
             onClick={() => navigate('/dashboard/home')}
-            bd="2px solid var(--mantine-color-green-3)"
+            bd="1.5px solid var(--mantine-color-green-3)"
           >
             Orqaga qaytish
           </Button>
@@ -137,6 +140,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
       <Box className={styles.newChatBtn}>
         {collapsed ? (
           <ActionIcon
+            h={36}
             variant="light"
             color="green"
             onClick={createNewChat}
@@ -148,6 +152,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
         ) : (
           <Button
             fullWidth
+            h={36}
             leftSection={<BsPlus size={16} />}
             color="green"
             onClick={createNewChat}
