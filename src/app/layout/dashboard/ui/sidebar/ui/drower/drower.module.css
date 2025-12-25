@@ -64,3 +64,27 @@ html[data-mantine-color-scheme='dark'] .navLink {
 html[data-mantine-color-scheme='dark'] .navLink:hover {
   background-color: hsl(150, 10%, 12%);
 }
+
+/* Logout link - hover holatida qizil background va text */
+.logoutLink:hover {
+  background-color: var(--mantine-color-red-1) !important;
+}
+
+.logoutLink:hover :global(.mantine-NavLink-label),
+.logoutLink:hover :global(.mantine-NavLink-section) svg {
+  color: var(--mantine-color-red-6) !important;
+}
+
+html[data-mantine-color-scheme='dark'] .logoutLink:hover {
+  background-color: var(--mantine-color-red-9) !important;
+}
+
+html[data-mantine-color-scheme='dark']
+  .logoutLink:hover
+  :global(.mantine-NavLink-label),
+html[data-mantine-color-scheme='dark']
+  .logoutLink:hover
+  :global(.mantine-NavLink-section)
+  svg {
+  color: var(--mantine-color-red-4) !important;
+}

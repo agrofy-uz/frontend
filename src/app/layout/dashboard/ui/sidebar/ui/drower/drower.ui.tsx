@@ -17,9 +17,10 @@ interface DrowerProps {
   opened: boolean;
   onClose: () => void;
   target: React.ReactNode;
+  isAiMode?: boolean;
 }
 
-function Drower({ opened, onClose, target }: DrowerProps) {
+function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
   const navigate = useNavigate();
   const { user: authUser } = useAuthStore();
 
@@ -108,15 +109,17 @@ function Drower({ opened, onClose, target }: DrowerProps) {
             </Flex>
           </Box>
 
-          {/* Upgrade Plan */}
-          <Box px="xs" pt="xs">
-            <NavLink
-              label="Upgrade plan"
-              leftSection={<HiLightningBolt size={18} />}
-              onClick={handleUpgrade}
-              className={styles.navLink}
-            />
-          </Box>
+          {/* Upgrade Plan - faqat AI mode da */}
+          {isAiMode && (
+            <Box px="xs" pt="xs">
+              <NavLink
+                label="Upgrade plan"
+                leftSection={<HiLightningBolt size={18} />}
+                onClick={handleUpgrade}
+                className={styles.navLink}
+              />
+            </Box>
+          )}
 
           {/* Settings */}
           <Box px="xs">
@@ -134,7 +137,18 @@ function Drower({ opened, onClose, target }: DrowerProps) {
               label="Log out"
               leftSection={<FaSignOutAlt size={18} />}
               onClick={handleLogout}
-              className={styles.navLink}
+              className={`${styles.navLink} ${styles.logoutLink}`}
+              styles={{
+                root: {
+                  transition: 'background-color 0.2s ease',
+                },
+                label: {
+                  transition: 'color 0.2s ease',
+                },
+                section: {
+                  transition: 'color 0.2s ease',
+                },
+              }}
             />
           </Box>
         </Stack>

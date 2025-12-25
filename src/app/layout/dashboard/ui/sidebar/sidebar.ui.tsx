@@ -161,6 +161,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
       <Drower
         opened={drawerOpened}
         onClose={closeDrawer}
+        isAiMode={isAiMode}
         target={
           collapsed ? (
             <Box
@@ -209,22 +210,26 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                       </Text>
                     ))}
                   </Flex>
-                  <Text fz="12px" className={styles.profileStatus}>
-                    Free
-                  </Text>
+                  {isAiMode && (
+                    <Text fz="12px" className={styles.profileStatus}>
+                      Free
+                    </Text>
+                  )}
                 </Flex>
               </Flex>
-              <Badge
-                size="sm"
-                className={styles.profileBadge}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate('/dashboard/pricing');
-                }}
-                style={{ cursor: 'pointer' }}
-              >
-                Upgrade
-              </Badge>
+              {isAiMode && (
+                <Badge
+                  size="sm"
+                  className={styles.profileBadge}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/dashboard/pricing');
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  Upgrade
+                </Badge>
+              )}
             </Flex>
           )
         }
