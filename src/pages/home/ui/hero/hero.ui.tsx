@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { HERO_STATS, formatNumber } from './hero.const';
+import { motion } from 'framer-motion';
 
 function Hero() {
   const [isVisible, setIsVisible] = useState(false);
@@ -146,60 +147,91 @@ function Hero() {
               justify="start"
               gap={6}
             >
-              <Badge
-                bg={theme?.colors?.green?.[2]}
-                c={theme?.colors?.green?.[8]}
-                size="lg"
-                leftSection={
-                  <Box
-                    w={10}
-                    h={10}
-                    style={{
-                      borderRadius: '50%',
-                      marginRight: 4,
-                      backgroundColor: theme?.colors?.green?.[5],
-                      animation: 'pulse-green 2s ease-in-out infinite',
-                    }}
-                  />
-                }
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                AI-Powered Agriculture Platform
-              </Badge>
-              <Text
-                fz={{ base: 28, sm: 32, md: 60 }}
-                fw={700}
-                lh={1.1}
-                ta={{ base: 'center', md: 'start' }}
-                className="textPrimary"
-              >
-                The complete AI ecosystem for <br />
-                <span style={{ color: theme?.colors?.green?.[6] }}>
-                  modern agriculture
-                </span>
-              </Text>
-              <Text
-                mb="lg"
-                c="dimmed"
-                ta={{ base: 'center', md: 'start' }}
-                fz={{ base: 'sm', md: 'lg' }}
-              >
-                Agrofy helps farmers and agribusinesses increase productivity
-                using artificial intelligence. From chat assistance to smart
-                irrigation — all in one platform.
-              </Text>
-              <Button
-                onClick={() => {
-                  if (isAuthenticated) {
-                    navigate('/dashboard');
-                  } else {
-                    setLoginModalOpened(true);
+                <Badge
+                  bg={theme?.colors?.green?.[2]}
+                  c={theme?.colors?.green?.[8]}
+                  size="lg"
+                  leftSection={
+                    <Box
+                      w={10}
+                      h={10}
+                      style={{
+                        borderRadius: '50%',
+                        marginRight: 4,
+                        backgroundColor: theme?.colors?.green?.[5],
+                        animation: 'pulse-green 2s ease-in-out infinite',
+                      }}
+                    />
                   }
-                }}
-                leftSection={<IoChatbox />}
-                w={{ base: '100%', md: 'auto' }}
+                >
+                  AI-Powered Agriculture Platform
+                </Badge>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
               >
-                Start with AI Chat
-              </Button>
+                <Text
+                  fz={{ base: 28, sm: 32, md: 60 }}
+                  fw={700}
+                  lh={1.1}
+                  ta={{ base: 'center', md: 'start' }}
+                  className="textPrimary"
+                >
+                  The complete AI ecosystem for <br />
+                  <motion.span
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                    style={{ color: theme?.colors?.green?.[6] }}
+                  >
+                    modern agriculture
+                  </motion.span>
+                </Text>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <Text
+                  mb="lg"
+                  c="dimmed"
+                  ta={{ base: 'center', md: 'start' }}
+                  fz={{ base: 'sm', md: 'lg' }}
+                >
+                  Agrofy helps farmers and agribusinesses increase productivity
+                  using artificial intelligence. From chat assistance to smart
+                  irrigation — all in one platform.
+                </Text>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      navigate('/dashboard');
+                    } else {
+                      setLoginModalOpened(true);
+                    }
+                  }}
+                  leftSection={<IoChatbox />}
+                  w={{ base: '100%', md: 'auto' }}
+                >
+                  Start with AI Chat
+                </Button>
+              </motion.div>
               <Flex
                 gap={{ base: 'sm', md: 'md' }}
                 justify={{ base: 'center', md: 'center' }}
@@ -207,47 +239,59 @@ function Hero() {
                 wrap="wrap"
               >
                 {HERO_STATS.map((stat, index) => (
-                  <Card
+                  <motion.div
                     key={index}
-                    bg="transparent"
-                    bdrs={0}
-                    withBorder={false}
-                    style={
-                      index < 2
-                        ? {
-                            borderRight:
-                              '1px solid var(--mantine-color-gray-3)',
-                            paddingRight: '1rem',
-                          }
-                        : undefined
-                    }
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
                   >
-                    <Text
-                      ta="center"
-                      fz={{ base: 20, md: 24 }}
-                      fw={700}
-                      lh={1.2}
+                    <Card
+                      bg="transparent"
+                      bdrs={0}
+                      withBorder={false}
+                      style={
+                        index < 2
+                          ? {
+                              borderRight:
+                                '1px solid var(--mantine-color-gray-3)',
+                              paddingRight: '1rem',
+                            }
+                          : undefined
+                      }
                     >
-                      {formatNumber(counts[index], stat.target)}
-                      {stat.suffix}
                       <Text
-                        span
-                        c="dimmed"
-                        display="block"
-                        fz={{ base: 12, md: 14 }}
-                        fw={400}
-                        mt={2}
+                        ta="center"
+                        fz={{ base: 20, md: 24 }}
+                        fw={700}
+                        lh={1.2}
                       >
-                        {stat.label}
+                        {formatNumber(counts[index], stat.target)}
+                        {stat.suffix}
+                        <Text
+                          span
+                          c="dimmed"
+                          display="block"
+                          fz={{ base: 12, md: 14 }}
+                          fw={400}
+                          mt={2}
+                        >
+                          {stat.label}
+                        </Text>
                       </Text>
-                    </Text>
-                  </Card>
+                    </Card>
+                  </motion.div>
                 ))}
               </Flex>
             </Flex>
-            <Flex direction="column" align="center" justify="center" gap="md">
-              <Mockup />
-            </Flex>
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <Flex direction="column" align="center" justify="center" gap="md">
+                <Mockup />
+              </Flex>
+            </motion.div>
           </Flex>
         </Container>
       </Box>

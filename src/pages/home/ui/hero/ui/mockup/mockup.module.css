@@ -12,6 +12,19 @@
   animation: floatUpDown 3s ease-in-out infinite;
 }
 
+.mobileCardWrapper {
+  position: absolute;
+  bottom: -40px;
+  left: -40px;
+}
+
+@media (max-width: 768px) {
+  .mobileCardWrapper {
+    bottom: -110px;
+    left: 18%;
+  }
+}
+
 .mockupContainer {
   user-select: none;
   -webkit-user-select: none;

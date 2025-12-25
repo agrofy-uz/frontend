@@ -22,6 +22,7 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
+    "framer-motion": "^12.23.26",
     "i18next": "^25.5.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

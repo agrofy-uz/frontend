@@ -6,6 +6,7 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 import { IoLanguage } from 'react-icons/io5';
 import { FiCpu } from 'react-icons/fi';
 import styles from './regions.module.css';
+import { motion } from 'framer-motion';
 
 // Icon mapping
 const iconMap = {
@@ -29,52 +30,82 @@ function Regions() {
           <Stack gap="lg" style={{ flex: 1, maxWidth: '600px' }}>
             {/* Title with Globe Icon */}
             <Flex align="start" gap="sm" direction="column">
-              <Box
-                style={{
-                  color: 'var(--mantine-color-green-5)',
-                  fontSize: '24px',
-                  width: '50px',
-                  height: '50px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                bg="green.2"
-                p="md"
-                bdrs="lg"
+              <motion.div
+                initial={{ scale: 0, rotate: -180 }}
+                whileInView={{ scale: 1, rotate: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5 }}
+                whileHover={{ rotate: 360 }}
               >
-                <FaGlobe size={24} />
-              </Box>
-              <Title
-                order={2}
-                fz={{ base: 24, sm: 28, md: 32 }}
-                fw={700}
-                className="textPrimary"
+                <Box
+                  style={{
+                    color: 'var(--mantine-color-green-5)',
+                    fontSize: '24px',
+                    width: '50px',
+                    height: '50px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  bg="green.2"
+                  p="md"
+                  bdrs="lg"
+                >
+                  <FaGlobe size={24} />
+                </Box>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
                 style={{ flex: 1 }}
               >
-                Building the Future of Agriculture Across Regions
-              </Title>
+                <Title
+                  order={2}
+                  fz={{ base: 24, sm: 28, md: 32 }}
+                  fw={700}
+                  className="textPrimary"
+                >
+                  Building the Future of Agriculture Across Regions
+                </Title>
+              </motion.div>
             </Flex>
 
             {/* Description */}
-            <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" lh={1.7}>
-              Our vision is to empower every farmer on the planet with AI-driven
-              insights. From small family farms to large agribusiness
-              operations, Agrofy adapts to local conditions while maintaining
-              global standards.
-            </Text>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" lh={1.7}>
+                Our vision is to empower every farmer on the planet with
+                AI-driven insights. From small family farms to large
+                agribusiness operations, Agrofy adapts to local conditions while
+                maintaining global standards.
+              </Text>
+            </motion.div>
 
             {/* KPI pills */}
             <Box className={styles.kpiRow}>
-              {REGIONS_KPIS.map((kpi) => (
-                <Box key={kpi.label} className={styles.kpiPill}>
+              {REGIONS_KPIS.map((kpi, index) => (
+                <motion.div
+                  key={kpi.label}
+                  initial={{ opacity: 0, scale: 0 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
+                  whileHover={{ scale: 1.1 }}
+                  className={styles.kpiPill}
+                >
                   <Text span className={styles.kpiValue}>
                     {kpi.value}
                   </Text>
                   <Text span className={styles.kpiLabel}>
                     {kpi.label}
                   </Text>
-                </Box>
+                </motion.div>
               ))}
             </Box>
 
@@ -84,39 +115,64 @@ function Regions() {
                 const IconComponent =
                   iconMap[feature.icon as keyof typeof iconMap];
                 return (
-                  <Flex key={index} align="flex-start" gap="md">
-                    {IconComponent && (
-                      <Box
-                        style={{
-                          color: 'var(--mantine-color-green-5)',
-                          width: '40px',
-                          height: '40px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                        bg="gray.2"
-                        bdrs="lg"
-                      >
-                        <IconComponent size={20} />
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.5, delay: 0.5 + index * 0.1 }}
+                  >
+                    <Flex align="flex-start" gap="md">
+                      {IconComponent && (
+                        <motion.div
+                          initial={{ rotate: -180, scale: 0 }}
+                          whileInView={{ rotate: 0, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{
+                            duration: 0.4,
+                            delay: 0.5 + index * 0.1 + 0.2,
+                          }}
+                          whileHover={{ rotate: 360 }}
+                        >
+                          <Box
+                            style={{
+                              color: 'var(--mantine-color-green-5)',
+                              width: '40px',
+                              height: '40px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            bg="gray.2"
+                            bdrs="lg"
+                          >
+                            <IconComponent size={20} />
+                          </Box>
+                        </motion.div>
+                      )}
+                      <Box style={{ flex: 1 }}>
+                        <Text fw={600} fz="md" mb={4} className="textPrimary">
+                          {feature.title}:
+                        </Text>
+                        <Text fz="sm" c="dimmed" lh={1.6}>
+                          {feature.description}
+                        </Text>
                       </Box>
-                    )}
-                    <Box style={{ flex: 1 }}>
-                      <Text fw={600} fz="md" mb={4} className="textPrimary">
-                        {feature.title}:
-                      </Text>
-                      <Text fz="sm" c="dimmed" lh={1.6}>
-                        {feature.description}
-                      </Text>
-                    </Box>
-                  </Flex>
+                    </Flex>
+                  </motion.div>
                 );
               })}
             </Stack>
           </Stack>
 
           {/* Right Side - Circle Stat */}
-          <Box className={styles.circleContainer}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className={styles.circleContainer}
+          >
             {/* Outer Rotating Circle with Dots */}
             <Box className={styles.outerRotatingCircle} />
             <Box className={styles.outerDashedCircleSoft} />
@@ -133,23 +189,49 @@ function Regions() {
             <Box className={styles.outerDashedCircle} />
 
             {/* Main Circle */}
-            <Box className={styles.mainCircle}>
-              <Box className={styles.globeIcon}>
-                <FaGlobe size={48} />
-              </Box>
-              <Text
-                fz={{ base: '36px', md: '48px' }}
-                fw={700}
-                c="gray.9"
-                lh={1}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              whileInView={{ scale: 1, rotate: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.5 }}
+              className={styles.mainCircle}
+            >
+              <motion.div
+                initial={{ rotate: -360 }}
+                whileInView={{ rotate: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1, delay: 0.7 }}
+                className={styles.globeIcon}
               >
-                {REGIONS_STAT.number}
-              </Text>
-              <Text fz="md" c="dimmed" mt={4}>
-                {REGIONS_STAT.label}
-              </Text>
-            </Box>
-          </Box>
+                <FaGlobe size={48} />
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+              >
+                <Text
+                  fz={{ base: '36px', md: '48px' }}
+                  fw={700}
+                  c="gray.9"
+                  lh={1}
+                >
+                  {REGIONS_STAT.number}
+                </Text>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 1 }}
+              >
+                <Text fz="md" c="dimmed" mt={4}>
+                  {REGIONS_STAT.label}
+                </Text>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </Flex>
       </Container>
     </Box>

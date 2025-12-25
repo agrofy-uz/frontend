@@ -79,7 +79,7 @@ html[data-mantine-color-scheme='dark'] .desc {
 .number {
   position: absolute;
   top: 0;
-  left: 50%;
+  left: 45%;
   transform: translateX(-50%);
   width: 40px;
   height: 40px;
