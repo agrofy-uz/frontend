@@ -1,0 +1,44 @@
+/* Dashboard uchun root level CSS variables */
+:root {
+  --dashboard-border-light: var(--mantine-color-gray-3);
+  --dashboard-bg-light: var(--mantine-color-gray-0);
+  --dashboard-sidebar-bg-light: var(--mantine-color-gray-0);
+  --dashboard-header-bg-light: var(--mantine-color-gray-0);
+  --dashboard-content-bg-light: var(--mantine-color-gray-1);
+}
+
+/* Dark mode uchun Dashboard ranglari */
+html[data-mantine-color-scheme='dark'] {
+  --dashboard-border: hsl(150, 10%, 20%);
+  --dashboard-bg: hsl(150, 10%, 12%);
+  --dashboard-sidebar-bg: hsl(150, 10%, 6%);
+  --dashboard-header-bg: hsl(150, 10%, 6%);
+  --dashboard-content-bg: hsl(150, 10%, 7%);
+}
+
+/* Light mode uchun Dashboard ranglari */
+html[data-mantine-color-scheme='light'] {
+  --dashboard-border: var(--mantine-color-gray-3);
+  --dashboard-bg: var(--dashboard-bg-light);
+  --dashboard-sidebar-bg: var(--dashboard-sidebar-bg-light);
+  --dashboard-header-bg: var(--dashboard-header-bg-light);
+  --dashboard-content-bg: var(--dashboard-content-bg-light);
+}
+
+.sidebar {
+  border-right-color: var(--dashboard-border) !important;
+  background-color: var(--dashboard-sidebar-bg) !important;
+}
+
+.header {
+  border-bottom-color: var(--dashboard-border) !important;
+  background-color: var(--dashboard-header-bg) !important;
+}
+
+.content {
+  background-color: var(--dashboard-content-bg) !important;
+}
+
+.contentWrapper {
+  background-color: var(--dashboard-bg) !important;
+}

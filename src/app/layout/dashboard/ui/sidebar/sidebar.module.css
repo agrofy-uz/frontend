@@ -1,0 +1,138 @@
+/* Sidebar NavLink styles */
+.sidebarNavLink {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebarNavLink:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover {
+  background-color: hsl(150, 10%, 12%);
+}
+
+.sidebarNavLink[data-active] {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .sidebarNavLink[data-active] {
+  background-color: hsl(150, 10%, 12%);
+}
+
+/* Icon styles */
+/* Light mode: oddiy gray, hover green, active green */
+.sidebarIcon {
+  color: var(--mantine-color-gray-7);
+  transition: color 0.2s ease;
+}
+
+.sidebarNavLink:hover .sidebarIcon {
+  color: var(--mantine-color-green-6);
+}
+
+.sidebarNavLink[data-active] .sidebarIcon {
+  color: var(--mantine-color-green-6);
+}
+
+/* Dark mode: oddiy oq, hover oq, active green */
+html[data-mantine-color-scheme='dark'] .sidebarIcon {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover .sidebarIcon {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark']
+  .sidebarNavLink[data-active]
+  .sidebarIcon {
+  color: var(--mantine-color-green-5);
+}
+
+/* Text styles */
+/* Light mode: oddiy gray, hover green, active green */
+.sidebarLabel {
+  color: var(--mantine-color-gray-7);
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.sidebarNavLink:hover .sidebarLabel {
+  color: var(--mantine-color-green-6);
+}
+
+.sidebarNavLink[data-active] .sidebarLabel {
+  font-weight: 600;
+  color: var(--mantine-color-green-6);
+}
+
+/* Dark mode: oddiy oq, hover oq, active oq */
+html[data-mantine-color-scheme='dark'] .sidebarLabel {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover .sidebarLabel {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark']
+  .sidebarNavLink[data-active]
+  .sidebarLabel {
+  font-weight: 600;
+  color: var(--mantine-color-dark-0);
+}
+
+/* Settings NavLink */
+.settingsNavLink {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.settingsNavLink:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .settingsNavLink:hover {
+  background-color: hsl(150, 10%, 12%);
+}
+
+/* Settings Icon styles */
+/* Light mode: oddiy gray, hover green */
+.settingsIcon {
+  color: var(--mantine-color-gray-7);
+  transition: color 0.2s ease;
+}
+
+.settingsNavLink:hover .settingsIcon {
+  color: var(--mantine-color-green-6);
+}
+
+/* Dark mode: oddiy oq, hover oq */
+html[data-mantine-color-scheme='dark'] .settingsIcon {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsIcon {
+  color: var(--mantine-color-dark-0);
+}
+
+/* Settings Label styles */
+/* Light mode: oddiy gray, hover green */
+.settingsLabel {
+  color: var(--mantine-color-gray-7);
+  transition: all 0.2s ease;
+}
+
+.settingsNavLink:hover .settingsLabel {
+  color: var(--mantine-color-green-6);
+}
+
+/* Dark mode: oddiy oq, hover oq */
+html[data-mantine-color-scheme='dark'] .settingsLabel {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsLabel {
+  color: var(--mantine-color-dark-0);
+}

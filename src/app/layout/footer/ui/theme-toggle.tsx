@@ -28,9 +28,9 @@ export function ThemeToggle() {
           className={`${styles.toggleThumb} ${isDark ? styles.dark : styles.light}`}
         >
           {isDark ? (
-            <FaMoon size={14} className={styles.icon} />
+            <FaMoon size={12} className={styles.icon} />
           ) : (
-            <FaSun size={14} className={styles.icon} />
+            <FaSun size={12} className={styles.icon} />
           )}
         </Box>
       </Box>

@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import Layout from '../layout';
+import { DashboardLayout } from '../layout/dashboard';
 import PrivateRoute from './privateRoute';
 import { Home } from '@/pages/home';
 import { Dashboard } from '@/pages/dashboard';
@@ -12,7 +13,9 @@ const AppRoutes = () => {
       </Route>
       {/* Private route misoli */}
       <Route element={<PrivateRoute />}>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
       </Route>
     </Routes>
   );

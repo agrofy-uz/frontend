@@ -12,10 +12,10 @@
 
 .toggleTrack {
   position: relative;
-  width: 56px;
-  height: 32px;
+  width: 48px;
+  height: 28px;
   background-color: var(--mantine-color-gray-3);
-  border-radius: 16px;
+  border-radius: 14px;
   transition: background-color 0.3s ease;
 }
 
@@ -25,9 +25,9 @@ html[data-mantine-color-scheme='dark'] .toggleTrack {
 
 .toggleThumb {
   position: absolute;
-  top: 4px;
-  width: 24px;
-  height: 24px;
+  top: 3px;
+  width: 22px;
+  height: 22px;
   background-color: white;
   border-radius: 50%;
   display: flex;
@@ -43,11 +43,11 @@ html[data-mantine-color-scheme='dark'] .toggleThumb {
 }
 
 .toggleThumb.light {
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
 .toggleThumb.dark {
-  transform: translateX(28px);
+  transform: translateX(23px);
 }
 
 .icon {
