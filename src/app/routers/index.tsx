@@ -8,6 +8,8 @@ import { AiAssistant } from '@/pages/dashboard/pages/ai-assistant';
 import { Fields } from '@/pages/dashboard/pages/fields';
 import { Reports } from '@/pages/dashboard/pages/reports';
 import { Settings } from '@/pages/dashboard/pages/settings';
+import { Profile } from '@/pages/dashboard/pages/profile';
+import { Pricing } from '@/pages/dashboard/pages/pricing';
 
 const AppRoutes = () => {
   return (
@@ -23,6 +25,8 @@ const AppRoutes = () => {
           <Route path="/dashboard/fields" element={<Fields />} />
           <Route path="/dashboard/reports" element={<Reports />} />
           <Route path="/dashboard/settings" element={<Settings />} />
+          <Route path="/dashboard/profile" element={<Profile />} />
+          <Route path="/dashboard/pricing" element={<Pricing />} />
         </Route>
       </Route>
     </Routes>

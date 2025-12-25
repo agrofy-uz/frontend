@@ -1,0 +1,135 @@
+.root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.topRow {
+  padding: 12px 8px 8px 8px;
+}
+
+.title {
+  font-weight: 600;
+  color: var(--mantine-color-gray-9);
+  font-size: 16px;
+}
+
+html[data-mantine-color-scheme='dark'] .title {
+  color: var(--mantine-color-dark-0);
+}
+
+.backButton {
+  margin: 0 8px 8px 8px;
+}
+
+.newChatBtn {
+  margin: 0 8px 8px 8px;
+}
+
+.historyHeaderRow {
+  padding: 8px 8px 6px 8px;
+  user-select: none;
+}
+
+.historyHeaderText {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mantine-color-gray-7);
+  transition: color 0.2s ease;
+}
+
+.historyHeaderText:hover {
+  color: var(--mantine-color-green-6);
+}
+
+html[data-mantine-color-scheme='dark'] .historyHeaderText {
+  color: var(--mantine-color-dark-2);
+}
+
+html[data-mantine-color-scheme='dark'] .historyHeaderText:hover {
+  color: var(--mantine-color-green-5);
+}
+
+.chatList {
+  flex: 1;
+  overflow: auto;
+  padding: 0 8px 8px 8px;
+}
+
+.chatItemWrapper {
+  position: relative;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: var(--mantine-radius-md);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.chatItemWrapper:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .chatItemWrapper:hover {
+  background-color: hsl(150, 10%, 12%);
+}
+
+.chatItemActive {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .chatItemActive {
+  background-color: hsl(150, 10%, 12%);
+}
+
+.chatTitle {
+  font-size: 13px;
+  color: var(--mantine-color-gray-9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+html[data-mantine-color-scheme='dark'] .chatTitle {
+  color: var(--mantine-color-dark-0);
+}
+
+.chatItemDots {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chatItemWrapper:hover .chatItemDots {
+  opacity: 1;
+}
+
+.chatPopoverDropdown {
+  padding: 6px;
+}
+
+.chatPopoverItem {
+  border-radius: var(--mantine-radius-md);
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--mantine-color-gray-8);
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chatPopoverItem:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .chatPopoverItem {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .chatPopoverItem:hover {
+  background-color: hsl(150, 10%, 12%);
+}

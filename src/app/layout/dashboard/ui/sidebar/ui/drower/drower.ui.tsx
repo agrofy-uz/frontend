@@ -68,6 +68,7 @@ function Drower({ opened, onClose, target }: DrowerProps) {
       withArrow
       shadow="md"
       width={260}
+      classNames={{ dropdown: styles.popoverDropdown }}
       styles={{
         dropdown: {
           padding: 0,

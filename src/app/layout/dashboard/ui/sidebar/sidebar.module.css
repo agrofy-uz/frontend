@@ -215,3 +215,10 @@ html[data-mantine-color-scheme='dark'] .profileBadgeCollapsed {
 html[data-mantine-color-scheme='dark'] .profileBadgeCollapsed:hover {
   background-color: var(--mantine-color-green-5);
 }
+
+/* Sidebar content area (nav switch animations) */
+.navArea {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
