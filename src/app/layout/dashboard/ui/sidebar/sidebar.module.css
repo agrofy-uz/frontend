@@ -136,3 +136,82 @@ html[data-mantine-color-scheme='dark'] .settingsLabel {
 html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsLabel {
   color: var(--mantine-color-dark-0);
 }
+
+/* Profile Card styles */
+.profileCard {
+  border: 1px solid var(--mantine-color-gray-4);
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .profileCard {
+  border-color: hsl(150, 10%, 20%);
+  background-color: hsl(150, 10%, 10%);
+}
+
+.profileName {
+  color: var(--mantine-color-gray-9);
+}
+
+html[data-mantine-color-scheme='dark'] .profileName {
+  color: var(--mantine-color-dark-0);
+}
+
+.profileStatus {
+  color: var(--mantine-color-gray-5);
+}
+
+html[data-mantine-color-scheme='dark'] .profileStatus {
+  color: var(--mantine-color-dark-3);
+}
+
+.profileCard {
+  transition: all 0.2s ease;
+}
+
+.profileCard:hover {
+  background-color: var(--mantine-color-gray-3);
+}
+
+html[data-mantine-color-scheme='dark'] .profileCard:hover {
+  background-color: hsl(150, 10%, 12%);
+}
+
+.profileBadge {
+  background-color: var(--mantine-color-gray-5);
+  color: var(--mantine-color-gray-0);
+  transition: all 0.2s ease;
+}
+
+.profileBadge:hover {
+  background-color: var(--mantine-color-gray-6);
+}
+
+html[data-mantine-color-scheme='dark'] .profileBadge {
+  background-color: hsl(150, 10%, 20%);
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .profileBadge:hover {
+  background-color: hsl(150, 10%, 25%);
+}
+
+/* Collapsed holatdagi Upgrade badge */
+.profileBadgeCollapsed {
+  background-color: var(--mantine-color-gray-5);
+  color: var(--mantine-color-gray-0);
+  transition: all 0.2s ease;
+}
+
+.profileBadgeCollapsed:hover {
+  background-color: var(--mantine-color-green-6);
+  transform: scale(1.1);
+}
+
+html[data-mantine-color-scheme='dark'] .profileBadgeCollapsed {
+  background-color: hsl(150, 10%, 20%);
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .profileBadgeCollapsed:hover {
+  background-color: var(--mantine-color-green-5);
+}

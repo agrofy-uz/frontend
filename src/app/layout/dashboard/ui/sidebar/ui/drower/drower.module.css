@@ -1,0 +1,56 @@
+/* Dropdown styles */
+.dropdown {
+  padding: 0;
+}
+
+.header {
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+  transition: background-color 0.2s ease;
+}
+
+.header:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .header {
+  border-bottom-color: hsl(150, 10%, 20%);
+}
+
+html[data-mantine-color-scheme='dark'] .header:hover {
+  background-color: hsl(150, 10%, 12%);
+}
+
+.username {
+  color: var(--mantine-color-gray-8);
+  margin-bottom: 4px;
+}
+
+html[data-mantine-color-scheme='dark'] .username {
+  color: var(--mantine-color-dark-0);
+}
+
+.phoneText {
+  color: var(--mantine-color-gray-7);
+}
+
+html[data-mantine-color-scheme='dark'] .phoneText {
+  color: var(--mantine-color-dark-2);
+}
+
+.navLink {
+  border-radius: var(--mantine-radius-md);
+  transition: all 0.2s ease;
+  color: var(--mantine-color-gray-9);
+}
+
+.navLink:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .navLink {
+  color: var(--mantine-color-dark-0);
+}
+
+html[data-mantine-color-scheme='dark'] .navLink:hover {
+  background-color: hsl(150, 10%, 12%);
+}

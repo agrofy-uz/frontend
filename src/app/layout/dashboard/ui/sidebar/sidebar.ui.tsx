@@ -1,11 +1,14 @@
-import { NavLink, Stack, Box, Flex } from '@mantine/core';
+import { NavLink, Stack, Box, Avatar, Badge, Text, Flex } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaCog } from 'react-icons/fa';
+import { useDisclosure } from '@mantine/hooks';
+import { FaHome } from 'react-icons/fa';
 import { Logo } from '../logo';
 import styles from './sidebar.module.css';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import { FaRegMap } from 'react-icons/fa6';
 import { FaChartColumn } from 'react-icons/fa6';
+import { Drower } from './ui/drower';
+import { useAuthStore } from '@/shared/store/authStore';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -14,9 +17,32 @@ interface SidebarProps {
 const Sidebar = ({ collapsed }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user: authUser } = useAuthStore();
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false);
+
+  // User ma'lumotlari
+  const user = {
+    name: authUser
+      ? `${authUser.first_name || ''} ${authUser.last_name || ''}`.trim() ||
+        'User'
+      : 'User',
+    phone: authUser?.phone_number || '',
+    avatar: null, // Avatar URL yoki null
+  };
+
+  // Avatar uchun bosh harflar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const navItems = [
-    { label: 'Dashboard', icon: FaHome, path: '/dashboard' },
+    { label: 'Dashboard', icon: FaHome, path: '/dashboard/home' },
     { label: 'AI Assistant', icon: IoChatbubbleOutline, path: '/dashboard/ai' },
     { label: 'Fields', icon: FaRegMap, path: '/dashboard/fields' },
     // { label: 'Market', icon: FaShoppingCart, path: '/dashboard/market' },
@@ -80,17 +106,77 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
           );
         })}
       </Stack>
-      <Flex justify="start" align="center" py="sm" px="sm">
-        <NavLink
-          label={<span className={styles.settingsLabel}>sozlamalar</span>}
-          leftSection={<FaCog size={20} className={styles.settingsIcon} />}
-          className={styles.settingsNavLink}
-          style={{
-            borderRadius: 'var(--mantine-radius-md)',
-            width: '100%',
-          }}
-        />
-      </Flex>
+      <Drower
+        opened={drawerOpened}
+        onClose={closeDrawer}
+        target={
+          collapsed ? (
+            <Box
+              mx="sm"
+              mb={10}
+              style={{
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+              }}
+              onClick={openDrawer}
+            >
+              <Avatar src={user.avatar} size="md" radius="md">
+                {getInitials(user.name)}
+              </Avatar>
+            </Box>
+          ) : (
+            <Flex
+              justify="space-between"
+              align="center"
+              p="5px"
+              gap="md"
+              mx="sm"
+              mb={10}
+              className={styles.profileCard}
+              style={{
+                borderRadius: 'var(--mantine-radius-md)',
+                cursor: 'pointer',
+              }}
+              onClick={openDrawer}
+            >
+              <Flex gap="md" align="center" style={{ flex: 1, minWidth: 0 }}>
+                <Avatar src={user.avatar} size="md" radius="md">
+                  {getInitials(user.name)}
+                </Avatar>
+                <Flex direction="column" gap="0">
+                  <Flex direction="row" gap="5px">
+                    {user.name.split(' ').map((part, index) => (
+                      <Text
+                        key={index}
+                        fz="14px"
+                        fw={500}
+                        className={styles.profileName}
+                      >
+                        {part}
+                      </Text>
+                    ))}
+                  </Flex>
+                  <Text fz="12px" className={styles.profileStatus}>
+                    Free
+                  </Text>
+                </Flex>
+              </Flex>
+              <Badge
+                size="sm"
+                className={styles.profileBadge}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate('/dashboard/pricing');
+                }}
+                style={{ cursor: 'pointer' }}
+              >
+                Upgrade
+              </Badge>
+            </Flex>
+          )
+        }
+      />
     </Stack>
   );
 };
