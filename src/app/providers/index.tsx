@@ -38,7 +38,7 @@ const Providers = ({ children }: ProvidersProps) => {
   return (
     <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
       <Notifications position="top-right" zIndex={1000} autoClose={3000} />
-      <BrowserRouter basename="/frontend">
+      <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <ThemeSync>{children}</ThemeSync>
           <ReactQueryDevtools initialIsOpen={false} />
