@@ -5,12 +5,25 @@ interface NotificationProps {
   icon: React.ReactNode;
   type?: 'success' | 'error' | 'warning' | 'info';
 }
+
+// Dark mode'ni aniqlash funksiyasi
+const isDarkMode = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return (
+    document.documentElement.getAttribute('data-mantine-color-scheme') ===
+    'dark'
+  );
+};
+
 export const openNotification = ({
   title,
   icon,
   type = 'success',
 }: NotificationProps) => {
-  const bg =
+  const isDark = isDarkMode();
+
+  // Light mode uchun ranglar
+  const lightBg =
     type === 'success'
       ? 'green.1'
       : type === 'error'
@@ -18,7 +31,7 @@ export const openNotification = ({
         : type === 'warning'
           ? 'yellow.1'
           : 'blue.1';
-  const color =
+  const lightColor =
     type === 'success'
       ? 'green.10'
       : type === 'error'
@@ -26,7 +39,7 @@ export const openNotification = ({
         : type === 'warning'
           ? 'yellow.10'
           : 'blue.10';
-  const iconBg =
+  const lightIconBg =
     type === 'success'
       ? 'green.2'
       : type === 'error'
@@ -35,9 +48,33 @@ export const openNotification = ({
           ? 'yellow.2'
           : 'blue.2';
 
+  // Dark mode uchun ranglar
+  const darkBg = 'dark.7'; // Qorong'u fon
+  const darkColor =
+    type === 'success'
+      ? 'green.4'
+      : type === 'error'
+        ? 'red.4'
+        : type === 'warning'
+          ? 'yellow.4'
+          : 'blue.4';
+  const darkIconBg =
+    type === 'success'
+      ? 'green.8'
+      : type === 'error'
+        ? 'red.8'
+        : type === 'warning'
+          ? 'yellow.8'
+          : 'blue.8';
+
+  // Dark mode'ga qarab ranglarni tanlash
+  const bg = isDark ? darkBg : lightBg;
+  const color = isDark ? darkColor : lightColor;
+  const iconBg = isDark ? darkIconBg : lightIconBg;
+
   // Mobile uchun responsive o'lchamlarni aniqlash
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  
+
   return showNotification({
     title,
     message: '',
@@ -73,4 +110,3 @@ export const openNotification = ({
     },
   });
 };
-

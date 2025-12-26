@@ -25,10 +25,6 @@ function safeParse<T>(value: string | null, fallback: T): T {
   }
 }
 
-function makeChatId() {
-  return `chat_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,6 +44,68 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
   }, [chats]);
 
+  // Chat nomini yangilash va chat qo'shish uchun event listener
+  useEffect(() => {
+    const handleAddChatToHistory = (
+      event: CustomEvent<{ sessionId: string; title: string }>
+    ) => {
+      const { sessionId, title } = event.detail;
+      setChats((prev) => {
+        // Agar chat allaqachon mavjud bo'lsa, faqat nomini yangilash
+        if (prev.some((chat) => chat.id === sessionId)) {
+          return prev.map((chat) =>
+            chat.id === sessionId
+              ? { ...chat, title, updatedAt: Date.now() }
+              : chat
+          );
+        }
+        // Yangi chat qo'shish (faqat birinchi xabar yuborilgandan keyin)
+        return [
+          {
+            id: sessionId,
+            title,
+            updatedAt: Date.now(),
+          },
+          ...prev,
+        ];
+      });
+    };
+
+    const handleAddChatIfNotExists = (
+      event: CustomEvent<{ sessionId: string }>
+    ) => {
+      const { sessionId } = event.detail;
+      setChats((prev) => {
+        // Agar chat allaqachon mavjud bo'lsa, qo'shmaslik
+        if (prev.some((chat) => chat.id === sessionId)) {
+          return prev;
+        }
+        // Bu event faqat mavjud chatlarni yuklash uchun ishlatiladi
+        // Yangi chatlar faqat addChatToHistory orqali qo'shiladi
+        return prev;
+      });
+    };
+
+    window.addEventListener(
+      'addChatToHistory',
+      handleAddChatToHistory as EventListener
+    );
+    window.addEventListener(
+      'addChatIfNotExists',
+      handleAddChatIfNotExists as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        'addChatToHistory',
+        handleAddChatToHistory as EventListener
+      );
+      window.removeEventListener(
+        'addChatIfNotExists',
+        handleAddChatIfNotExists as EventListener
+      );
+    };
+  }, []);
+
   const activeChatId = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get('chat') || null;
@@ -58,14 +116,9 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
   };
 
   const createNewChat = () => {
-    const id = makeChatId();
-    const newChat: ChatItem = {
-      id,
-      title: 'New chat',
-      updatedAt: Date.now(),
-    };
-    setChats((prev) => [newChat, ...prev]);
-    openChat(id);
+    // Yangi chat ochish - session yaratilmaydi
+    // Faqat URL'ni tozalash, birinchi xabar yuborilganda session yaratiladi
+    navigate({ pathname: '/dashboard/ai', search: '' });
   };
 
   const toggleChatPopover = (chatId: string, open?: boolean) => {
@@ -94,14 +147,19 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
     toggleChatPopover(chatId, false);
   };
 
+  // Faqat title bo'lgan chatlarni ko'rsatish (bo'sh title'lilar tarixda ko'rinmaydi)
+  const visibleChats = useMemo(() => {
+    return chats.filter((chat) => chat.title.trim() !== '');
+  }, [chats]);
+
   // Pinned chatlar birinchi bo'lib, keyin boshqalar
   const sortedChats = useMemo(() => {
-    return [...chats].sort((a, b) => {
+    return [...visibleChats].sort((a, b) => {
       if (a.pinned && !b.pinned) return -1;
       if (!a.pinned && b.pinned) return 1;
       return b.updatedAt - a.updatedAt;
     });
-  }, [chats]);
+  }, [visibleChats]);
 
   return (
     <Box className={styles.root}>

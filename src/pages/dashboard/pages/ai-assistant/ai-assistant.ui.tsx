@@ -6,66 +6,104 @@ import {
   Stack,
   Text,
 } from '@mantine/core';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
 import { IoArrowUp } from 'react-icons/io5';
+import { MdAttachFile, MdContentCopy, MdEdit, MdCheck } from 'react-icons/md';
+import { notifications } from '@mantine/notifications';
 import styles from './ai-assistant.module.css';
-import { MdAttachFile } from 'react-icons/md';
+import { chatApi } from '@/shared/api/chat';
+import type { ChatMessage } from '@/shared/api/chat';
 
-type Message = {
+type Message = ChatMessage & {
   id: string;
-  role: 'user' | 'assistant';
-  content: string;
   timestamp: number;
 };
 
-const MESSAGES_STORAGE_KEY = 'agrofy_ai_messages_v1';
-
-function safeParse<T>(value: string | null, fallback: T): T {
-  if (!value) return fallback;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-function makeMessageId() {
-  return `msg_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
 function AiAssistant() {
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
-  const chatId = params.get('chat');
+  const urlSessionId = params.get('chat');
 
-  const [messages, setMessages] = useState<Record<string, Message[]>>({});
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(
+    urlSessionId
+  );
+  const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [_isInitializing, setIsInitializing] = useState(true);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
-  // localStorage'dan messages'larni o'qish
+  // Session yaratish yoki mavjud session history yuklash
   useEffect(() => {
-    const stored = safeParse<Record<string, Message[]>>(
-      localStorage.getItem(MESSAGES_STORAGE_KEY),
-      {}
-    );
-    setMessages(stored);
-  }, []);
+    const initializeSession = async () => {
+      setIsInitializing(true);
+      setError(null);
 
-  // Messages o'zgarganda localStorage'ga saqlash
-  useEffect(() => {
-    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
+      try {
+        if (urlSessionId) {
+          // URL'dan session_id bor, state ni yangilash va history yuklash
+          setCurrentSessionId(urlSessionId);
+          const history = await chatApi.getSessionHistory(urlSessionId);
+          const formattedMessages: Message[] = history.messages.map((msg) => ({
+            id: msg.id || `msg_${Date.now()}_${Math.random()}`,
+            role: msg.role,
+            content: msg.content,
+            timestamp:
+              msg.timestamp ||
+              (msg.created_at
+                ? new Date(msg.created_at).getTime()
+                : Date.now()),
+          }));
+          setMessages(formattedMessages);
 
-  const currentMessages = useMemo(() => {
-    return chatId ? messages[chatId] || [] : [];
-  }, [messages, chatId]);
+          // Agar xabarlar bo'lsa, birinchi AI javobidan chat nomini olish
+          const firstAssistantMsg = formattedMessages.find(
+            (msg) => msg.role === 'assistant'
+          );
+          if (firstAssistantMsg && firstAssistantMsg.content) {
+            const chatTitle = generateChatTitle(firstAssistantMsg.content);
+            // Sidebar'ga chat nomini yangilash uchun event yuborish
+            window.dispatchEvent(
+              new CustomEvent('updateChatTitle', {
+                detail: { sessionId: urlSessionId, title: chatTitle },
+              })
+            );
+          }
 
-  const hasMessages = currentMessages.length > 0;
+          // Agar chat mavjud bo'lsa va title bo'lsa, sidebar'da ko'rinadi
+          // Bu yerda hech narsa qilmaymiz, chunki chat allaqachon tarixda bo'lishi kerak
+        } else {
+          // URL'dan session_id yo'q, session yaratilmaydi
+          // Faqat input ko'rsatiladi, birinchi xabar yuborilganda session yaratiladi
+          setCurrentSessionId(null);
+          setMessages([]);
+        }
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message || err.message || 'Xatolik yuz berdi';
+        setError(errorMessage);
+        notifications.show({
+          title: 'Xatolik',
+          message: errorMessage,
+          color: 'red',
+        });
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlSessionId]);
+
+  const hasMessages = messages.length > 0;
 
   // Scroll to bottom when messages change or loading state changes
   useEffect(() => {
@@ -77,7 +115,7 @@ function AiAssistant() {
     }, 50);
 
     return () => clearTimeout(timeoutId);
-  }, [currentMessages.length, isLoading]);
+  }, [messages.length, isLoading]);
 
   const isComposerExpanded = useMemo(() => {
     if (!draft) return false;
@@ -89,84 +127,250 @@ function AiAssistant() {
   }, [draft]);
 
   const handleSend = async () => {
-    if (!chatId || !draft.trim() || isLoading) return;
+    if (!draft.trim() || isLoading) return;
     const content = draft.trim();
 
-    const newMsg: Message = {
-      id: makeMessageId(),
+    // Agar session_id yo'q bo'lsa, avval yangi session yaratish (loading ko'rsatmasdan)
+    let sessionId = currentSessionId;
+    if (!sessionId) {
+      try {
+        // Session yaratish - loading ko'rsatilmaydi, orqada o'zi bajarsin
+        const response = await chatApi.createSession();
+        sessionId = response.session_id;
+        setCurrentSessionId(sessionId);
+        // URL ni yangilash
+        navigate(`?chat=${sessionId}`, { replace: true });
+      } catch (err: any) {
+        const errorMessage =
+          err.response?.data?.message || err.message || 'Xatolik yuz berdi';
+        setError(errorMessage);
+        notifications.show({
+          title: 'Xatolik',
+          message: errorMessage,
+          color: 'red',
+        });
+        return;
+      }
+    }
+
+    // User xabarini darhol qo'shish
+    const userMsg: Message = {
+      id: `msg_${Date.now()}_${Math.random()}`,
       role: 'user',
       content,
       timestamp: Date.now(),
     };
 
-    setMessages((prev) => {
-      const next = { ...prev };
-      const list = next[chatId] ? [...next[chatId]] : [];
-      list.push(newMsg);
-      next[chatId] = list;
-      return next;
-    });
+    setMessages((prev) => [...prev, userMsg]);
     setDraft('');
-    setIsLoading(true);
+    setIsLoading(true); // Faqat xabar yuborilganda loading ko'rsatiladi
+    setError(null);
 
-    // Mock API call - keyinroq real API bilan almashtiriladi
-    setTimeout(() => {
+    try {
+      // ChatGPT-style messages array yaratish
+      const messagesForApi = [
+        ...messages.map((msg) => ({
+          role: msg.role as 'user' | 'assistant' | 'system',
+          content: msg.content,
+        })),
+        {
+          role: 'user' as const,
+          content,
+        },
+      ];
+
+      // API ga xabar yuborish (ChatGPT formatida)
+      const response = await chatApi.sendMessage({
+        session_id: sessionId,
+        messages: messagesForApi,
+        model: 'gpt-3.5-turbo', // Backend'ga mos model nomi
+      });
+
+      // ChatGPT-style response'dan AI javobini olish
+      const assistantMessage =
+        response.choices?.[0]?.message ||
+        response.message ||
+        (response.reply
+          ? { role: 'assistant' as const, content: response.reply }
+          : null);
+
+      if (!assistantMessage) {
+        throw new Error('AI javob olinmadi');
+      }
+
+      const replyContent = assistantMessage.content || '';
       const assistantMsg: Message = {
-        id: makeMessageId(),
+        id:
+          response.id ||
+          response.message?.id ||
+          `msg_${Date.now()}_${Math.random()}`,
         role: 'assistant',
-        content: 'Bu mock javob. Keyinroq real API bilan almashtiriladi.',
-        timestamp: Date.now(),
+        content: replyContent,
+        timestamp:
+          response.message?.timestamp ||
+          (response.created
+            ? response.created * 1000
+            : response.message?.created_at
+              ? new Date(response.message.created_at).getTime()
+              : Date.now()),
       };
 
       setMessages((prev) => {
-        const next = { ...prev };
-        const list = next[chatId] ? [...next[chatId]] : [];
-        list.push(assistantMsg);
-        next[chatId] = list;
-        return next;
-      });
+        const newMessages = [...prev, assistantMsg];
 
+        // Agar bu birinchi AI javobi bo'lsa (faqat user va assistant xabarlari bor), chat nomini yangilash va tarixga qo'shish
+        if (prev.length === 1 && replyContent) {
+          const chatTitle = generateChatTitle(replyContent);
+          // Sidebar'ga chat nomini yangilash va tarixga qo'shish uchun event yuborish
+          window.dispatchEvent(
+            new CustomEvent('addChatToHistory', {
+              detail: { sessionId: sessionId, title: chatTitle },
+            })
+          );
+        }
+
+        return newMessages;
+      });
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || err.message || 'Xatolik yuz berdi';
+      setError(errorMessage);
+      notifications.show({
+        title: 'Xatolik',
+        message: errorMessage,
+        color: 'red',
+      });
+      // Xatolik bo'lganda user xabarini olib tashlash (yoki qoldirish mumkin)
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
-  if (!chatId) {
-    return (
-      <Box className={styles.emptyState}>
-        <Text className={styles.emptyStateText}>
-          Chatni tanlang yoki yangi chat yarating
-        </Text>
-      </Box>
-    );
-  }
+  // Chat nomini AI javobidan olish funksiyasi
+  const generateChatTitle = (content: string): string => {
+    // Matndan birinchi 3-5 so'zni olish
+    const words = content.trim().split(/\s+/).slice(0, 5);
+    return words.join(' ') || 'Yangi chat';
+  };
+
+  // Xabar matnini nusxalash
+  const handleCopyMessage = async (content: string, messageId: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      // Icon'ni check iconiga o'zgartirish
+      setCopiedMessageId(messageId);
+      // 2 soniyadan keyin qaytarish
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 2000);
+    } catch (err) {
+      // Xatolik bo'lsa ham hech narsa qilmaymiz
+    }
+  };
+
+  // Xabar matnini input'ga yozish
+  const handleEditMessage = (content: string) => {
+    setDraft(content);
+    // Textarea'ga focus qilish
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
 
   return (
     <Box className={styles.container}>
       {/* Messages Area */}
       {hasMessages || isLoading ? (
         <ScrollArea className={styles.messagesArea} scrollbarSize={12}>
-          <Stack gap="md" p="md" className={styles.messagesList}>
+          <Stack gap="md" className={styles.messagesList}>
             <AnimatePresence mode="popLayout">
-              {currentMessages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className={
-                    message.role === 'user'
-                      ? styles.userMessage
-                      : styles.assistantMessage
-                  }
-                >
-                  <Box className={styles.messageContent}>
-                    <Text className={styles.messageText}>
-                      {message.content}
-                    </Text>
+              {messages.map((message) => {
+                const isCopied = copiedMessageId === message.id;
+                return (
+                  <Box
+                    key={message.id}
+                    style={{ position: 'relative' }}
+                    onMouseEnter={(e) => {
+                      const actionsBox = e.currentTarget.querySelector(
+                        '[data-message-actions]'
+                      ) as HTMLElement;
+                      if (actionsBox) {
+                        actionsBox.style.opacity = '1';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      const actionsBox = e.currentTarget.querySelector(
+                        '[data-message-actions]'
+                      ) as HTMLElement;
+                      if (actionsBox) {
+                        actionsBox.style.opacity = '0';
+                      }
+                    }}
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className={
+                        message.role === 'user'
+                          ? styles.userMessage
+                          : styles.assistantMessage
+                      }
+                    >
+                      <Box className={styles.messageContent}>
+                        <Text className={styles.messageText}>
+                          {message.content}
+                        </Text>
+                      </Box>
+                    </motion.div>
+                    {/* Copy va Edit tugmalari - absolute position, hover qilganda ko'rsatiladi */}
+                    <Box
+                      data-message-actions
+                      style={{
+                        position: 'absolute',
+                        bottom: '-25px',
+                        right: message.role === 'user' ? '8px' : 'auto',
+                        left: message.role === 'user' ? 'auto' : '8px',
+                        display: 'flex',
+                        gap: '8px',
+                        justifyContent:
+                          message.role === 'user' ? 'flex-end' : 'flex-start',
+                        opacity: 0,
+                        transition: 'opacity 0.2s ease',
+                        zIndex: 10,
+                      }}
+                    >
+                      <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        onClick={() =>
+                          handleCopyMessage(message.content, message.id)
+                        }
+                        aria-label="Copy message"
+                        color={isCopied ? 'green' : undefined}
+                      >
+                        {isCopied ? (
+                          <MdCheck size={16} />
+                        ) : (
+                          <MdContentCopy size={16} />
+                        )}
+                      </ActionIcon>
+                      {/* Edit tugmasi faqat user xabarlarida */}
+                      {message.role === 'user' && (
+                        <ActionIcon
+                          variant="subtle"
+                          size="sm"
+                          onClick={() => handleEditMessage(message.content)}
+                          aria-label="Edit message"
+                        >
+                          <MdEdit size={16} />
+                        </ActionIcon>
+                      )}
+                    </Box>
                   </Box>
-                </motion.div>
-              ))}
+                );
+              })}
             </AnimatePresence>
 
             {/* Loading Indicator */}
@@ -194,6 +398,20 @@ function AiAssistant() {
         <Box className={styles.welcomeState}>
           <Text className={styles.welcomeTitle}>
             Nima bilan yordam bera olaman?
+          </Text>
+          {error && (
+            <Text className={styles.errorText} mt="md" c="red">
+              {error}
+            </Text>
+          )}
+        </Box>
+      )}
+
+      {/* Error message in messages area */}
+      {error && hasMessages && (
+        <Box p="md" className={styles.errorBanner}>
+          <Text c="red" size="sm">
+            {error}
           </Text>
         </Box>
       )}
