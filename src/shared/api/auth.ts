@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://skinflinty-danica-hyperscholastically.ngrok-free.dev/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -42,7 +44,7 @@ export const authApi = {
   // Session boshlash
   startSession: async (): Promise<StartSessionResponse> => {
     const response = await api.post<StartSessionResponse>(
-      '/api/v1/auth/start-session'
+      '/v1/auth/start-session'
     );
     return response.data;
   },
@@ -52,13 +54,10 @@ export const authApi = {
     loginSessionId: string,
     otp: string
   ): Promise<VerifyOtpResponse> => {
-    const response = await api.post<VerifyOtpResponse>(
-      '/api/v1/auth/verify-otp',
-      {
-        login_session_id: loginSessionId,
-        otp,
-      }
-    );
+    const response = await api.post<VerifyOtpResponse>('/v1/auth/verify-otp', {
+      login_session_id: loginSessionId,
+      otp,
+    });
     return response.data;
   },
 };
