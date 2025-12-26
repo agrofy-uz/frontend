@@ -1,4 +1,5 @@
 {
+  "homepage": "https://agrofy-uz.github.io/frontend",
   "name": "agrofy-frontend",
   "private": true,
   "version": "0.0.0",
@@ -6,10 +7,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "deploy": "gh-pages -d dist",
-    "lint": "eslint . --fix",
-    "format": "prettier --write . --plugin-search-dir=.",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@mantine/core": "^8.3.1",
