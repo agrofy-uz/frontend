@@ -2,11 +2,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--mantine-color-gray-0);
-}
-
-html[data-mantine-color-scheme='dark'] .container {
-  background-color: var(--mantine-color-dark-7);
+  position: relative;
 }
 
 .emptyState {
@@ -26,6 +22,27 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
   color: var(--mantine-color-dark-3);
 }
 
+/* Welcome State (Yangi chat) */
+.welcomeState {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 200px;
+}
+
+.welcomeTitle {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--mantine-color-gray-9);
+  text-align: center;
+}
+
+html[data-mantine-color-scheme='dark'] .welcomeTitle {
+  color: var(--mantine-color-dark-0);
+}
+
+/* Messages Area */
 .messagesArea {
   flex: 1;
   overflow: auto;
@@ -34,39 +51,27 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
 .messagesList {
   min-height: 100%;
   padding-bottom: 20px;
-}
-
-.emptyChat {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 400px;
-}
-
-.emptyChatText {
-  font-size: 14px;
-  color: var(--mantine-color-gray-6);
-}
-
-html[data-mantine-color-scheme='dark'] .emptyChatText {
-  color: var(--mantine-color-dark-3);
+  max-width: 768px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .userMessage {
   display: flex;
   justify-content: flex-end;
+  width: 100%;
 }
 
 .assistantMessage {
   display: flex;
   justify-content: flex-start;
+  width: 100%;
 }
 
 .messageContent {
-  max-width: 70%;
+  max-width: 85%;
   padding: 12px 16px;
-  border-radius: var(--mantine-radius-md);
+  border-radius: 20px;
   word-wrap: break-word;
 }
 
@@ -88,8 +93,8 @@ html[data-mantine-color-scheme='dark'] .assistantMessage .messageContent {
 }
 
 .messageText {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.75;
   white-space: pre-wrap;
 }
 
@@ -139,29 +144,135 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
 
 /* Input Area */
 .inputArea {
-  padding: 16px;
-  border-top: 1px solid var(--mantine-color-gray-3);
-  background-color: var(--mantine-color-gray-0);
+  padding: 12px 16px 16px;
 }
 
-html[data-mantine-color-scheme='dark'] .inputArea {
-  border-top-color: hsl(150, 10%, 20%);
-  background-color: var(--mantine-color-dark-7);
-}
-
-.textarea {
+.composer {
+  max-width: 768px;
+  margin: 0 auto;
   width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid var(--mantine-color-gray-3);
+  background: var(--mantine-color-gray-2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  transition:
+    border-color 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    padding 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: padding, border-radius, flex-wrap;
 }
 
-.sendButton {
-  transition: all 0.2s ease;
+html[data-mantine-color-scheme='dark'] .composer {
+  border-color: color-mix(
+    in srgb,
+    var(--mantine-color-dark-4) 70%,
+    transparent
+  );
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  background: var(--mantine-color-body);
 }
 
-.sendButton:hover:not(:disabled) {
-  transform: scale(1.05);
+.composerCollapsed {
+  flex-wrap: nowrap;
+  align-items: center;
+  transition:
+    flex-wrap 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    align-items 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.sendButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.composerExpanded {
+  flex-wrap: wrap;
+  align-items: flex-end;
+  transition:
+    flex-wrap 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    align-items 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.plusBtn {
+  flex: 0 0 auto;
+}
+
+.textareaWrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  transition:
+    flex 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    order 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.composerExpanded .textareaWrap {
+  flex: 1 0 100%;
+  order: 1;
+}
+
+.composerExpanded .plusBtn {
+  order: 2;
+  transition: order 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+  transition:
+    order 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    margin-left 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.composerExpanded .actions {
+  order: 3;
+  margin-left: auto;
+}
+
+.textareaInput {
+  border: none;
+  background: transparent;
+  padding: 6px 4px;
+  min-height: 26px;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Textarea scrollbar styles */
+.textareaInput::-webkit-scrollbar {
+  width: 6px;
+}
+
+.textareaInput::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.textareaInput::-webkit-scrollbar-thumb {
+  background: var(--mantine-color-gray-4);
+  border-radius: 3px;
+}
+
+.textareaInput::-webkit-scrollbar-thumb:hover {
+  background: var(--mantine-color-gray-5);
+}
+
+html[data-mantine-color-scheme='dark'] .textareaInput::-webkit-scrollbar-thumb {
+  background: var(--mantine-color-dark-4);
+}
+
+html[data-mantine-color-scheme='dark']
+  .textareaInput::-webkit-scrollbar-thumb:hover {
+  background: var(--mantine-color-dark-3);
+}
+
+.textareaInput:focus {
+  outline: none;
+}
+
+.micBtn {
+  flex: 0 0 auto;
+}
+
+.sendBtn {
+  flex: 0 0 auto;
 }

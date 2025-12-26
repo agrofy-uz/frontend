@@ -7,10 +7,12 @@ import {
   Text,
 } from '@mantine/core';
 import { useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { IoMdSend } from 'react-icons/io';
+import { BsMicMuteFill } from 'react-icons/bs';
+import { IoArrowUp } from 'react-icons/io5';
 import styles from './ai-assistant.module.css';
+import { MdAttachFile } from 'react-icons/md';
 
 type Message = {
   id: string;
@@ -40,9 +42,10 @@ function AiAssistant() {
   const chatId = params.get('chat');
 
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [draft, setDraft] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // localStorage'dan messages'larni o'qish
   useEffect(() => {
@@ -58,57 +61,73 @@ function AiAssistant() {
     localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
-  // Scroll to bottom
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+  const currentMessages = useMemo(() => {
+    return chatId ? messages[chatId] || [] : [];
   }, [messages, chatId]);
 
-  const currentMessages = chatId ? messages[chatId] || [] : [];
+  const hasMessages = currentMessages.length > 0;
+
+  // Scroll to bottom when messages change or loading state changes
+  useEffect(() => {
+    // Kichik kechikish bilan scroll qilish, DOM yangilanishini kutish uchun
+    const timeoutId = setTimeout(() => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 50);
+
+    return () => clearTimeout(timeoutId);
+  }, [currentMessages.length, isLoading]);
+
+  const isComposerExpanded = useMemo(() => {
+    if (!draft) return false;
+    if (draft.includes('\n')) return true;
+    const el = textareaRef.current;
+    if (!el) return false;
+    // Autosize bo'lganda scrollHeight oshadi; 1 qatorlik holatni taxminiy 36-40px atrofida ushlaymiz.
+    return el.scrollHeight >= 56;
+  }, [draft]);
 
   const handleSend = async () => {
-    if (!inputValue.trim() || !chatId || isLoading) return;
+    if (!chatId || !draft.trim() || isLoading) return;
+    const content = draft.trim();
 
-    const userMessage: Message = {
+    const newMsg: Message = {
       id: makeMessageId(),
       role: 'user',
-      content: inputValue.trim(),
+      content,
       timestamp: Date.now(),
     };
 
-    // User message'ni qo'shish
-    setMessages((prev) => ({
-      ...prev,
-      [chatId]: [...(prev[chatId] || []), userMessage],
-    }));
-
-    setInputValue('');
+    setMessages((prev) => {
+      const next = { ...prev };
+      const list = next[chatId] ? [...next[chatId]] : [];
+      list.push(newMsg);
+      next[chatId] = list;
+      return next;
+    });
+    setDraft('');
     setIsLoading(true);
 
-    // Simulate AI response (keyin API bilan almashtiriladi)
+    // Mock API call - keyinroq real API bilan almashtiriladi
     setTimeout(() => {
-      const aiMessage: Message = {
+      const assistantMsg: Message = {
         id: makeMessageId(),
         role: 'assistant',
-        content: `Bu demo javob. Sizning xabaringiz: "${userMessage.content}". Bu yerda AI API javobini qo'yishingiz mumkin.`,
+        content: 'Bu mock javob. Keyinroq real API bilan almashtiriladi.',
         timestamp: Date.now(),
       };
 
-      setMessages((prev) => ({
-        ...prev,
-        [chatId]: [...(prev[chatId] || []), aiMessage],
-      }));
+      setMessages((prev) => {
+        const next = { ...prev };
+        const list = next[chatId] ? [...next[chatId]] : [];
+        list.push(assistantMsg);
+        next[chatId] = list;
+        return next;
+      });
 
       setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    }, 1500);
   };
 
   if (!chatId) {
@@ -124,22 +143,17 @@ function AiAssistant() {
   return (
     <Box className={styles.container}>
       {/* Messages Area */}
-      <ScrollArea className={styles.messagesArea} scrollbarSize={6}>
-        <Stack gap="md" p="md" className={styles.messagesList}>
-          {currentMessages.length === 0 ? (
-            <Box className={styles.emptyChat}>
-              <Text className={styles.emptyChatText}>
-                Yangi suhbatni boshlang
-              </Text>
-            </Box>
-          ) : (
-            <AnimatePresence>
-              {currentMessages.map((message, index) => (
+      {hasMessages || isLoading ? (
+        <ScrollArea className={styles.messagesArea} scrollbarSize={12}>
+          <Stack gap="md" p="md" className={styles.messagesList}>
+            <AnimatePresence mode="popLayout">
+              {currentMessages.map((message) => (
                 <motion.div
                   key={message.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.05 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
                   className={
                     message.role === 'user'
                       ? styles.userMessage
@@ -154,58 +168,109 @@ function AiAssistant() {
                 </motion.div>
               ))}
             </AnimatePresence>
-          )}
 
-          {isLoading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={styles.assistantMessage}
-            >
-              <Box className={styles.messageContent}>
-                <Box className={styles.typingIndicator}>
-                  <span></span>
-                  <span></span>
-                  <span></span>
+            {/* Loading Indicator */}
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className={styles.assistantMessage}
+              >
+                <Box className={styles.messageContent}>
+                  <Box className={styles.typingIndicator}>
+                    <span />
+                    <span />
+                    <span />
+                  </Box>
                 </Box>
-              </Box>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          <div ref={messagesEndRef} />
-        </Stack>
-      </ScrollArea>
+            <div ref={messagesEndRef} />
+          </Stack>
+        </ScrollArea>
+      ) : (
+        <Box className={styles.welcomeState}>
+          <Text className={styles.welcomeTitle}>
+            Nima bilan yordam bera olaman?
+          </Text>
+        </Box>
+      )}
 
       {/* Input Area */}
       <Box className={styles.inputArea}>
-        <Textarea
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Xabar yozing..."
-          minRows={1}
-          maxRows={4}
-          autosize
-          className={styles.textarea}
-          disabled={isLoading}
-          rightSection={
-            <ActionIcon
-              variant="filled"
-              color="green"
-              onClick={handleSend}
-              disabled={!inputValue.trim() || isLoading}
-              className={styles.sendButton}
-            >
-              <IoMdSend size={20} />
-            </ActionIcon>
-          }
-          rightSectionWidth={50}
-          styles={{
-            input: {
-              paddingRight: '60px',
-            },
+        <motion.div
+          layout
+          transition={{
+            layout: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
           }}
-        />
+          animate={{
+            borderRadius: isComposerExpanded ? 20 : 18,
+            padding: isComposerExpanded ? '12px' : '8px',
+          }}
+          className={`${styles.composer} ${
+            isComposerExpanded
+              ? styles.composerExpanded
+              : styles.composerCollapsed
+          }`}
+        >
+          <ActionIcon
+            className={styles.plusBtn}
+            size="lg"
+            radius="xl"
+            variant="subtle"
+            aria-label="Qo'shish"
+          >
+            <MdAttachFile size={18} />
+          </ActionIcon>
+
+          <Box className={styles.textareaWrap}>
+            <Textarea
+              ref={(node) => {
+                // Mantine Textarea ref'ni textarea elementga bog'laydi
+                textareaRef.current = node;
+              }}
+              value={draft}
+              onChange={(e) => setDraft(e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              autosize
+              minRows={1}
+              maxRows={6}
+              placeholder="Xabar yozing..."
+              classNames={{ input: styles.textareaInput }}
+            />
+          </Box>
+
+          <Box className={styles.actions}>
+            <ActionIcon
+              className={styles.micBtn}
+              size="lg"
+              radius="xl"
+              variant="subtle"
+              aria-label="Ovoz"
+            >
+              <BsMicMuteFill size={18} />
+            </ActionIcon>
+
+            <ActionIcon
+              className={styles.sendBtn}
+              size="lg"
+              radius="xl"
+              variant="filled"
+              aria-label="Yuborish"
+              disabled={!draft.trim() || isLoading}
+              onClick={handleSend}
+            >
+              <IoArrowUp size={18} />
+            </ActionIcon>
+          </Box>
+        </motion.div>
       </Box>
     </Box>
   );

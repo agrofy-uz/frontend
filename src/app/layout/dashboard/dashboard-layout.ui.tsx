@@ -74,7 +74,6 @@ const DashboardLayout = () => {
           style={{
             flex: 1,
             overflow: 'auto',
-            padding: '1rem',
           }}
         >
           <Outlet />
