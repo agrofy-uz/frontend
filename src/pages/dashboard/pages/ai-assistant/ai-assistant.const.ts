@@ -34,3 +34,6 @@ export const TYPING_DOT_ANIMATION = {
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0 },
 };
+
+export const VOICE_MAX_DURATION = 60; // 60 seconds
+export const VOICE_MAX_SIZE = 5 * 1024 * 1024; // 5 MB

@@ -29,7 +29,7 @@ const Logo = ({ collapsed = false }: LogoProps) => {
         src={getLogo()}
         alt="Agrofy Logo"
         style={{
-          height: collapsed ? '32px' : '40px',
+          height: collapsed ? '40px' : '30px',
           width: 'auto',
           objectFit: 'contain',
         }}

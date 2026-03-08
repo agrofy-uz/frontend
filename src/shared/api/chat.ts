@@ -180,4 +180,25 @@ export const chatApi = {
     );
     return response.data;
   },
+
+  /**
+   * Audio failini matnga aylantirish (Speech-to-Text)
+   * @param audioBlob Yozib olingan audio blobi
+   * @returns Transkripsiya matni
+   */
+  transcribeAudio: async (audioBlob: Blob): Promise<{ text: string }> => {
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'voice_message.wav');
+
+    const response = await api.post<{ text: string }>(
+      '/convert',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  },
 };

@@ -23,6 +23,7 @@ import {
   MESSAGE_ANIMATION_VARIANTS,
   TYPING_DOT_ANIMATION,
 } from './ai-assistant.const';
+import { VoiceModal } from './ui/voice-modal/voice-modal.ui';
 
 type Message = ChatMessage & {
   id: string;
@@ -46,6 +47,7 @@ function AiAssistant() {
   const [error, setError] = useState<string | null>(null);
   const [_isInitializing, setIsInitializing] = useState(true);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [voiceModalOpened, setVoiceModalOpened] = useState(false);
 
   // Textarea-ni to'g'ridan-to'g'ri DOM orqali o'lchaymiz va o'zgartiramiz
   useLayoutEffect(() => {
@@ -283,6 +285,10 @@ function AiAssistant() {
     }
   };
 
+  const handleVoiceTranscribed = (text: string) => {
+    setDraft((prev) => (prev ? `${prev} ${text}` : text));
+  };
+
   return (
     <Box className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}>
       {/* Messages Area */}
@@ -413,6 +419,7 @@ function AiAssistant() {
                  radius="xl"
                  variant="subtle"
                  aria-label="Ovoz"
+                 onClick={() => setVoiceModalOpened(true)}
                >
                  <BsMicMuteFill size={18} />
                </ActionIcon>
@@ -432,6 +439,12 @@ function AiAssistant() {
            </Box>
          </div>
        </Box>
+
+       <VoiceModal
+         opened={voiceModalOpened}
+         onClose={() => setVoiceModalOpened(false)}
+         onTranscribed={handleVoiceTranscribed}
+       />
     </Box>
   );
 }
