@@ -1,13 +1,13 @@
 import {
   Box,
-  Textarea,
   ActionIcon,
   ScrollArea,
   Stack,
   Text,
+  Tooltip,
 } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useMemo, useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
 import { IoArrowUp } from 'react-icons/io5';
@@ -39,6 +39,20 @@ function AiAssistant() {
   const [error, setError] = useState<string | null>(null);
   const [_isInitializing, setIsInitializing] = useState(true);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+
+  // Textarea-ni to'g'ridan-to'g'ri DOM orqali o'lchaymiz va o'zgartiramiz
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    el.style.height = 'auto'; // Reset height
+    const scrollH = el.scrollHeight;
+    const maxH = 160;
+    const newH = Math.min(scrollH, maxH);
+
+    el.style.height = `${newH}px`;
+    el.style.overflowY = scrollH > maxH ? 'auto' : 'hidden';
+  }, [draft]);
 
   // Session yaratish yoki mavjud session history yuklash
   useEffect(() => {
@@ -117,14 +131,6 @@ function AiAssistant() {
     return () => clearTimeout(timeoutId);
   }, [messages.length, isLoading]);
 
-  const isComposerExpanded = useMemo(() => {
-    if (!draft) return false;
-    if (draft.includes('\n')) return true;
-    const el = textareaRef.current;
-    if (!el) return false;
-    // Autosize bo'lganda scrollHeight oshadi; 1 qatorlik holatni taxminiy 36-40px atrofida ushlaymiz.
-    return el.scrollHeight >= 56;
-  }, [draft]);
 
   const handleSend = async () => {
     if (!draft.trim() || isLoading) return;
@@ -278,97 +284,63 @@ function AiAssistant() {
   };
 
   return (
-    <Box className={styles.container}>
+    <Box className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}>
       {/* Messages Area */}
       {hasMessages || isLoading ? (
         <ScrollArea className={styles.messagesArea} scrollbarSize={12}>
           <Stack gap="md" className={styles.messagesList}>
             <AnimatePresence mode="popLayout">
               {messages.map((message) => {
+                const isUser = message.role === 'user';
                 const isCopied = copiedMessageId === message.id;
+
                 return (
-                  <Box
+                  <motion.div
                     key={message.id}
-                    style={{ position: 'relative' }}
-                    onMouseEnter={(e) => {
-                      const actionsBox = e.currentTarget.querySelector(
-                        '[data-message-actions]'
-                      ) as HTMLElement;
-                      if (actionsBox) {
-                        actionsBox.style.opacity = '1';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      const actionsBox = e.currentTarget.querySelector(
-                        '[data-message-actions]'
-                      ) as HTMLElement;
-                      if (actionsBox) {
-                        actionsBox.style.opacity = '0';
-                      }
-                    }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className={isUser ? styles.userMessage : styles.assistantMessage}
                   >
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className={
-                        message.role === 'user'
-                          ? styles.userMessage
-                          : styles.assistantMessage
-                      }
-                    >
+                    <Box className={styles.messageContentWrapper}>
                       <Box className={styles.messageContent}>
                         <Text className={styles.messageText}>
                           {message.content}
                         </Text>
                       </Box>
-                    </motion.div>
-                    {/* Copy va Edit tugmalari - absolute position, hover qilganda ko'rsatiladi */}
-                    <Box
-                      data-message-actions
-                      style={{
-                        position: 'absolute',
-                        bottom: '-25px',
-                        right: message.role === 'user' ? '8px' : 'auto',
-                        left: message.role === 'user' ? 'auto' : '8px',
-                        display: 'flex',
-                        gap: '8px',
-                        justifyContent:
-                          message.role === 'user' ? 'flex-end' : 'flex-start',
-                        opacity: 0,
-                        transition: 'opacity 0.2s ease',
-                        zIndex: 10,
-                      }}
-                    >
-                      <ActionIcon
-                        variant="subtle"
-                        size="sm"
-                        onClick={() =>
-                          handleCopyMessage(message.content, message.id)
-                        }
-                        aria-label="Copy message"
-                        color={isCopied ? 'green' : undefined}
-                      >
-                        {isCopied ? (
-                          <MdCheck size={16} />
-                        ) : (
-                          <MdContentCopy size={16} />
+
+                      {/* Copy va Edit tugmalari — xabarga hover qilganda chiqadi */}
+                      <Box className={styles.messageActions}>
+                        <Tooltip label="Nusxa olish" position="top">
+                          <ActionIcon
+                            variant="subtle"
+                            size="md"
+                            onClick={() => handleCopyMessage(message.content, message.id)}
+                            aria-label="Copy message"
+                            color={isCopied ? 'green' : undefined}
+                            className={styles.actionIcon}
+                          >
+                            {isCopied ? <MdCheck size={20} /> : <MdContentCopy size={20} />}
+                          </ActionIcon>
+                        </Tooltip>
+
+                        {isUser && (
+                          <Tooltip label="Tahrirlash" position="top">
+                            <ActionIcon
+                              variant="subtle"
+                              size="md"
+                              onClick={() => handleEditMessage(message.content)}
+                              aria-label="Edit message"
+                              className={styles.actionIcon}
+                            >
+                              <MdEdit size={20} />
+                            </ActionIcon>
+                          </Tooltip>
                         )}
-                      </ActionIcon>
-                      {/* Edit tugmasi faqat user xabarlarida */}
-                      {message.role === 'user' && (
-                        <ActionIcon
-                          variant="subtle"
-                          size="sm"
-                          onClick={() => handleEditMessage(message.content)}
-                          aria-label="Edit message"
-                        >
-                          <MdEdit size={16} />
-                        </ActionIcon>
-                      )}
+                      </Box>
                     </Box>
-                  </Box>
+                  </motion.div>
                 );
               })}
             </AnimatePresence>
@@ -407,89 +379,65 @@ function AiAssistant() {
         </Box>
       )}
 
-      {/* Error message in messages area */}
-      {error && hasMessages && (
-        <Box p="md" className={styles.errorBanner}>
-          <Text c="red" size="sm">
-            {error}
-          </Text>
-        </Box>
-      )}
+     
 
-      {/* Input Area */}
-      <Box className={styles.inputArea}>
-        <motion.div
-          layout
-          transition={{
-            layout: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
-          }}
-          animate={{
-            borderRadius: isComposerExpanded ? 20 : 18,
-            padding: isComposerExpanded ? '12px' : '8px',
-          }}
-          className={`${styles.composer} ${
-            isComposerExpanded
-              ? styles.composerExpanded
-              : styles.composerCollapsed
-          }`}
-        >
-          <ActionIcon
-            className={styles.plusBtn}
-            size="lg"
-            radius="xl"
-            variant="subtle"
-            aria-label="Qo'shish"
-          >
-            <MdAttachFile size={18} />
-          </ActionIcon>
-
-          <Box className={styles.textareaWrap}>
-            <Textarea
-              ref={(node) => {
-                // Mantine Textarea ref'ni textarea elementga bog'laydi
-                textareaRef.current = node;
-              }}
-              value={draft}
-              onChange={(e) => setDraft(e.currentTarget.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              autosize
-              minRows={1}
-              maxRows={6}
-              placeholder="Xabar yozing..."
-              classNames={{ input: styles.textareaInput }}
-            />
-          </Box>
-
-          <Box className={styles.actions}>
-            <ActionIcon
-              className={styles.micBtn}
-              size="lg"
-              radius="xl"
-              variant="subtle"
-              aria-label="Ovoz"
-            >
-              <BsMicMuteFill size={18} />
-            </ActionIcon>
-
-            <ActionIcon
-              className={styles.sendBtn}
-              size="lg"
-              radius="xl"
-              variant="filled"
-              aria-label="Yuborish"
-              disabled={!draft.trim() || isLoading}
-              onClick={handleSend}
-            >
-              <IoArrowUp size={18} />
-            </ActionIcon>
-          </Box>
-        </motion.div>
-      </Box>
+       {/* Input Area */}
+       <Box className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}>
+         <div className={styles.composer}>
+           <Box className={styles.textareaWrap}>
+             <textarea
+               ref={textareaRef}
+               value={draft}
+               onChange={(e) => setDraft(e.target.value)}
+               onKeyDown={(e) => {
+                 if (e.key === 'Enter' && !e.shiftKey) {
+                   e.preventDefault();
+                   handleSend();
+                 }
+               }}
+               rows={1}
+               placeholder="Xabar yozing..."
+               className={styles.textareaInput}
+             />
+           </Box>
+ 
+           <Box className={styles.actionsContainer}>
+             <ActionIcon
+               className={styles.plusBtn}
+               size="lg"
+               radius="xl"
+               variant="subtle"
+               aria-label="Qo'shish"
+             >
+               <MdAttachFile size={18} />
+             </ActionIcon>
+ 
+             <Box className={styles.actions}>
+               <ActionIcon
+                 className={styles.micBtn}
+                 size="lg"
+                 radius="xl"
+                 variant="subtle"
+                 aria-label="Ovoz"
+               >
+                 <BsMicMuteFill size={18} />
+               </ActionIcon>
+ 
+               <ActionIcon
+                 className={styles.sendBtn}
+                 size="lg"
+                 radius="xl"
+                 variant="filled"
+                 aria-label="Yuborish"
+                 disabled={!draft.trim() || isLoading}
+                 onClick={handleSend}
+               >
+                 <IoArrowUp size={18} />
+               </ActionIcon>
+             </Box>
+           </Box>
+         </div>
+       </Box>
     </Box>
   );
 }

@@ -11,6 +11,7 @@ import { FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { HiLightningBolt } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
+import { localStorageHelper } from '@/shared/lib/localStorage';
 import styles from './drower.module.css';
 
 interface DrowerProps {
@@ -22,7 +23,7 @@ interface DrowerProps {
 
 function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
   const navigate = useNavigate();
-  const { user: authUser } = useAuthStore();
+  const { user: authUser, logout } = useAuthStore();
 
   // User ma'lumotlari
   const user = {
@@ -56,8 +57,10 @@ function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
   };
 
   const handleLogout = () => {
-    // Logout logic
+    logout();
+    localStorageHelper.clear();
     onClose();
+    navigate('/');
   };
 
   return (

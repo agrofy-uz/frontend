@@ -3,8 +3,9 @@ import { useAuthStore } from '../store/authStore';
 
 // API base URL - .env faylida VITE_API_URL o'rnatish kerak
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  'https://skinflinty-danica-hyperscholastically.ngrok-free.dev/api';
+  import.meta.env.VITE_API_BASE_URL ||
+  // 'https://skinflinty-danica-hyperscholastically.ngrok-free.dev/api';
+  'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

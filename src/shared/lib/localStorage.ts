@@ -25,6 +25,7 @@ export class LocaleStorageHelper {
 
   clear() {
     this.remove('access_token');
+    this.remove('refresh_token');
   }
 }
 
