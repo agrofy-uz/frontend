@@ -84,18 +84,23 @@ function Product() {
                         {/* Icon */}
                         {IconComponent && (
                           <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            whileInView={{ scale: 1, rotate: 0 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{
-                              duration: 0.5,
+                              duration: 0.4,
                               delay: index * 0.1 + 0.2,
+                              ease: 'easeOut',
                             }}
-                            whileHover={{ rotate: 360 }}
+                            whileHover={{ scale: 1.1 }}
                           >
                             <Box
                               style={{
                                 color: 'var(--mantine-color-green-5)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 'fit-content',
                               }}
                             >
                               <IconComponent size={32} />

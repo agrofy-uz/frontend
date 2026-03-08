@@ -1,37 +1,40 @@
-import { Group, Text, Box } from '@mantine/core';
-import { FaLeaf } from 'react-icons/fa';
+import { Box, useMantineColorScheme } from '@mantine/core';
+import logo1 from '@/assets/images/logo1.png';
+import logo2 from '@/assets/images/logo2.png';
+import logo3 from '@/assets/images/logo3.png';
 
 interface LogoProps {
   collapsed?: boolean;
 }
 
 const Logo = ({ collapsed = false }: LogoProps) => {
+  const { colorScheme } = useMantineColorScheme();
+
+  const getLogo = () => {
+    if (collapsed) return logo3;
+    return colorScheme === 'dark' ? logo2 : logo1;
+  };
+
   return (
-    <Group
-      gap="xs"
+    <Box
       p="md"
-      style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: collapsed ? 'center' : 'flex-start',
+        height: '100%',
+      }}
     >
-      <Box
+      <img
+        src={getLogo()}
+        alt="Agrofy Logo"
         style={{
-          color: 'var(--mantine-color-green-6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          height: collapsed ? '32px' : '40px',
+          width: 'auto',
+          objectFit: 'contain',
         }}
-      >
-        <FaLeaf size={24} />
-      </Box>
-      {!collapsed && (
-        <Text
-          fw={700}
-          size="lg"
-          style={{ color: 'var(--mantine-color-green-6)' }}
-        >
-          Agrofy
-        </Text>
-      )}
-    </Group>
+      />
+    </Box>
   );
 };
 

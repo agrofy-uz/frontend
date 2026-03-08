@@ -16,6 +16,13 @@ import { notifications } from '@mantine/notifications';
 import styles from './ai-assistant.module.css';
 import { chatApi } from '@/shared/api/chat';
 import type { ChatMessage } from '@/shared/api/chat';
+import {
+  MAX_TEXTAREA_HEIGHT,
+  DEFAULT_MODEL,
+  generateChatTitle,
+  MESSAGE_ANIMATION_VARIANTS,
+  TYPING_DOT_ANIMATION,
+} from './ai-assistant.const';
 
 type Message = ChatMessage & {
   id: string;
@@ -47,7 +54,7 @@ function AiAssistant() {
 
     el.style.height = 'auto'; // Reset height
     const scrollH = el.scrollHeight;
-    const maxH = 160;
+    const maxH = MAX_TEXTAREA_HEIGHT;
     const newH = Math.min(scrollH, maxH);
 
     el.style.height = `${newH}px`;
@@ -189,7 +196,7 @@ function AiAssistant() {
       const response = await chatApi.sendMessage({
         session_id: sessionId,
         messages: messagesForApi,
-        model: 'gpt-3.5-turbo', // Backend'ga mos model nomi
+        model: DEFAULT_MODEL, // Backend'ga mos model nomi
       });
 
       // ChatGPT-style response'dan AI javobini olish
@@ -252,13 +259,6 @@ function AiAssistant() {
     }
   };
 
-  // Chat nomini AI javobidan olish funksiyasi
-  const generateChatTitle = (content: string): string => {
-    // Matndan birinchi 3-5 so'zni olish
-    const words = content.trim().split(/\s+/).slice(0, 5);
-    return words.join(' ') || 'Yangi chat';
-  };
-
   // Xabar matnini nusxalash
   const handleCopyMessage = async (content: string, messageId: string) => {
     try {
@@ -297,10 +297,7 @@ function AiAssistant() {
                 return (
                   <motion.div
                     key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    {...MESSAGE_ANIMATION_VARIANTS}
                     className={isUser ? styles.userMessage : styles.assistantMessage}
                   >
                     <Box className={styles.messageContentWrapper}>
@@ -345,12 +342,9 @@ function AiAssistant() {
               })}
             </AnimatePresence>
 
-            {/* Loading Indicator */}
             {isLoading && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
+                {...TYPING_DOT_ANIMATION}
                 className={styles.assistantMessage}
               >
                 <Box className={styles.messageContent}>

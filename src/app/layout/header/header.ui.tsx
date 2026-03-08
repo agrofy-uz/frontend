@@ -1,19 +1,23 @@
 import {
   Flex,
-  Text,
   Group,
   Anchor,
   ActionIcon,
   useMantineColorScheme,
+  Select,
 } from '@mantine/core';
 import { Container } from '@/shared/ui/container';
 import { Button } from '@/shared/ui/button';
 import { MobileDrawer } from './ui/mobile';
 import { LoginModal } from '@/shared/ui/login-modal';
 import { FaBars } from 'react-icons/fa';
+import { IoChevronDownOutline } from 'react-icons/io5';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
+import { LANGUAGES } from './header.const';
+import logo1 from '@/assets/images/logo1.png';
+import logo2 from '@/assets/images/logo2.png';
 
 function Header() {
   const { colorScheme } = useMantineColorScheme();
@@ -22,6 +26,7 @@ function Header() {
   const [loginModalOpened, setLoginModalOpened] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
+  const [lang, setLang] = useState('uz');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -93,9 +98,13 @@ function Header() {
         <Container>
           <Flex justify="space-between" align="center" py="md" w="100%">
             {/* Chapda: Mobile logo yoki Desktop logo */}
-            <Text fw={600} size="lg">
-              Agrofy
-            </Text>
+            <Link to="/" style={{ display: 'flex', alignItems: 'center' }}>
+              <img
+                src={colorScheme === 'dark' ? logo2 : logo1}
+                alt="Agrofy Logo"
+                style={{ height: '32px', width: 'auto', objectFit: 'contain' }}
+              />
+            </Link>
 
             {/* O'rtada: Desktop navbar */}
             <Group gap="xl" visibleFrom="md">
@@ -125,7 +134,45 @@ function Header() {
             </Group>
 
             {/* O'ngda: Mobile menu button yoki Desktop button */}
-            <Flex align="center">
+            <Flex align="center" gap="md">
+              <Select
+                value={lang}
+                onChange={(value) => setLang(value || 'uz')}
+                data={LANGUAGES.map((l) => ({ value: l.value, label: `${l.icon} ${l.label}` }))}
+                variant="unstyled"
+                size="sm"
+                allowDeselect={false}
+                rightSection={<IoChevronDownOutline size={14} />}
+                className="lang-select"
+                styles={{
+                  root: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                    borderRadius: 'var(--mantine-radius-md)',
+                    paddingLeft: '12px',
+                    paddingRight: '8px',
+                    height: '35px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                    '&:hover': {
+                      backgroundColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                    },
+                  },
+                  input: {
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    width: '120px',
+                    cursor: 'pointer',
+                    padding: 0,
+                    minHeight: 'auto',
+                    height: 'auto',
+                  },
+                }}
+                visibleFrom="sm"
+              />
               <ActionIcon
                 variant="subtle"
                 size="lg"
