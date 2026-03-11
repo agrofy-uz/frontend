@@ -5,6 +5,7 @@ import { FaBrain } from 'react-icons/fa6';
 import { AI_STEPS } from './ai.const';
 import styles from './ai.module.css';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const iconMap = {
   database: FaDatabase,
@@ -13,6 +14,8 @@ const iconMap = {
 } as const;
 
 function AI() {
+  const { t } = useTranslation();
+
   return (
     <Box py={{ base: 'xl', md: 80 }} className={styles.section}>
       <Container>
@@ -31,7 +34,7 @@ function AI() {
                 ta="center"
                 className="textPrimary"
               >
-                How Agrofy Works
+                {t('home.ai.title')}
               </Title>
             </motion.div>
             <motion.div
@@ -46,8 +49,7 @@ function AI() {
                 maw={600}
                 className="textSecondary"
               >
-                A simple three-step process that transforms your farming
-                operations with AI.
+                {t('home.ai.subtitle')}
               </Text>
             </motion.div>
           </Stack>
@@ -133,7 +135,7 @@ function AI() {
                               lh={1.25}
                               className={`${styles.title} textPrimary`}
                             >
-                              {step.title}
+                              {t(`home.ai.steps.${step.key}.title`)}
                             </Title>
                           </motion.div>
 
@@ -152,7 +154,7 @@ function AI() {
                               lh={1.7}
                               className={`${styles.desc} textSecondary`}
                             >
-                              {step.description}
+                              {t(`home.ai.steps.${step.key}.description`)}
                             </Text>
                           </motion.div>
                         </Stack>

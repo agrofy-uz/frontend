@@ -1,30 +1,26 @@
 export const REGIONS_FEATURES = [
   {
     icon: 'language',
-    title: 'Multi-Language Support',
-    description: 'Available in 20+ languages to serve farmers worldwide.',
+    key: 'multiLanguage',
   },
   {
     icon: 'location',
-    title: 'Regional Adaptation',
-    description:
-      'AI models trained on local crop varieties and climate patterns.',
+    key: 'regionalAdaptation',
   },
   {
     icon: 'scalable',
-    title: 'Scalable AI Models',
-    description: 'Infrastructure designed to grow with agricultural demands.',
+    key: 'scalableModels',
   },
 ] as const;
 
 export const REGIONS_STAT = {
   number: '50+',
-  label: 'Countries',
+  key: 'countries',
 };
 
 export const REGIONS_KPIS = [
-  { value: '20+', label: 'Languages' },
-  { value: '99.9%', label: 'Sync uptime' },
-  { value: '24/7', label: 'AI insights' },
-  { value: 'Local', label: 'Adaptation' },
+  { value: '20+', key: 'languages' },
+  { value: '99.9%', key: 'uptime' },
+  { value: '24/7', key: 'insights' },
+  { value: 'Local', key: 'adaptation' },
 ] as const;

@@ -7,6 +7,7 @@ import { IoLanguage } from 'react-icons/io5';
 import { FiCpu } from 'react-icons/fi';
 import styles from './regions.module.css';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // Icon mapping
 const iconMap = {
@@ -16,6 +17,8 @@ const iconMap = {
 };
 
 function Regions() {
+  const { t } = useTranslation();
+
   return (
     <Box py={{ base: 'xl', md: 80 }} className={styles.section}>
       <Container>
@@ -67,7 +70,7 @@ function Regions() {
                   fw={700}
                   className="textPrimary"
                 >
-                  Building the Future of Agriculture Across Regions
+                  {t('home.regions.title')}
                 </Title>
               </motion.div>
             </Flex>
@@ -80,10 +83,7 @@ function Regions() {
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" lh={1.7}>
-                Our vision is to empower every farmer on the planet with
-                AI-driven insights. From small family farms to large
-                agribusiness operations, Agrofy adapts to local conditions while
-                maintaining global standards.
+                {t('home.regions.description')}
               </Text>
             </motion.div>
 
@@ -103,7 +103,7 @@ function Regions() {
                     {kpi.value}
                   </Text>
                   <Text span className={styles.kpiLabel}>
-                    {kpi.label}
+                    {t(`home.regions.kpis.${kpi.key}`)}
                   </Text>
                 </motion.div>
               ))}
@@ -152,10 +152,12 @@ function Regions() {
                       )}
                       <Box style={{ flex: 1 }}>
                         <Text fw={600} fz="md" mb={4} className="textPrimary">
-                          {feature.title}:
+                          {t(`home.regions.features.${feature.key}.title`)}:
                         </Text>
                         <Text fz="sm" c="dimmed" lh={1.6}>
-                          {feature.description}
+                          {t(
+                            `home.regions.features.${feature.key}.description`
+                          )}
                         </Text>
                       </Box>
                     </Flex>
@@ -227,7 +229,7 @@ function Regions() {
                 transition={{ duration: 0.5, delay: 1 }}
               >
                 <Text fz="md" c="dimmed" mt={4}>
-                  {REGIONS_STAT.label}
+                  {t(`home.regions.stat.label`)}
                 </Text>
               </motion.div>
             </motion.div>

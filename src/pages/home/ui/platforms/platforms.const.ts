@@ -1,29 +1,18 @@
 export const PLATFORMS = [
   {
     icon: 'web',
-    badge: 'Available Now',
-    title: 'Web Platform',
-    description:
-      'Full-featured dashboard accessible from any browser. No downloads required.',
+    key: 'web',
   },
   {
     icon: 'android',
-    badge: 'Google Play',
-    title: 'Android App',
-    description:
-      'Native mobile experience optimized for field work. Offline mode included.',
+    key: 'android',
   },
   {
     icon: 'ios',
-    badge: 'App Store',
-    title: 'iOS App',
-    description: 'Seamless iPhone and iPad experience with all core features.',
+    key: 'ios',
   },
   {
     icon: 'api',
-    badge: 'Developer Ready',
-    title: 'API Integrations',
-    description:
-      'Connect Agrofy with your existing systems. RESTful API with full documentation.',
+    key: 'api',
   },
 ] as const;

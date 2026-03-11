@@ -15,5 +15,207 @@
     },
     "dashboard": "Dashboard",
     "startFree": "Start Free"
+  },
+  "footer": {
+    "tagline": "The complete AI ecosystem for modern agriculture. Empowering farmers worldwide.",
+    "language": "Language",
+    "copyright": "© {{year}} Agrofy. All rights reserved.",
+    "nav": {
+      "product": {
+        "title": "Product",
+        "links": {
+          "aiChat": "AI Chat",
+          "smartIrrigation": "Smart Irrigation",
+          "cropMonitoring": "Crop Monitoring",
+          "marketplace": "Marketplace",
+          "export": "Export"
+        }
+      },
+      "company": {
+        "title": "Company",
+        "links": {
+          "aboutUs": "About Us",
+          "careers": "Careers",
+          "press": "Press",
+          "partners": "Partners",
+          "contact": "Contact"
+        }
+      },
+      "resources": {
+        "title": "Resources",
+        "links": {
+          "blog": "Blog",
+          "helpCenter": "Help Center",
+          "apiDocs": "API Docs",
+          "community": "Community",
+          "webinars": "Webinars"
+        }
+      },
+      "legal": {
+        "title": "Legal",
+        "links": {
+          "privacyPolicy": "Privacy Policy",
+          "termsOfService": "Terms of Service",
+          "cookiePolicy": "Cookie Policy",
+          "security": "Security"
+        }
+      }
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "AI-Powered Agriculture Platform",
+      "titleLine1": "The complete AI ecosystem for",
+      "titleHighlighted": "modern agriculture",
+      "description": "Agrofy helps farmers and agribusinesses increase productivity using artificial intelligence. From chat assistance to smart irrigation — all in one platform.",
+      "button": "Start with AI Chat",
+      "stats": {
+        "activeUsers": "Active Users",
+        "farms": "Farms",
+        "countries": "Countries"
+      }
+    },
+    "statistics": {
+      "stats": {
+        "activeUsers": "Active Users",
+        "connectedFarms": "Connected Farms",
+        "countries": "Countries"
+      },
+      "benefits": {
+        "productivity": "Average Productivity Increase",
+        "costReduction": "Cost Reduction"
+      },
+      "partnersTitle": "Trusted by leading agricultural organizations worldwide"
+    },
+    "product": {
+      "title": "One platform, complete agriculture solution",
+      "subtitle": "Five integrated modules designed to cover every aspect of modern farming operations.",
+      "modules": {
+        "aiChat": {
+          "title": "AI Agro Chat",
+          "description": "Real-time agriculture intelligence. Ask anything about crops, weather, pests, and get instant AI-powered recommendations."
+        },
+        "smartIrrigation": {
+          "title": "Smart Irrigation",
+          "description": "Data-driven water optimization. Save resources while maximizing crop yield with intelligent irrigation scheduling."
+        },
+        "cropMonitoring": {
+          "title": "Crop Monitoring",
+          "description": "AI & drone-based analysis. Detect diseases early, monitor growth patterns, and predict harvest timing accurately."
+        },
+        "marketplace": {
+          "title": "Agro Marketplace",
+          "description": "Inputs, services, and logistics. Connect with suppliers, compare prices, and streamline your procurement process."
+        },
+        "export": {
+          "title": "Agro Export",
+          "description": "Direct access to global buyers. Expand your market reach with verified international trade connections."
+        }
+      }
+    },
+    "ai": {
+      "title": "How Agrofy Works",
+      "subtitle": "A simple three-step process that transforms your farming operations with AI.",
+      "steps": {
+        "collect": {
+          "title": "Collect Field & Crop Data",
+          "description": "Connect sensors, upload images, or input data manually. Agrofy integrates with drones, IoT devices, and satellite imagery."
+        },
+        "analyze": {
+          "title": "AI Analyzes & Predicts",
+          "description": "Our advanced AI processes your data in real-time, identifying patterns, detecting issues, and generating accurate predictions."
+        },
+        "recommend": {
+          "title": "Actionable Recommendations",
+          "description": "Receive clear, practical recommendations tailored to your specific conditions. Take informed action to optimize your operations."
+        }
+      }
+    },
+    "platforms": {
+      "title": "Available Everywhere You Need It",
+      "subtitle": "Access Agrofy on any device, anywhere. Your farm data stays synchronized across all platforms.",
+      "cards": {
+        "web": {
+          "badge": "Available Now",
+          "title": "Web Platform",
+          "description": "Full-featured dashboard accessible from any browser. No downloads required."
+        },
+        "android": {
+          "badge": "Google Play",
+          "title": "Android App",
+          "description": "Native mobile experience optimized for field work. Offline mode included."
+        },
+        "ios": {
+          "badge": "App Store",
+          "title": "iOS App",
+          "description": "Seamless iPhone and iPad experience with all core features."
+        },
+        "api": {
+          "badge": "Developer Ready",
+          "title": "API Integrations",
+          "description": "Connect Agrofy with your existing systems. RESTful API with full documentation."
+        }
+      }
+    },
+    "audience": {
+      "title": "Who Is Agrofy For?",
+      "subtitle": "Tailored solutions for every stakeholder in the agricultural value chain.",
+      "cards": {
+        "farmers": {
+          "title": "Farmers",
+          "description": "Boost yields, reduce costs, and make data-driven decisions for your crops.",
+          "detail": "For individual and family farms"
+        },
+        "agribusiness": {
+          "title": "Agribusiness Companies",
+          "description": "Scale operations efficiently with enterprise-grade tools and analytics.",
+          "detail": "Enterprise solutions available"
+        },
+        "exporters": {
+          "title": "Exporters",
+          "description": "Connect with global buyers and streamline international trade logistics.",
+          "detail": "Access 50+ countries"
+        },
+        "government": {
+          "title": "Government & Investors",
+          "description": "Monitor agricultural initiatives and make informed investment decisions.",
+          "detail": "Custom dashboards & reports"
+        }
+      }
+    },
+    "regions": {
+      "title": "Building the Future of Agriculture Across Regions",
+      "description": "Our vision is to empower every farmer on the planet with AI-driven insights. From small family farms to large agribusiness operations, Agrofy adapts to local conditions while maintaining global standards.",
+      "features": {
+        "multiLanguage": {
+          "title": "Multi-Language Support",
+          "description": "Available in 20+ languages to serve farmers worldwide."
+        },
+        "regionalAdaptation": {
+          "title": "Regional Adaptation",
+          "description": "AI models trained on local crop varieties and climate patterns."
+        },
+        "scalableModels": {
+          "title": "Scalable AI Models",
+          "description": "Infrastructure designed to grow with agricultural demands."
+        }
+      },
+      "stat": {
+        "number": "50+",
+        "label": "Countries"
+      },
+      "kpis": {
+        "languages": "Languages",
+        "uptime": "Sync uptime",
+        "insights": "AI insights",
+        "adaptation": "Local adaptation"
+      }
+    },
+    "cta": {
+      "titleLine1": "Start Growing Smarter with",
+      "titleBrand": "Agrofy",
+      "description": "Join over 1 million farmers and agribusinesses already using AI to transform their operations. Get started for free — no credit card required.",
+      "button": "Start Free"
+    }
   }
 }

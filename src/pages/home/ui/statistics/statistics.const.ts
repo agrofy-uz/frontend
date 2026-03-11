@@ -2,28 +2,28 @@ export const STATS_DATA = [
   {
     target: 1000000, // 1M
     suffix: '+',
-    label: 'Active Users',
+    key: 'activeUsers',
   },
   {
     target: 100000, // 100K
     suffix: '+',
-    label: 'Connected Farms',
+    key: 'connectedFarms',
   },
   {
     target: 50,
     suffix: '+',
-    label: 'Countries',
+    key: 'countries',
   },
 ] as const;
 
 export const BENEFITS_DATA = [
   {
     value: '+30%',
-    label: 'Average Productivity Increase',
+    key: 'productivity',
   },
   {
     value: '-25%',
-    label: 'Cost Reduction',
+    key: 'costReduction',
   },
 ] as const;
 

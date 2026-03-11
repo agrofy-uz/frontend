@@ -1,32 +1,22 @@
 export const PRODUCT_MODULES = [
   {
     icon: 'chat', // AI Agro Chat
-    title: 'AI Agro Chat',
-    description:
-      'Real-time agriculture intelligence. Ask anything about crops, weather, pests, and get instant AI-powered recommendations.',
+    key: 'aiChat',
   },
   {
     icon: 'irrigation', // Smart Irrigation
-    title: 'Smart Irrigation',
-    description:
-      'Data-driven water optimization. Save resources while maximizing crop yield with intelligent irrigation scheduling.',
+    key: 'smartIrrigation',
   },
   {
     icon: 'monitoring', // Crop Monitoring
-    title: 'Crop Monitoring',
-    description:
-      'AI & drone-based analysis. Detect diseases early, monitor growth patterns, and predict harvest timing accurately.',
+    key: 'cropMonitoring',
   },
   {
     icon: 'marketplace', // Agro Marketplace
-    title: 'Agro Marketplace',
-    description:
-      'Inputs, services, and logistics. Connect with suppliers, compare prices, and streamline your procurement process.',
+    key: 'marketplace',
   },
   {
     icon: 'export', // Agro Export
-    title: 'Agro Export',
-    description:
-      'Direct access to global buyers. Expand your market reach with verified international trade connections.',
+    key: 'export',
   },
 ] as const;

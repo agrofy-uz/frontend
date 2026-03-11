@@ -2,17 +2,17 @@ export const HERO_STATS = [
   {
     target: 1000000, // 1M
     suffix: '+',
-    label: 'Active Users',
+    key: 'activeUsers',
   },
   {
     target: 100000, // 100K
     suffix: '+',
-    label: 'Farms',
+    key: 'farms',
   },
   {
     target: 50,
     suffix: '+',
-    label: 'Countries',
+    key: 'countries',
   },
 ] as const;
 

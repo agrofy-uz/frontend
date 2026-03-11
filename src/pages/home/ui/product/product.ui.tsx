@@ -5,6 +5,7 @@ import { IoChatbubbles } from 'react-icons/io5';
 import { FaTint, FaEye, FaShoppingCart, FaGlobe } from 'react-icons/fa';
 import styles from './product.module.css';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // Icon mapping
 const iconMap = {
@@ -16,6 +17,8 @@ const iconMap = {
 };
 
 function Product() {
+  const { t } = useTranslation();
+
   return (
     <Box py={{ base: 'xl', md: 80 }}>
       <Container>
@@ -35,7 +38,7 @@ function Product() {
                 ta="center"
                 className="textPrimary"
               >
-                One platform, complete agriculture solution
+                {t('home.product.title')}
               </Title>
             </motion.div>
             <motion.div
@@ -50,8 +53,7 @@ function Product() {
                 ta="center"
                 maw={600}
               >
-                Five integrated modules designed to cover every aspect of modern
-                farming operations.
+                {t('home.product.subtitle')}
               </Text>
             </motion.div>
           </Stack>
@@ -115,12 +117,14 @@ function Product() {
                           fw={600}
                           className="textPrimary"
                         >
-                          {module.title}
+                          {t(`home.product.modules.${module.key}.title`)}
                         </Title>
 
                         {/* Description */}
                         <Text fz="sm" c="dimmed" lh={1.6}>
-                          {module.description}
+                          {t(
+                            `home.product.modules.${module.key}.description`
+                          )}
                         </Text>
                       </Stack>
                     </Card>

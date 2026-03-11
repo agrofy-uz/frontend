@@ -1,8 +1,11 @@
 import { Container } from '@/shared/ui/container';
-import { Text, Flex, Stack, Anchor, Box, Group } from '@mantine/core';
+import { Text, Flex, Stack, Anchor, Box, Group, Select } from '@mantine/core';
 import { FOOTER_SOCIAL_LINKS, FOOTER_NAV_COLUMNS } from './footer.const';
 import { ThemeToggle } from './ui/theme-toggle';
 import { FaLinkedin, FaTwitter, FaYoutube, FaInstagram } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import { changeLocale } from '@/shared/lib/language';
+import { LANGUAGES } from '../header/header.const';
 import styles from './footer.module.css';
 
 const socialIconMap = {
@@ -13,6 +16,8 @@ const socialIconMap = {
 };
 
 function Footer() {
+  const { t, i18n } = useTranslation();
+
   return (
     <footer className={styles.footer}>
       <Container>
@@ -34,8 +39,7 @@ function Footer() {
               Agrofy
             </Text>
             <Text fz="sm" c="dimmed" lh={1.6}>
-              The complete AI ecosystem for modern agriculture. Empowering
-              farmers worldwide.
+              {t('footer.tagline')}
             </Text>
             <Group gap="sm" mt="xs">
               {FOOTER_SOCIAL_LINKS.map((social) => {
@@ -58,20 +62,20 @@ function Footer() {
           {/* Right Side - Navigation Columns */}
           <Box w={{ base: '100%', md: '70%' }} className={styles.navColumns}>
             {FOOTER_NAV_COLUMNS.map((column) => (
-              <Stack key={column.title} gap="sm">
+              <Stack key={column.key} gap="sm">
                 <Text fw={600} fz="sm" className="textPrimary">
-                  {column.title}
+                  {t(`footer.nav.${column.key}.title`)}
                 </Text>
                 <Stack gap="xs">
                   {column.links.map((link) => (
                     <Anchor
-                      key={link.label}
+                      key={link.key}
                       href={link.href}
                       fz="sm"
                       c="dimmed"
                       className={styles.navLink}
                     >
-                      {link.label}
+                      {t(`footer.nav.${column.key}.links.${link.key}`)}
                     </Anchor>
                   ))}
                 </Stack>
@@ -95,12 +99,26 @@ function Footer() {
             gap="md"
           >
             <Text fz="sm" c="dimmed">
-              © {new Date().getFullYear()} Agrofy. All rights reserved.
+              {t('footer.copyright', {
+                year: new Date().getFullYear(),
+              })}
             </Text>
             <Flex align="center" gap="md">
-              <Text fz="sm" c="dimmed">
-                English USD
-              </Text>
+              <Flex align="center" gap="xs">
+                <Text fz="sm" c="dimmed">
+                  {t('footer.language')}
+                </Text>
+                <Select
+                  value={i18n.language}
+                  onChange={(value) => value && changeLocale(value as any)}
+                  data={LANGUAGES.map((l) => ({
+                    value: l.value,
+                    label: `${l.icon} ${l.label}`,
+                  }))}
+                  size="xs"
+                  w={140}
+                />
+              </Flex>
               <ThemeToggle />
             </Flex>
           </Flex>

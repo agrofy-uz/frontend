@@ -7,6 +7,7 @@ import { FaApple } from 'react-icons/fa';
 import { FaCode } from 'react-icons/fa';
 import styles from './platforms.module.css';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // Icon mapping
 const iconMap = {
@@ -17,6 +18,8 @@ const iconMap = {
 };
 
 function Platforms() {
+  const { t } = useTranslation();
+
   return (
     <Box py={{ base: 'xl', md: 80 }}>
       <Container>
@@ -36,7 +39,7 @@ function Platforms() {
                 ta="center"
                 className="textPrimary"
               >
-                Available Everywhere You Need It
+                {t('home.platforms.title')}
               </Title>
             </motion.div>
             <motion.div
@@ -51,8 +54,7 @@ function Platforms() {
                 ta="center"
                 maw={600}
               >
-                Access Agrofy on any device, anywhere. Your farm data stays
-                synchronized across all platforms.
+                {t('home.platforms.subtitle')}
               </Text>
             </motion.div>
           </Stack>
@@ -118,7 +120,7 @@ function Platforms() {
                             color="green"
                             radius="xl"
                           >
-                            {platform.badge}
+                            {t(`home.platforms.cards.${platform.key}.badge`)}
                           </Badge>
                         </motion.div>
 
@@ -129,12 +131,14 @@ function Platforms() {
                           fw={600}
                           className="textPrimary"
                         >
-                          {platform.title}
+                          {t(`home.platforms.cards.${platform.key}.title`)}
                         </Title>
 
                         {/* Description */}
                         <Text fz="sm" c="dimmed" lh={1.6}>
-                          {platform.description}
+                          {t(
+                            `home.platforms.cards.${platform.key}.description`
+                          )}
                         </Text>
                       </Stack>
                     </Card>
