@@ -14,6 +14,8 @@ import { FaBars } from 'react-icons/fa';
 import { IoChevronDownOutline } from 'react-icons/io5';
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { changeLocale } from '@/shared/lib/language';
 import { useAuthStore } from '@/shared/store/authStore';
 import { LANGUAGES } from './header.const';
 import logo1 from '@/assets/images/logo1.png';
@@ -25,8 +27,25 @@ function Header() {
   const [drawerOpened, setDrawerOpened] = useState(false);
   const [loginModalOpened, setLoginModalOpened] = useState(false);
   const navigate = useNavigate();
+  const { i18n, t } = useTranslation();
   const { isAuthenticated } = useAuthStore();
-  const [lang, setLang] = useState('uz');
+  const [navItems, setNavItems] = useState([
+    { label: '', href: '#product' },
+    { label: '', href: '#ai' },
+    { label: '', href: '#platforms' },
+    { label: '', href: '#cta' },
+    { label: '', href: '#statistics' },
+  ]);
+
+  useEffect(() => {
+    setNavItems([
+      { label: t('header.nav.product'), href: '#product' },
+      { label: t('header.nav.ai'), href: '#ai' },
+      { label: t('header.nav.solutions'), href: '#platforms' },
+      { label: t('header.nav.pricing'), href: '#cta' },
+      { label: t('header.nav.partners'), href: '#statistics' },
+    ]);
+  }, [t]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,14 +56,6 @@ function Header() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const navItems = [
-    { label: 'Product', href: '#product' },
-    { label: 'AI', href: '#ai' },
-    { label: 'Solutions', href: '#platforms' },
-    { label: 'Pricing', href: '#cta' },
-    { label: 'Partners', href: '#statistics' },
-  ];
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -136,8 +147,8 @@ function Header() {
             {/* O'ngda: Mobile menu button yoki Desktop button */}
             <Flex align="center" gap="md">
               <Select
-                value={lang}
-                onChange={(value) => setLang(value || 'uz')}
+                value={i18n.language}
+                onChange={(value) => changeLocale(value as any)}
                 data={LANGUAGES.map((l) => ({ value: l.value, label: `${l.icon} ${l.label}` }))}
                 variant="unstyled"
                 size="sm"
@@ -164,7 +175,7 @@ function Header() {
                     backgroundColor: 'transparent',
                     fontSize: '14px',
                     fontWeight: 500,
-                    width: '120px',
+                    width: '140px',
                     cursor: 'pointer',
                     padding: 0,
                     minHeight: 'auto',
@@ -193,7 +204,7 @@ function Header() {
                   }
                 }}
               >
-                {isAuthenticated ? 'Dashboard' : 'Start Free'}
+                {isAuthenticated ? t('header.dashboard') : t('header.startFree')}
               </Button>
             </Flex>
           </Flex>

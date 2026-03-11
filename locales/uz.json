@@ -4,5 +4,16 @@
     "home": "Bosh sahifa",
     "about": "Haqida",
     "contact": "Aloqa"
+  },
+  "header": {
+    "nav": {
+      "product": "Mahsulot",
+      "ai": "AI",
+      "solutions": "Yechimlar",
+      "pricing": "Narxlar",
+      "partners": "Hamkorlar"
+    },
+    "dashboard": "Boshqaruv paneli",
+    "startFree": "Bepul boshlash"
   }
 }

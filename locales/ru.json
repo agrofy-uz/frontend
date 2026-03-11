@@ -4,5 +4,16 @@
     "home": "Главная",
     "about": "О нас",
     "contact": "Контакты"
+  },
+  "header": {
+    "nav": {
+      "product": "Продукт",
+      "ai": "AI",
+      "solutions": "Решения",
+      "pricing": "Цены",
+      "partners": "Партнеры"
+    },
+    "dashboard": "Дашборд",
+    "startFree": "Начать бесплатно"
   }
 }

@@ -4,5 +4,16 @@
     "home": "Home",
     "about": "About",
     "contact": "Contact"
+  },
+  "header": {
+    "nav": {
+      "product": "Product",
+      "ai": "AI",
+      "solutions": "Solutions",
+      "pricing": "Pricing",
+      "partners": "Partners"
+    },
+    "dashboard": "Dashboard",
+    "startFree": "Start Free"
   }
 }

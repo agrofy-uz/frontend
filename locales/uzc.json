@@ -1,0 +1,19 @@
+{
+  "common": {
+    "welcome": "Хуш келибсиз",
+    "home": "Бош саҳифа",
+    "about": "Ҳақида",
+    "contact": "Алоқа"
+  },
+  "header": {
+    "nav": {
+      "product": "Маҳсулот",
+      "ai": "AI",
+      "solutions": "Ечимлар",
+      "pricing": "Нархлар",
+      "partners": "Ҳамкорлар"
+    },
+    "dashboard": "Бошқарув панели",
+    "startFree": "Бепул бошлаш"
+  }
+}

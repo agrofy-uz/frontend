@@ -2,7 +2,7 @@ import { localStorageHelper } from './localStorage';
 
 import i18n from '@/shared/i18n';
 
-type TLocale = 'uz' | 'ru' | 'en';
+type TLocale = 'uz' | 'ru' | 'en' | 'uzc';
 
 export function changeLocale(locale: TLocale) {
   i18n.changeLanguage(locale);

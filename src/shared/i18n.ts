@@ -4,6 +4,7 @@ import { initReactI18next } from 'react-i18next';
 import enTranslations from '../../locales/en.json';
 import ruTranslations from '../../locales/ru.json';
 import uzTranslations from '../../locales/uz.json';
+import uzcTranslations from '../../locales/uzc.json';
 
 i18n.use(initReactI18next).init({
   lng: 'uz',
@@ -14,6 +15,9 @@ i18n.use(initReactI18next).init({
   resources: {
     uz: {
       translation: uzTranslations,
+    },
+    uzc: {
+      translation: uzcTranslations,
     },
     ru: {
       translation: ruTranslations,
