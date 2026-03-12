@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
 import { FaArrowLeft, FaCheckCircle, FaTelegram } from 'react-icons/fa';
-import { authApi } from '@/shared/api/auth';
+import { authApi } from '@/shared/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { OtpInput } from './components/otp-input';

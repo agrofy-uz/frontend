@@ -5,17 +5,24 @@ import {
   Stack,
   Text,
   Tooltip,
+  Group,
+  Modal,
 } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
 import { IoArrowUp } from 'react-icons/io5';
-import { MdAttachFile, MdContentCopy, MdEdit, MdCheck } from 'react-icons/md';
+import {
+  MdAttachFile,
+  MdContentCopy,
+  MdEdit,
+  MdCheck,
+  MdClose,
+} from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
 import styles from './ai-assistant.module.css';
-import { chatApi } from '@/shared/api/chat';
-import type { ChatMessage } from '@/shared/api/chat';
+import { chatApi, type ChatMessage } from '@/shared/api';
 import {
   MAX_TEXTAREA_HEIGHT,
   DEFAULT_MODEL,
@@ -24,6 +31,7 @@ import {
   TYPING_DOT_ANIMATION,
 } from './ai-assistant.const';
 import { VoiceModal } from './ui/voice-modal/voice-modal.ui';
+import { AttachMenu } from './ui/attach-menu';
 
 type Message = ChatMessage & {
   id: string;
@@ -48,6 +56,24 @@ function AiAssistant() {
   const [_isInitializing, setIsInitializing] = useState(true);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [voiceModalOpened, setVoiceModalOpened] = useState(false);
+  const [attachMenuOpened, setAttachMenuOpened] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
+
+  // Rasm fayllar uchun object URL lar (thumbnaillar va preview uchun)
+  useEffect(() => {
+    const urls = attachments.map((f) =>
+      f.type.startsWith('image/') ? URL.createObjectURL(f) : null
+    );
+    setImageUrls((prev) => {
+      prev.forEach((u) => u && URL.revokeObjectURL(u));
+      return urls;
+    });
+    return () => {
+      urls.forEach((u) => u && URL.revokeObjectURL(u));
+    };
+  }, [attachments]);
 
   // Textarea-ni to'g'ridan-to'g'ri DOM orqali o'lchaymiz va o'zgartiramiz
   useLayoutEffect(() => {
@@ -74,16 +100,18 @@ function AiAssistant() {
           // URL'dan session_id bor, state ni yangilash va history yuklash
           setCurrentSessionId(urlSessionId);
           const history = await chatApi.getSessionHistory(urlSessionId);
-          const formattedMessages: Message[] = history.messages.map((msg) => ({
-            id: msg.id || `msg_${Date.now()}_${Math.random()}`,
-            role: msg.role,
-            content: msg.content,
-            timestamp:
-              msg.timestamp ||
-              (msg.created_at
-                ? new Date(msg.created_at).getTime()
-                : Date.now()),
-          }));
+          const formattedMessages: Message[] = history.messages.map(
+            (msg: ChatMessage) => ({
+              id: msg.id || `msg_${Date.now()}_${Math.random()}`,
+              role: msg.role,
+              content: msg.content,
+              timestamp:
+                msg.timestamp ||
+                (msg.created_at
+                  ? new Date(msg.created_at).getTime()
+                  : Date.now()),
+            })
+          );
           setMessages(formattedMessages);
 
           // Agar xabarlar bo'lsa, birinchi AI javobidan chat nomini olish
@@ -140,7 +168,6 @@ function AiAssistant() {
     return () => clearTimeout(timeoutId);
   }, [messages.length, isLoading]);
 
-
   const handleSend = async () => {
     if (!draft.trim() || isLoading) return;
     const content = draft.trim();
@@ -178,6 +205,7 @@ function AiAssistant() {
 
     setMessages((prev) => [...prev, userMsg]);
     setDraft('');
+    setAttachments([]);
     setIsLoading(true); // Faqat xabar yuborilganda loading ko'rsatiladi
     setError(null);
 
@@ -290,7 +318,9 @@ function AiAssistant() {
   };
 
   return (
-    <Box className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}>
+    <Box
+      className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}
+    >
       {/* Messages Area */}
       {hasMessages || isLoading ? (
         <ScrollArea className={styles.messagesArea} scrollbarSize={12}>
@@ -304,7 +334,9 @@ function AiAssistant() {
                   <motion.div
                     key={message.id}
                     {...MESSAGE_ANIMATION_VARIANTS}
-                    className={isUser ? styles.userMessage : styles.assistantMessage}
+                    className={
+                      isUser ? styles.userMessage : styles.assistantMessage
+                    }
                   >
                     <Box className={styles.messageContentWrapper}>
                       <Box className={styles.messageContent}>
@@ -319,12 +351,18 @@ function AiAssistant() {
                           <ActionIcon
                             variant="subtle"
                             size="md"
-                            onClick={() => handleCopyMessage(message.content, message.id)}
+                            onClick={() =>
+                              handleCopyMessage(message.content, message.id)
+                            }
                             aria-label="Copy message"
                             color={isCopied ? 'green' : undefined}
                             className={styles.actionIcon}
                           >
-                            {isCopied ? <MdCheck size={20} /> : <MdContentCopy size={20} />}
+                            {isCopied ? (
+                              <MdCheck size={20} />
+                            ) : (
+                              <MdContentCopy size={20} />
+                            )}
                           </ActionIcon>
                         </Tooltip>
 
@@ -379,72 +417,172 @@ function AiAssistant() {
         </Box>
       )}
 
-     
+      {/* Input Area */}
+      <Box
+        className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}
+      >
+        <div className={styles.composer}>
+          {attachments.length > 0 && (
+            <Group
+              gap={8}
+              wrap="wrap"
+              mb="xs"
+              className={styles.attachmentsRow}
+            >
+              {attachments.map((file, index) => {
+                const isImage = file.type.startsWith('image/');
+                const thumbUrl = isImage ? imageUrls[index] : null;
+                return isImage && thumbUrl ? (
+                  <Box
+                    key={`${file.name}-${index}`}
+                    className={styles.attachmentImageWrap}
+                    onClick={() => setPreviewImageUrl(thumbUrl)}
+                  >
+                    <img
+                      src={thumbUrl}
+                      alt={file.name}
+                      className={styles.attachmentImage}
+                    />
+                    <ActionIcon
+                      size={12}
+                      variant="filled"
+                      color="gray"
+                      aria-label="O'chirish"
+                      className={styles.attachmentImageRemove}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAttachments((prev) =>
+                          prev.filter((_, i) => i !== index)
+                        );
+                      }}
+                    >
+                      <MdClose size={16} />
+                    </ActionIcon>
+                  </Box>
+                ) : (
+                  <Box
+                    key={`${file.name}-${index}`}
+                    className={styles.attachmentChip}
+                    component="span"
+                  >
+                    <Text size="xs" truncate style={{ maxWidth: 120 }}>
+                      {file.name}
+                    </Text>
+                    <ActionIcon
+                      size={12}
+                      variant="subtle"
+                      color="gray"
+                      aria-label="O'chirish"
+                      onClick={() =>
+                        setAttachments((prev) =>
+                          prev.filter((_, i) => i !== index)
+                        )
+                      }
+                    >
+                      <MdClose size={14} />
+                    </ActionIcon>
+                  </Box>
+                );
+              })}
+            </Group>
+          )}
+          <Box className={styles.textareaWrap}>
+            <textarea
+              ref={textareaRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              rows={1}
+              placeholder="Xabar yozing..."
+              className={styles.textareaInput}
+            />
+          </Box>
 
-       {/* Input Area */}
-       <Box className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}>
-         <div className={styles.composer}>
-           <Box className={styles.textareaWrap}>
-             <textarea
-               ref={textareaRef}
-               value={draft}
-               onChange={(e) => setDraft(e.target.value)}
-               onKeyDown={(e) => {
-                 if (e.key === 'Enter' && !e.shiftKey) {
-                   e.preventDefault();
-                   handleSend();
-                 }
-               }}
-               rows={1}
-               placeholder="Xabar yozing..."
-               className={styles.textareaInput}
-             />
-           </Box>
- 
-           <Box className={styles.actionsContainer}>
-             <ActionIcon
-               className={styles.plusBtn}
-               size="lg"
-               radius="xl"
-               variant="subtle"
-               aria-label="Qo'shish"
-             >
-               <MdAttachFile size={18} />
-             </ActionIcon>
- 
-             <Box className={styles.actions}>
-               <ActionIcon
-                 className={styles.micBtn}
-                 size="lg"
-                 radius="xl"
-                 variant="subtle"
-                 aria-label="Ovoz"
-                 onClick={() => setVoiceModalOpened(true)}
-               >
-                 <BsMicMuteFill size={18} />
-               </ActionIcon>
- 
-               <ActionIcon
-                 className={styles.sendBtn}
-                 size="lg"
-                 radius="xl"
-                 variant="filled"
-                 aria-label="Yuborish"
-                 disabled={!draft.trim() || isLoading}
-                 onClick={handleSend}
-               >
-                 <IoArrowUp size={18} />
-               </ActionIcon>
-             </Box>
-           </Box>
-         </div>
-       </Box>
+          <Box className={styles.actionsContainer}>
+            <AttachMenu
+              opened={attachMenuOpened}
+              onOpenChange={setAttachMenuOpened}
+              onFilesSelected={(files) =>
+                setAttachments((prev) => [...prev, ...files])
+              }
+            >
+              <ActionIcon
+                className={styles.plusBtn}
+                size="lg"
+                radius="xl"
+                variant="subtle"
+                aria-label="Qo'shish"
+                onClick={() => setAttachMenuOpened((o) => !o)}
+              >
+                <MdAttachFile size={18} />
+              </ActionIcon>
+            </AttachMenu>
 
-       <VoiceModal
-         opened={voiceModalOpened}
-         onClose={() => setVoiceModalOpened(false)}
-         onTranscribed={handleVoiceTranscribed}
-       />
+            <Box className={styles.actions}>
+              <ActionIcon
+                className={styles.micBtn}
+                size="lg"
+                radius="xl"
+                variant="subtle"
+                aria-label="Ovoz"
+                onClick={() => setVoiceModalOpened(true)}
+              >
+                <BsMicMuteFill size={18} />
+              </ActionIcon>
+
+              <ActionIcon
+                className={styles.sendBtn}
+                size="lg"
+                radius="xl"
+                variant="filled"
+                aria-label="Yuborish"
+                disabled={!draft.trim() || isLoading}
+                onClick={handleSend}
+              >
+                <IoArrowUp size={18} />
+              </ActionIcon>
+            </Box>
+          </Box>
+        </div>
+      </Box>
+
+      <VoiceModal
+        opened={voiceModalOpened}
+        onClose={() => setVoiceModalOpened(false)}
+        onTranscribed={handleVoiceTranscribed}
+      />
+      <Modal
+        opened={!!previewImageUrl}
+        onClose={() => setPreviewImageUrl(null)}
+        withCloseButton
+        size="auto"
+        padding={0}
+        radius="md"
+        centered
+        styles={{
+          content: { overflow: 'hidden' },
+          body: { padding: 0 },
+          header: { display: 'none' },
+        }}
+      >
+        {previewImageUrl && (
+          <img
+            src={previewImageUrl}
+            alt="Katta ko'rinish"
+            style={{
+              maxWidth: '100vw',
+              maxHeight: '100vh',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+        )}
+      </Modal>
     </Box>
   );
 }

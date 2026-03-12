@@ -1,0 +1,67 @@
+/* Asosiy rang: yashil */
+.voiceStrip {
+  border-radius: 12px;
+  background: var(--mantine-color-default-hover);
+  padding: 16px;
+}
+
+.waveformBar {
+  width: 30px;
+  border-radius: 2px;
+  background: var(--mantine-color-green-6);
+  animation: voiceBarPulse 0.5s ease-in-out infinite alternate;
+}
+
+.waveformBarRecording {
+  background: var(--mantine-color-green-6);
+}
+
+@keyframes voiceBarPulse {
+  from {
+    opacity: 0.6;
+    transform: scaleY(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.stopButton {
+  flex-shrink: 0;
+  background: var(--mantine-color-green-6) !important;
+  color: white !important;
+  border: none;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.35);
+}
+
+.stopButton:hover {
+  background: var(--mantine-color-green-7) !important;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.5);
+}
+
+.loadingSpinner {
+  animation: spinner 1s linear infinite;
+}
+
+@keyframes spinner {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.duration {
+  min-width: 40px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--mantine-color-green-7);
+}
+
+.recordedSeconds {
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+  text-align: center;
+}

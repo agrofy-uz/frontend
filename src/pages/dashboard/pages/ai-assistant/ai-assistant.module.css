@@ -101,7 +101,9 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
   visibility: hidden;
   z-index: 10;
   padding: 8px; /* Buffer area to prevent flicker */
-  transition: opacity 0.3s ease 0.5s, visibility 0.3s ease 0.5s; /* Hide slowly after 0.5s delay */
+  transition:
+    opacity 0.3s ease 0.5s,
+    visibility 0.3s ease 0.5s; /* Hide slowly after 0.5s delay */
 }
 
 .userMessage .messageActions {
@@ -117,7 +119,9 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
 .messageContentWrapper:hover .messageActions {
   opacity: 1;
   visibility: visible;
-  transition: opacity 0s, visibility 0s; /* Show instantly */
+  transition:
+    opacity 0s,
+    visibility 0s; /* Show instantly */
 }
 
 .actionIcon {
@@ -275,6 +279,67 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
 
 .plusBtn {
   flex: 0 0 auto;
+}
+
+.attachmentsRow {
+  width: 100%;
+}
+
+.attachmentImageWrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-default-hover);
+}
+
+.attachmentImageWrap:hover {
+  opacity: 0.95;
+}
+
+.attachmentImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.attachmentImageRemove {
+  position: absolute !important;
+  top: 4px;
+  right: 4px;
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px;
+  min-height: 16px;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+.attachmentImageRemove:hover {
+  opacity: 1;
+}
+
+.attachmentChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--mantine-color-green-0);
+  color: var(--mantine-color-green-8);
+  font-size: 12px;
+  max-width: 160px;
+}
+
+.attachmentChip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .textareaWrap {

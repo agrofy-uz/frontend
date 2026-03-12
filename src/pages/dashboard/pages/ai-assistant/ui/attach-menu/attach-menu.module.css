@@ -1,0 +1,25 @@
+.card {
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  background: var(--mantine-color-gray-1);
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.card:hover {
+  background: var(--mantine-color-gray-2);
+}
+
+.icon {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hiddenInput {
+  display: none;
+}
