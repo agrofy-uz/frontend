@@ -1,4 +1,4 @@
-import { Route, HashRouter } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Layout from '../layout';
 import { DashboardLayout } from '../layout/dashboard';
 import PrivateRoute from './privateRoute';
@@ -13,7 +13,7 @@ import { Pricing } from '@/pages/dashboard/pages/pricing';
 
 const AppRoutes = () => {
   return (
-    <HashRouter>
+    <Routes>
       <Route path="/" element={<Layout />}>
         <Route path="/" element={<Home />} />
       </Route>
@@ -29,7 +29,7 @@ const AppRoutes = () => {
           <Route path="/dashboard/pricing" element={<Pricing />} />
         </Route>
       </Route>
-    </HashRouter>
+    </Routes>
   );
 };
 
