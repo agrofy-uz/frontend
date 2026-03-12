@@ -11,6 +11,7 @@ import {
 } from './statistics.const';
 import styles from './statistics.module.css';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // Icon components
 const statsIcons = [
@@ -48,6 +49,7 @@ function Statistics() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const [counts, setCounts] = useState([0, 0, 0]);
+  const { t } = useTranslation();
 
   const stats = STATS_DATA.map((stat, index) => ({
     ...stat,
@@ -164,7 +166,7 @@ function Statistics() {
                       {stat.suffix}
                     </Text>
                     <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" fw={500}>
-                      {stat.label}
+                  {t(`home.statistics.stats.${stat.key}`)}
                     </Text>
                   </Flex>
                 </motion.div>
@@ -202,7 +204,7 @@ function Statistics() {
                     {stats[2].suffix}
                   </Text>
                   <Text fz={{ base: 'sm', md: 'md' }} c="dimmed" fw={500}>
-                    {stats[2].label}
+                  {t(`home.statistics.stats.${stats[2].key}`)}
                   </Text>
                 </Flex>
               </motion.div>
@@ -242,7 +244,7 @@ function Statistics() {
                             {benefit.value}
                           </Text>
                           <Text fz={{ base: 'sm', md: 'md' }} c="dimmed">
-                            {benefit.label}
+                            {t(`home.statistics.benefits.${benefit.key}`)}
                           </Text>
                         </Stack>
                       </Flex>
@@ -267,7 +269,7 @@ function Statistics() {
                 ta="center"
                 fw={500}
               >
-                Trusted by leading agricultural organizations worldwide
+                  {t('home.statistics.partnersTitle')}
               </Text>
             </motion.div>
             <Flex gap="md" wrap="wrap" justify="center" align="center">

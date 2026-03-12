@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { HERO_STATS, formatNumber } from './hero.const';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 function Hero() {
   const [isVisible, setIsVisible] = useState(false);
@@ -20,6 +21,7 @@ function Hero() {
   const [loginModalOpened, setLoginModalOpened] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -169,7 +171,7 @@ function Hero() {
                     />
                   }
                 >
-                  AI-Powered Agriculture Platform
+                  {t('home.hero.badge')}
                 </Badge>
               </motion.div>
               <motion.div
@@ -184,14 +186,15 @@ function Hero() {
                   ta={{ base: 'center', md: 'start' }}
                   className="textPrimary"
                 >
-                  The complete AI ecosystem for <br />
+                  {t('home.hero.titleLine1')}{' '}
+                  <br />
                   <motion.span
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.5 }}
                     style={{ color: theme?.colors?.green?.[6] }}
                   >
-                    modern agriculture
+                    {t('home.hero.titleHighlighted')}
                   </motion.span>
                 </Text>
               </motion.div>
@@ -206,9 +209,7 @@ function Hero() {
                   ta={{ base: 'center', md: 'start' }}
                   fz={{ base: 'sm', md: 'lg' }}
                 >
-                  Agrofy helps farmers and agribusinesses increase productivity
-                  using artificial intelligence. From chat assistance to smart
-                  irrigation — all in one platform.
+                  {t('home.hero.description')}
                 </Text>
               </motion.div>
               <motion.div
@@ -229,7 +230,7 @@ function Hero() {
                   leftSection={<IoChatbox />}
                   w={{ base: '100%', md: 'auto' }}
                 >
-                  Start with AI Chat
+                  {t('home.hero.button')}
                 </Button>
               </motion.div>
               <Flex
@@ -275,7 +276,7 @@ function Hero() {
                           fw={400}
                           mt={2}
                         >
-                          {stat.label}
+                          {t(`home.hero.stats.${stat.key}`)}
                         </Text>
                       </Text>
                     </Card>

@@ -6,9 +6,11 @@ import { LoginModal } from '@/shared/ui/login-modal';
 import { useState } from 'react';
 import styles from './cta.module.css';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 function CTA() {
   const [loginModalOpened, setLoginModalOpened] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <Box className={styles.section}>
@@ -29,8 +31,8 @@ function CTA() {
               lh={1.2}
               className="textPrimary"
             >
-              Start Growing Smarter with <br />
-              Agrofy
+            {t('home.cta.titleLine1')} <br />
+            {t('home.cta.titleBrand')}
             </Title>
           </motion.div>
           {/* Description */}
@@ -47,9 +49,7 @@ function CTA() {
               maw={700}
               lh={1.6}
             >
-              Join over 1 million farmers and agribusinesses already using AI to
-              transform their operations. Get started for free — no credit card
-              required.
+            {t('home.cta.description')}
             </Text>
           </motion.div>
           {/* Buttons */}
@@ -72,7 +72,7 @@ function CTA() {
                 w={{ base: '100%', sm: 'auto' }}
                 onClick={() => setLoginModalOpened(true)}
               >
-                Start Free
+                {t('home.cta.button')}
               </Button>
             </Flex>
           </motion.div>

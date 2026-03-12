@@ -1,30 +1,18 @@
 export const AUDIENCE_CARDS = [
   {
     icon: 'farmer',
-    title: 'Farmers',
-    description:
-      'Boost yields, reduce costs, and make data-driven decisions for your crops.',
-    detail: 'For individual and family farms',
+    key: 'farmers',
   },
   {
     icon: 'agribusiness',
-    title: 'Agribusiness Companies',
-    description:
-      'Scale operations efficiently with enterprise-grade tools and analytics.',
-    detail: 'Enterprise solutions available',
+    key: 'agribusiness',
   },
   {
     icon: 'exporter',
-    title: 'Exporters',
-    description:
-      'Connect with global buyers and streamline international trade logistics.',
-    detail: 'Access 50+ countries',
+    key: 'exporters',
   },
   {
     icon: 'government',
-    title: 'Government & Investors',
-    description:
-      'Monitor agricultural initiatives and make informed investment decisions.',
-    detail: 'Custom dashboards & reports',
+    key: 'government',
   },
 ] as const;

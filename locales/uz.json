@@ -15,5 +15,209 @@
     },
     "dashboard": "Boshqaruv paneli",
     "startFree": "Bepul boshlash"
+  },
+  "footer": {
+    "tagline": "Zamonaviy qishloq xoʻjaligi uchun toʻliq AI ekotizimi. Butun dunyo fermerlarini qoʻllab-quvvatlaymiz.",
+    "language": "Til",
+    "copyright": "© {{year}} Agrofy. Barcha huquqlar himoyalangan.",
+    "nav": {
+      "product": {
+        "title": "Mahsulot",
+        "links": {
+          "aiChat": "AI chat",
+          "smartIrrigation": "Aqlli sugʻorish",
+          "cropMonitoring": "Ekinlarni monitoring qilish",
+          "marketplace": "Bozor",
+          "export": "Eksport"
+        }
+      },
+      "company": {
+        "title": "Kompaniya",
+        "links": {
+          "aboutUs": "Biz haqimizda",
+          "careers": "Karyera",
+          "press": "Matbuot",
+          "partners": "Hamkorlar",
+          "contact": "Aloqa"
+        }
+      },
+      "resources": {
+        "title": "Resurslar",
+        "links": {
+          "blog": "Blog",
+          "helpCenter": "Yordam markazi",
+          "apiDocs": "API hujjatlari",
+          "community": "Hamjamiyat",
+          "webinars": "Vebinarlar"
+        }
+      },
+      "legal": {
+        "title": "Huquqiy maʼlumot",
+        "links": {
+          "privacyPolicy": "Maxfiylik siyosati",
+          "termsOfService": "Foydalanish shartlari",
+          "cookiePolicy": "Cookie siyosati",
+          "security": "Xavfsizlik"
+        }
+      }
+    }
+  },
+  "home": {
+    "hero": {
+      "badge": "AI asosidagi qishloq xoʻjaligi platformasi",
+      "titleLine1": "Toʻliq AI ekotizimi",
+      "titleHighlighted": "zamonaviy qishloq xoʻjaligi uchun",
+      "description": "Agrofy fermerlar va agro-bizneslarga sunʼiy intellekt yordamida hosildorlikni oshirishga yordam beradi. Chat yordamchisidan tortib aqlli sugʻorishgacha — barchasi bitta platformada.",
+      "button": "AI Chat bilan boshlash",
+      "stats": {
+        "activeUsers": "Faol foydalanuvchilar",
+        "farms": "Fermer xoʻjaliklari",
+        "countries": "Davlatlar"
+      }
+    },
+    "statistics": {
+      "stats": {
+        "activeUsers": "Faol foydalanuvchilar",
+        "connectedFarms": "Ulangan fermer xoʻjaliklari",
+        "countries": "Davlatlar"
+      },
+      "benefits": {
+        "productivity": "Oʻrtacha unumdorlik oshishi",
+        "costReduction": "Xarajatlarning kamayishi"
+      },
+      "partnersTitle": "Dunyoning yetakchi qishloq xoʻjaligi tashkilotlari ishonadi"
+    },
+    "product": {
+      "title": "Bitta platforma, toʻliq agro yechim",
+      "subtitle": "Zamonaviy dehqonchilikning barcha jihatlarini qamrab oluvchi beshta integratsiyalashgan modul.",
+      "modules": {
+        "aiChat": {
+          "title": "AI Agro Chat",
+          "description": "Real vaqtli agro-intellekt. Ekinlar, ob-havo, zararkunandalar haqida istalgan savolni bering va zudlik bilan AI tavsiyalarini oling."
+        },
+        "smartIrrigation": {
+          "title": "Aqlli sugʻorish",
+          "description": "Maʼlumotlarga asoslangan suvni optimallashtirish. Hosildorlikni oshirgan holda resurslarni tejang."
+        },
+        "cropMonitoring": {
+          "title": "Ekinlarni monitoring qilish",
+          "description": "AI va dron tahlili. Kasalliklarni erta aniqlang, oʻsish dinamikasini kuzating va hosilni aniq rejalashtiring."
+        },
+        "marketplace": {
+          "title": "Agro Marketplace",
+          "description": "Kirish resurslari, xizmatlar va logistika. Yetkazib beruvchilar bilan bogʻlaning, narxlarni solishtiring va xarid jarayonlarini soddalashtiring."
+        },
+        "export": {
+          "title": "Agro Export",
+          "description": "Global xaridorlarga toʻgʻridan-toʻgʻri chiqish. Xalqaro bozorga chiqish imkoniyatlarini kengaytiring."
+        }
+      }
+    },
+    "ai": {
+      "title": "Agrofy qanday ishlaydi",
+      "subtitle": "AI yordamida sizning dehqonchilik faoliyatingizni oʻzgartiradigan uch bosqichli oddiy jarayon.",
+      "steps": {
+        "collect": {
+          "title": "Daladan va ekinlardan maʼlumot yigʻish",
+          "description": "Sensorlarni ulang, suratlarni yuklang yoki maʼlumotlarni qoʻlda kiriting. Agrofy dronlar, IoT qurilmalari va sunʼiy yoʻldosh tasvirlari bilan integratsiyalanadi."
+        },
+        "analyze": {
+          "title": "AI tahlil qiladi va bashorat qiladi",
+          "description": "Rivojlangan AI maʼlumotlaringizni real vaqtda qayta ishlaydi, andozalarni aniqlaydi, muammolarni topadi va aniq bashoratlar beradi."
+        },
+        "recommend": {
+          "title": "Amaliy tavsiyalar",
+          "description": "Sizning sharoitingizga mos aniq va amaliy tavsiyalarni oling. Qarorlarni maʼlumotlarga asoslangan holda qabul qiling."
+        }
+      }
+    },
+    "platforms": {
+      "title": "Kerakli joyning oʻzida mavjud",
+      "subtitle": "Agrofyʼdan istalgan qurilma orqali, istalgan joyda foydalaning. Fermer xoʻjaligingiz maʼlumotlari barcha platformalarda sinxron holda saqlanadi.",
+      "cards": {
+        "web": {
+          "badge": "Hozir mavjud",
+          "title": "Veb platforma",
+          "description": "Har qanday brauzer orqali toʻliq funksional boshqaruv paneli. Yuklab olish shart emas."
+        },
+        "android": {
+          "badge": "Google Play",
+          "title": "Android ilova",
+          "description": "Daladagi ishlar uchun optimallashtirilgan mobil tajriba. Oflayn rejim mavjud."
+        },
+        "ios": {
+          "badge": "App Store",
+          "title": "iOS ilova",
+          "description": "iPhone va iPad uchun qulay interfeys, barcha asosiy funksiyalar bilan."
+        },
+        "api": {
+          "badge": "Dasturchilar uchun",
+          "title": "API integratsiyalar",
+          "description": "Agrofyʼni mavjud tizimlaringiz bilan ulang. Toʻliq hujjatlashtirilgan RESTful API."
+        }
+      }
+    },
+    "audience": {
+      "title": "Agrofy kimlar uchun?",
+      "subtitle": "Qishloq xoʻjaligi qiymat zanjiridagi har bir ishtirokchi uchun moslashtirilgan yechimlar.",
+      "cards": {
+        "farmers": {
+          "title": "Fermerlar",
+          "description": "Hosildorlikni oshiring, xarajatlarni kamaytiring va maʼlumotlarga asoslangan qarorlar qabul qiling.",
+          "detail": "Yakka va oilaviy fermer xoʻjaliklari uchun"
+        },
+        "agribusiness": {
+          "title": "Agrokompaniyalar",
+          "description": "Keng koʻlamli faoliyatni korporativ darajadagi vositalar va tahlillar bilan boshqaring.",
+          "detail": "Korporativ yechimlar mavjud"
+        },
+        "exporters": {
+          "title": "Eksportyorlar",
+          "description": "Global xaridorlar bilan bogʻlaning va xalqaro logistika jarayonlarini yaxshilang.",
+          "detail": "50+ davlat bozorlariga chiqish"
+        },
+        "government": {
+          "title": "Davlat va investorlar",
+          "description": "Qishloq xoʻjaligi loyihalarini kuzating va asosli investitsiya qarorlarini qabul qiling.",
+          "detail": "Maxsus boshqaruv panellari va hisobotlar"
+        }
+      }
+    },
+    "regions": {
+      "title": "Hududlar kesimida qishloq xoʻjaligining kelajagini qurish",
+      "description": "Bizning maqsadimiz — sayyoradagi har bir fermerni AI asosidagi tushunchalar bilan quvvatlantirish. Kichik oilaviy xoʻjaliklardan tortib yirik agrokompaniyalargacha — Agrofy mahalliy sharoitga moslashgan holda global standartlarni saqlab qoladi.",
+      "features": {
+        "multiLanguage": {
+          "title": "Koʻp tilli qoʻllab-quvvatlash",
+          "description": "Butun dunyo fermerlari uchun 20+ tilda mavjud."
+        },
+        "regionalAdaptation": {
+          "title": "Hududiy moslashuv",
+          "description": "Mahalliy ekin navlari va iqlim sharoitlariga moslashgan AI modellari."
+        },
+        "scalableModels": {
+          "title": "Masshtablanadigan AI modellari",
+          "description": "Qishloq xoʻjaligi ehtiyojlari bilan birga oʻsuvchi infratuzilma."
+        }
+      },
+      "stat": {
+        "number": "50+",
+        "label": "Davlatlar"
+      },
+      "kpis": {
+        "languages": "Tillar",
+        "uptime": "Sinxron ishlash vaqti",
+        "insights": "AI tahlillari",
+        "adaptation": "Mahalliy moslashuv"
+      }
+    },
+    "cta": {
+      "titleLine1": "Aqlliroq oʻsishni bugun boshlang",
+      "titleBrand": "Agrofy bilan",
+      "description": "Allaqachon faoliyatini AI yordamida oʻzgartirgan 1 milliondan ortiq fermer va agro-biznes safiga qoʻshiling. Bepul boshlang — bank kartasi talab qilinmaydi.",
+      "button": "Bepul boshlash"
+    }
   }
 }
+
+

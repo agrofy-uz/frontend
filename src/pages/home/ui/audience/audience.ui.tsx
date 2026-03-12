@@ -7,6 +7,7 @@ import { FaShip } from 'react-icons/fa';
 import { FaLandmark } from 'react-icons/fa';
 import styles from './audience.module.css';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 // Icon mapping
 const iconMap = {
@@ -17,6 +18,8 @@ const iconMap = {
 };
 
 function Audience() {
+  const { t } = useTranslation();
+
   return (
     <Box py={{ base: 'xl', md: 80 }} className={styles.section}>
       <Container>
@@ -36,7 +39,7 @@ function Audience() {
                 ta="center"
                 className="textPrimary"
               >
-                Who Is Agrofy For?
+                {t('home.audience.title')}
               </Title>
             </motion.div>
             <motion.div
@@ -51,8 +54,7 @@ function Audience() {
                 ta="center"
                 maw={600}
               >
-                Tailored solutions for every stakeholder in the agricultural
-                value chain.
+                {t('home.audience.subtitle')}
               </Text>
             </motion.div>
           </Stack>
@@ -121,7 +123,7 @@ function Audience() {
                             fw={600}
                             className="textPrimary"
                           >
-                            {card.title}
+                            {t(`home.audience.cards.${card.key}.title`)}
                           </Title>
                         </motion.div>
 
@@ -136,7 +138,9 @@ function Audience() {
                           }}
                         >
                           <Text fz="sm" c="dimmed" lh={1.6}>
-                            {card.description}
+                            {t(
+                              `home.audience.cards.${card.key}.description`
+                            )}
                           </Text>
                         </motion.div>
 
@@ -152,7 +156,7 @@ function Audience() {
                           style={{ marginTop: 'auto' }}
                         >
                           <Text fz="sm" fw={500} c="green.6">
-                            {card.detail}
+                            {t(`home.audience.cards.${card.key}.detail`)}
                           </Text>
                         </motion.div>
                       </Stack>
