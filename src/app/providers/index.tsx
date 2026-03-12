@@ -6,7 +6,6 @@ import '@mantine/notifications/styles.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useEffect } from 'react';
-import { BrowserRouter } from 'react-router-dom';
 
 import { initializeLocale } from '@/shared/lib/language';
 import queryClient from '@/shared/queryClient';
@@ -38,12 +37,11 @@ const Providers = ({ children }: ProvidersProps) => {
   return (
     <MantineProvider theme={theme} defaultColorScheme={colorScheme}>
       <Notifications position="top-right" zIndex={1000} autoClose={3000} />
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <ThemeSync>{children}</ThemeSync>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-      </BrowserRouter>
+
+      <QueryClientProvider client={queryClient}>
+        <ThemeSync>{children}</ThemeSync>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
     </MantineProvider>
   );
 };
