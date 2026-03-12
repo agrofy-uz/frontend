@@ -1,11 +1,9 @@
 import { Container } from '@/shared/ui/container';
-import { Text, Flex, Stack, Anchor, Box, Group, Select } from '@mantine/core';
+import { Text, Flex, Stack, Anchor, Box, Group } from '@mantine/core';
 import { FOOTER_SOCIAL_LINKS, FOOTER_NAV_COLUMNS } from './footer.const';
 import { ThemeToggle } from './ui/theme-toggle';
 import { FaLinkedin, FaTwitter, FaYoutube, FaInstagram } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import { changeLocale } from '@/shared/lib/language';
-import { LANGUAGES } from '../header/header.const';
 import styles from './footer.module.css';
 
 const socialIconMap = {
@@ -106,18 +104,9 @@ function Footer() {
             <Flex align="center" gap="md">
               <Flex align="center" gap="xs">
                 <Text fz="sm" c="dimmed">
-                  {t('footer.language')}
+                  {t('footer.language')}: {i18n.language}
                 </Text>
-                <Select
-                  value={i18n.language}
-                  onChange={(value) => value && changeLocale(value as any)}
-                  data={LANGUAGES.map((l) => ({
-                    value: l.value,
-                    label: `${l.icon} ${l.label}`,
-                  }))}
-                  size="xs"
-                  w={140}
-                />
+
               </Flex>
               <ThemeToggle />
             </Flex>

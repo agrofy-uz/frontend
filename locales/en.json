@@ -73,6 +73,21 @@
         "activeUsers": "Active Users",
         "farms": "Farms",
         "countries": "Countries"
+      },
+      "mockup": {
+        "userMsg1": "What's the best time to irrigate my corn field today?",
+        "aiMsg1": "Based on soil moisture data and weather forecast, I recommend irrigating between 6–8 AM. Expected efficiency: +23%",
+        "userMsg2": "What about fertilizer recommendations for this season?",
+        "aiMsg2": "For optimal growth, apply nitrogen-rich fertilizer in early spring. I suggest 150kg per hectare for maximum yield.",
+        "stats": {
+          "humidity": "Humidity",
+          "temp": "Temp",
+          "wind": "Wind"
+        },
+        "mobile": {
+          "aiName": "Agrofy AI",
+          "cropHealth": "Crop health: Excellent"
+        }
       }
     },
     "statistics": {
@@ -208,7 +223,8 @@
         "languages": "Languages",
         "uptime": "Sync uptime",
         "insights": "AI insights",
-        "adaptation": "Local adaptation"
+        "adaptation": "Local adaptation",
+        "adaptationValue": "Local"
       }
     },
     "cta": {

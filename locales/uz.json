@@ -73,6 +73,21 @@
         "activeUsers": "Faol foydalanuvchilar",
         "farms": "Fermer xoʻjaliklari",
         "countries": "Davlatlar"
+      },
+      "mockup": {
+        "userMsg1": "Bugun makkajoʻxori dalasini sugʻorish uchun eng yaxshi vaqt qachon?",
+        "aiMsg1": "Tuproq namligi va ob-havo maʼlumotlariga koʻp, ertalab soat 6-8 orasida sugʻorishni tavsiya qilaman. Kutilayotgan samaradorlik: +23%",
+        "userMsg2": "Ushbu mavsum uchun oʻgʻit tavsiyalari qanday?",
+        "aiMsg2": "Optimal oʻsish uchun erta bahorda azotga boy oʻgʻitlarni qoʻllang. Maksimal hosil uchun gektariga 150 kg tavsiya qilaman.",
+        "stats": {
+          "humidity": "Namlik",
+          "temp": "Harorat",
+          "wind": "Shamol"
+        },
+        "mobile": {
+          "aiName": "Agrofy AI",
+          "cropHealth": "Ekin holati: Aʼlo"
+        }
       }
     },
     "statistics": {
@@ -208,7 +223,8 @@
         "languages": "Tillar",
         "uptime": "Sinxron ishlash vaqti",
         "insights": "AI tahlillari",
-        "adaptation": "Mahalliy moslashuv"
+        "adaptation": "Mahalliy moslashuv",
+        "adaptationValue": "Mahalliy"
       }
     },
     "cta": {

@@ -91,19 +91,20 @@ function Regions() {
             <Box className={styles.kpiRow}>
               {REGIONS_KPIS.map((kpi, index) => (
                 <motion.div
-                  key={kpi.label}
+                  key={kpi.key}
                   initial={{ opacity: 0, scale: 0 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, amount: 0.3 }}
                   transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
                   whileHover={{ scale: 1.1 }}
-                  className={styles.kpiPill}
                 >
-                  <Text span className={styles.kpiValue}>
-                    {kpi.value}
-                  </Text>
-                  <Text span className={styles.kpiLabel}>
-                    {t(`home.regions.kpis.${kpi.key}`)}
+                  <Text span className={styles.kpiPill} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <Text span className={styles.kpiValue}>
+                      {kpi.key === 'adaptation' ? t('home.regions.kpis.adaptationValue') : kpi.value}
+                    </Text>
+                    <Text span className={styles.kpiLabel}>
+                      {t(`home.regions.kpis.${kpi.key}`)}
+                    </Text>
                   </Text>
                 </motion.div>
               ))}
