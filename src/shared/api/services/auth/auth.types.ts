@@ -1,27 +1,25 @@
-export interface StartSessionResponse {
-  login_session_id: string;
+export interface TelegramStartRequest {
+  clientId: string;
+}
+
+export interface TelegramStartResponse {
+  token: string;
+  deepLink: string;
+  expiresAt: string;
 }
 
 export interface VerifyOtpRequest {
-  login_session_id: string;
+  token: string;
   otp: string;
 }
 
-export interface UserResponse {
-  id: string;
-  email?: string;
-  name?: string;
-  role: string;
-  phone?: string;
-  telegram_id?: number;
-  username?: string;
-  created_at?: string;
-  is_active?: boolean;
-}
-
 export interface VerifyOtpResponse {
-  user: UserResponse;
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
+  success: boolean;
+  phoneNumber: string;
+  telegramUserId: number;
+  telegramUsername: string;
+  firstName: string;
+  lastName: string;
+  clientId: string;
+  verifiedAt: string;
 }

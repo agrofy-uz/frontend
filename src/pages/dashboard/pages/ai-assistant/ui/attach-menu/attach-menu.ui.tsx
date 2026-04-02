@@ -63,7 +63,7 @@ export function AttachMenu({
               <MdPhotoCamera size={16} />
             </div>
 
-            <Text fz={12} fw={500}>
+            <Text fz={12} fw={500} className={styles.label}>
               Kamera ochish
             </Text>
           </Box>
@@ -87,7 +87,7 @@ export function AttachMenu({
               <MdPhotoLibrary size={16} />
             </div>
 
-            <Text fz={12} fw={500}>
+            <Text fz={12} fw={500} className={styles.label}>
               Fayl yuklash
             </Text>
           </Box>

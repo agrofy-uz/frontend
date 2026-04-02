@@ -27,6 +27,7 @@ interface LoginModalProps {
 export function LoginModal({ opened, onClose }: LoginModalProps) {
   const [viewState, setViewState] = useState<ViewState>('initial');
   const [loginSessionId, setLoginSessionId] = useState<string | null>(null);
+  const [telegramDeepLink, setTelegramDeepLink] = useState<string | null>(null);
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -38,8 +39,9 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     setViewState('loading');
 
     try {
-      const response = await authApi.startSession();
-      setLoginSessionId(response.login_session_id);
+      const response = await authApi.startTelegramAuth({ clientId: 'string' });
+      setLoginSessionId(response.token);
+      setTelegramDeepLink(response.deepLink);
       setViewState('otp');
     } catch (err: unknown) {
       const errorMessage = getErrorMessage(err);
@@ -68,22 +70,20 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     try {
       const response = await authApi.verifyOtp(loginSessionId, otp);
 
-      if (response.user && response.access_token && response.refresh_token) {
-        // API response'ni authStore formatiga transform qilish
-        const nameParts = response.user.name?.split(' ') || [];
+      if (response.success) {
         const userData = {
-          id: response.user.id,
-          phone_number: response.user.phone || '',
-          telegram_id: response.user.telegram_id || 0,
-          first_name: nameParts[0] || null,
-          last_name: nameParts.slice(1).join(' ') || null,
-          username: response.user.username || null,
-          created_at: response.user.created_at || null,
-          is_active: response.user.is_active ?? true,
+          id: response.telegramUserId?.toString() || response.clientId,
+          phone_number: response.phoneNumber || '',
+          telegram_id: response.telegramUserId || 0,
+          first_name: response.firstName || null,
+          last_name: response.lastName || null,
+          username: response.telegramUsername || null,
+          created_at: response.verifiedAt || null,
+          is_active: true,
         };
 
-        // Auth store'ga saqlash
-        login(userData, response.access_token, response.refresh_token);
+        // Hozircha authStore token talab qilgani uchun backend tokenini saqlaymiz
+        login(userData, loginSessionId, loginSessionId);
 
         openNotification({
           title: 'Muvaffaqiyatli kirildi!',
@@ -123,7 +123,8 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
   };
 
   // Telegram bot link
-  const telegramBotLink = getTelegramBotLink(loginSessionId);
+  const telegramBotLink =
+    telegramDeepLink || getTelegramBotLink(loginSessionId);
 
   return (
     <Modal

@@ -7,6 +7,9 @@ export type ViewState = 'initial' | 'otp' | 'loading' | 'error';
 
 // Helper functions
 export function getErrorMessage(err: unknown): string {
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
   if (axios.isAxiosError(err)) {
     const status = err.response?.status;
     const data = err.response?.data;

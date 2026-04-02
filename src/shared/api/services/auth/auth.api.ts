@@ -1,25 +1,36 @@
 import api from '../../api.interface';
 import type {
-  StartSessionResponse,
+  TelegramStartRequest,
+  TelegramStartResponse,
   VerifyOtpResponse,
 } from './auth.types';
 
 export const authApi = {
-  startSession: async (): Promise<StartSessionResponse> => {
-    const response = await api.post<StartSessionResponse>(
-      '/v1/auth/start-session'
+  /**
+   * Telegram auth start.
+   * Backend: POST http://localhost:5167/api/auth/telegram/start
+   */
+  startTelegramAuth: async (
+    data: TelegramStartRequest
+  ): Promise<TelegramStartResponse> => {
+    const response = await api.post<TelegramStartResponse>(
+      '/auth/telegram/start',
+      data
     );
     return response.data;
   },
 
   verifyOtp: async (
-    loginSessionId: string,
+    token: string,
     otp: string
   ): Promise<VerifyOtpResponse> => {
-    const response = await api.post<VerifyOtpResponse>('/v1/auth/verify-otp', {
-      login_session_id: loginSessionId,
-      otp,
-    });
+    const response = await api.post<VerifyOtpResponse>(
+      '/auth/telegram/verify',
+      {
+        token,
+        otp,
+      }
+    );
     return response.data;
   },
 };
