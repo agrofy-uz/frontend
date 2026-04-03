@@ -1,36 +1,74 @@
-import { Box, Flex, ActionIcon } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Box, Flex, ActionIcon, Drawer } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { Outlet } from 'react-router-dom';
 import { BsLayoutSidebar } from 'react-icons/bs';
 import { Sidebar } from './ui/sidebar';
 import { DashboardHeader } from './ui/header';
+import { MobileDashboardDrawerContext } from './mobile-dashboard-drawer.context';
 import styles from './dashboard-layout.module.css';
 
 const DashboardLayout = () => {
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
+  const [mobileOpened, { open: openMobile, close: closeMobile }] =
+    useDisclosure(false);
+  const isMobile = useMediaQuery('(max-width: 48em)');
+
+  const handleSidebarToggle = () => {
+    if (isMobile) {
+      openMobile();
+      return;
+    }
+
+    toggleDesktop();
+  };
 
   return (
+    <MobileDashboardDrawerContext.Provider
+      value={{
+        closeMobileDrawer: closeMobile,
+        isMobile: Boolean(isMobile),
+      }}
+    >
     <Flex
       h="100vh"
       className={styles.dashboardLayout}
       style={{ overflow: 'hidden', position: 'relative' }}
     >
-      {/* Sidebar - chapda to'liq balandlikka */}
-      <Box
-        className={styles.sidebar}
-        style={{
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          width: desktopOpened ? 280 : 80,
-          height: '100vh',
-          transition: 'width 0.2s ease',
-          borderRight: '0.5px solid var(--dashboard-border)',
-          zIndex: 100,
+      {!isMobile && (
+        <Box
+          className={styles.sidebar}
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: desktopOpened ? 280 : 80,
+            height: '100vh',
+            transition: 'width 0.2s ease',
+            borderRight: '0.5px solid var(--dashboard-border)',
+            zIndex: 100,
+          }}
+        >
+          <Sidebar collapsed={!desktopOpened} />
+        </Box>
+      )}
+
+      <Drawer
+        opened={mobileOpened}
+        onClose={closeMobile}
+        withCloseButton={false}
+        position="left"
+        size={280}
+        padding={0}
+        classNames={{
+          content: styles.mobileDrawerContent,
+          body: styles.mobileDrawerBody,
         }}
+        overlayProps={{ backgroundOpacity: 0.45, blur: 2 }}
       >
-        <Sidebar collapsed={!desktopOpened} />
-      </Box>
+        <Box className={styles.sidebar} h="100%">
+          <Sidebar collapsed={false} />
+        </Box>
+      </Drawer>
 
       {/* O'ng qism - Header va Content */}
       <Flex
@@ -39,7 +77,7 @@ const DashboardLayout = () => {
         style={{
           flex: 1,
           overflow: 'hidden',
-          marginLeft: desktopOpened ? 280 : 80,
+          marginLeft: isMobile ? 0 : desktopOpened ? 280 : 80,
           transition: 'margin-left 0.2s ease',
         }}
       >
@@ -59,7 +97,7 @@ const DashboardLayout = () => {
             variant="subtle"
             size="lg"
             mr="md"
-            onClick={toggleDesktop}
+            onClick={handleSidebarToggle}
           >
             <BsLayoutSidebar size={21} className="textPrimary" />
           </ActionIcon>
@@ -81,6 +119,7 @@ const DashboardLayout = () => {
         </Box>
       </Flex>
     </Flex>
+    </MobileDashboardDrawerContext.Provider>
   );
 };
 

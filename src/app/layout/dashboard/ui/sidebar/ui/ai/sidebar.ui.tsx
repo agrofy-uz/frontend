@@ -6,7 +6,7 @@ import {
   useState,
   type MouseEvent,
 } from 'react';
-import { ActionIcon, Box, Button, Popover, Text } from '@mantine/core';
+import { ActionIcon, Box, Button, Popover, Skeleton, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -26,6 +26,7 @@ import {
   togglePinnedChat,
 } from '@/shared/lib/aiChatPinned';
 import { useAuthStore } from '@/shared/store/authStore';
+import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import {
   SIDEBAR_TITLE_ANIM_GATE_MS,
   sortAiSidebarChats,
@@ -38,10 +39,12 @@ import { SidebarRevealTitle } from './ui';
 function useAiSidebarChats() {
   const navigate = useNavigate();
   const location = useLocation();
+  const mobileDrawer = useMobileDashboardDrawer();
   const { user } = useAuthStore();
 
   const [chats, setChats] = useState<AiSidebarChatItem[]>([]);
   const [chatPopovers, setChatPopovers] = useState<Record<string, boolean>>({});
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [titleAnimGate, setTitleAnimGate] = useState(false);
   const [titleRevealIds, setTitleRevealIds] = useState(() => new Set<string>());
   const seededKnownChatIdsRef = useRef(false);
@@ -57,8 +60,10 @@ function useAiSidebarChats() {
       seededKnownChatIdsRef.current = false;
       knownChatIdsRef.current = new Set();
       setTitleRevealIds(new Set());
+      setIsHistoryLoading(false);
       return;
     }
+    setIsHistoryLoading(true);
     seededKnownChatIdsRef.current = false;
     setTitleAnimGate(false);
     const t = window.setTimeout(
@@ -115,6 +120,10 @@ function useAiSidebarChats() {
         );
       } catch {
         /* */
+      } finally {
+        if (!cancelled) {
+          setIsHistoryLoading(false);
+        }
       }
     };
 
@@ -185,12 +194,14 @@ function useAiSidebarChats() {
 
   const openChat = useCallback(
     (id: string) => {
+      mobileDrawer?.closeMobileDrawer();
       navigate({ pathname: '/dashboard/ai', search: `?chat=${id}` });
     },
-    [navigate]
+    [mobileDrawer, navigate]
   );
 
   const createNewChat = useCallback(async () => {
+    mobileDrawer?.closeMobileDrawer();
     if (!user?.id) {
       navigate({ pathname: '/dashboard/ai', search: '' });
       return;
@@ -218,7 +229,7 @@ function useAiSidebarChats() {
     } catch {
       navigate({ pathname: '/dashboard/ai', search: '' });
     }
-  }, [navigate, user?.id]);
+  }, [mobileDrawer, navigate, user?.id]);
 
   const toggleChatPopover = useCallback((chatId: string, open?: boolean) => {
     setChatPopovers((prev) => ({
@@ -308,6 +319,7 @@ function useAiSidebarChats() {
     activeChatId,
     chatPopovers,
     titleRevealIds,
+    isHistoryLoading,
     openChat,
     createNewChat,
     toggleChatPopover,
@@ -326,6 +338,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
     activeChatId,
     chatPopovers,
     titleRevealIds,
+    isHistoryLoading,
     openChat,
     createNewChat,
     toggleChatPopover,
@@ -418,7 +431,18 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
                 style={{ overflow: 'hidden' }}
               >
                 <Box className={styles.chatList}>
-                  {sortedChats.length === 0 ? (
+                  {isHistoryLoading ? (
+                    <Box>
+                      {Array.from({ length: 4 }).map((_, idx) => (
+                        <Skeleton
+                          key={idx}
+                          height={18}
+                          radius="sm"
+                          mb={idx === 3 ? 0 : 10}
+                        />
+                      ))}
+                    </Box>
+                  ) : sortedChats.length === 0 ? (
                     <Text size="sm" c="dimmed" p="sm">
                       Hozircha chat tarixi yo‘q
                     </Text>

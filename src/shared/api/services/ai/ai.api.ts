@@ -28,20 +28,17 @@ function parseSseDataPayload(
     const delta =
       (typeof j.text === 'string' ? j.text : '') ||
       (typeof j.content === 'string' ? j.content : '') ||
-      (j.delta &&
-      typeof (j.delta as { content?: string }).content === 'string'
+      (j.delta && typeof (j.delta as { content?: string }).content === 'string'
         ? (j.delta as { content: string }).content
         : '') ||
-      (j.message &&
-      typeof (j.message as { text?: string }).text === 'string'
+      (j.message && typeof (j.message as { text?: string }).text === 'string'
         ? (j.message as { text: string }).text
         : '');
 
     if (delta) fullText += delta;
     if (typeof j.id === 'string' || typeof j.id === 'number')
       lastMeta.id = String(j.id);
-    if (j.role === 'user' || j.role === 'assistant')
-      lastMeta.role = j.role;
+    if (j.role === 'user' || j.role === 'assistant') lastMeta.role = j.role;
     if (typeof j.createdAt === 'string') lastMeta.createdAt = j.createdAt;
     return fullText;
   } catch {

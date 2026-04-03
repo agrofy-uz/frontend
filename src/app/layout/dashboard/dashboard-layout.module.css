@@ -42,3 +42,13 @@ html[data-mantine-color-scheme='light'] {
 .contentWrapper {
   background-color: var(--dashboard-bg) !important;
 }
+
+.mobileDrawerContent {
+  background-color: var(--dashboard-sidebar-bg) !important;
+}
+
+.mobileDrawerBody {
+  padding: 0 !important;
+  height: 100%;
+  background-color: var(--dashboard-sidebar-bg) !important;
+}

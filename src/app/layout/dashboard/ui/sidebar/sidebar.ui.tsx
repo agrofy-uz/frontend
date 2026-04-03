@@ -8,6 +8,7 @@ import { IoChatbubbleOutline } from 'react-icons/io5';
 import { FaRegMap } from 'react-icons/fa6';
 import { FaChartColumn } from 'react-icons/fa6';
 import { Drower } from './ui/drower';
+import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import { useAuthStore } from '@/shared/store/authStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AiSidebar } from './ui/ai';
@@ -20,6 +21,7 @@ interface SidebarProps {
 const Sidebar = ({ collapsed }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const mobileDrawer = useMobileDashboardDrawer();
   const { user: authUser } = useAuthStore();
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
     useDisclosure(false);
@@ -117,7 +119,15 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                         <Icon size={20} className={styles.sidebarIcon} />
                       }
                       active={isActive}
-                      onClick={() => navigate(item.path)}
+                      onClick={() => {
+                        if (
+                          mobileDrawer?.isMobile &&
+                          item.path !== '/dashboard/ai'
+                        ) {
+                          mobileDrawer.closeMobileDrawer();
+                        }
+                        navigate(item.path);
+                      }}
                       className={styles.sidebarNavLink}
                       style={{
                         borderRadius: 'var(--mantine-radius-md)',
