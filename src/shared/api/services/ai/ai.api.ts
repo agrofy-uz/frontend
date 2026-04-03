@@ -1,102 +1,55 @@
 import api from '../../api.interface';
 import type {
-  ChatMessage,
-  CreateSessionResponse,
-  SendMessageRequest,
-  SendMessageResponse,
-  SessionHistoryResponse,
+  ChatMessageItem,
+  ChatHistoryItem,
+  CreateChatRequest,
+  CreateChatResponse,
   MinimalResultRequest,
   MinimalResultResponse,
+  SendChatMessageRequest,
+  SendChatMessageResponse,
 } from './ai.types';
 
 export const chatApi = {
-  createSession: async (): Promise<CreateSessionResponse> => {
-    const response = await api.post<CreateSessionResponse>('/chat/session');
+  createChat: async (data: CreateChatRequest): Promise<CreateChatResponse> => {
+    const response = await api.post<CreateChatResponse>('/ai/chats/new', data);
     return response.data;
   },
 
-  getSessionHistory: async (
-    sessionId: string
-  ): Promise<SessionHistoryResponse> => {
-    const response = await api.get<SessionHistoryResponse>(
-      `/chat/session/${sessionId}`
+  sendChatMessage: async (
+    chatId: string,
+    data: SendChatMessageRequest
+  ): Promise<SendChatMessageResponse> => {
+    const response = await api.post<SendChatMessageResponse>(
+      `/ai/chats/${chatId}/messages`,
+      data
     );
     return response.data;
   },
 
-  sendMessage: async (
-    data: SendMessageRequest
-  ): Promise<SendMessageResponse> => {
-    const backendRequest = {
-      session_id: data.session_id,
-      message: data.messages[data.messages.length - 1]?.content || '',
-      messages: data.messages,
-      model: data.model,
-      temperature: data.temperature,
-      stream: data.stream,
-    };
-
-    const response = await api.post<SendMessageResponse>(
-      '/chat/message',
-      backendRequest
-    );
-    const responseData = response.data;
-
-    if (responseData.reply || responseData.message) {
-      const assistantMessage: ChatMessage = {
-        role: 'assistant',
-        content: responseData.reply || responseData.message?.content || '',
-        id: responseData.message?.id,
-        timestamp: responseData.message?.timestamp,
-        created_at: responseData.message?.created_at,
-      };
-
-      return {
-        id: responseData.message?.id || `chatcmpl-${Date.now()}`,
-        object: 'chat.completion',
-        created: responseData.message?.timestamp
-          ? Math.floor(responseData.message.timestamp / 1000)
-          : Math.floor(Date.now() / 1000),
-        model: data.model || 'gpt-3.5-turbo',
-        choices: [
-          {
-            index: 0,
-            message: assistantMessage,
-            finish_reason: 'stop',
-          },
-        ],
-        usage: {
-          prompt_tokens: 0,
-          completion_tokens: 0,
-          total_tokens: 0,
-        },
-        session_id: responseData.session_id || data.session_id,
-        reply: responseData.reply,
-        message: responseData.message,
-      };
-    }
-
-    return responseData;
+  getChatHistory: async (userId: string): Promise<ChatHistoryItem[]> => {
+    const response = await api.get<ChatHistoryItem[]>('/ai/chats', {
+      params: { userId },
+    });
+    return response.data;
   },
 
-  createCompletion: async (
-    data: SendMessageRequest
-  ): Promise<SendMessageResponse> => {
-    return chatApi.sendMessage(data);
+  getChatMessages: async (chatId: string): Promise<ChatMessageItem[]> => {
+    const response = await api.post<ChatMessageItem[]>(
+      `/ai/chats/${chatId}/messages`
+    );
+    return response.data;
   },
 
   sendMinimalResult: async (
     data: MinimalResultRequest
   ): Promise<MinimalResultResponse> => {
-    const response = await api.post<MinimalResultResponse>(
-      '/chat/responses',
-      {
-        model: data.model,
-        input: data.input,
-        store: data.store ?? true,
-        session_id: data.session_id,
-      }
-    );
+    const response = await api.post<MinimalResultResponse>('/chat/responses', {
+      model: data.model,
+      input: data.input,
+      store: data.store ?? true,
+      session_id: data.session_id,
+    });
     return response.data;
   },
 

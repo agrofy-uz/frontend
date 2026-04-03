@@ -23,10 +23,9 @@ import {
 import { notifications } from '@mantine/notifications';
 import styles from './ai-assistant.module.css';
 import { chatApi, type ChatMessage } from '@/shared/api';
+import { useAuthStore } from '@/shared/store/authStore';
 import {
   MAX_TEXTAREA_HEIGHT,
-  DEFAULT_MODEL,
-  generateChatTitle,
   MESSAGE_ANIMATION_VARIANTS,
   TYPING_DOT_ANIMATION,
 } from './ai-assistant.const';
@@ -41,6 +40,7 @@ type Message = ChatMessage & {
 function AiAssistant() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const params = new URLSearchParams(location.search);
   const urlSessionId = params.get('chat');
 
@@ -97,44 +97,35 @@ function AiAssistant() {
 
       try {
         if (urlSessionId) {
-          // URL'dan session_id bor, state ni yangilash va history yuklash
           setCurrentSessionId(urlSessionId);
-          const history = await chatApi.getSessionHistory(urlSessionId);
-          const formattedMessages: Message[] = history.messages.map(
-            (msg: ChatMessage) => ({
-              id: msg.id || `msg_${Date.now()}_${Math.random()}`,
-              role: msg.role,
-              content: msg.content,
-              timestamp:
-                msg.timestamp ||
-                (msg.created_at
-                  ? new Date(msg.created_at).getTime()
-                  : Date.now()),
-            })
-          );
+          const historyMessages = await chatApi.getChatMessages(urlSessionId);
+          const formattedMessages: Message[] = historyMessages.map((msg) => ({
+            id: msg.id || `msg_${Date.now()}_${Math.random()}`,
+            role: msg.role,
+            content: msg.text,
+            timestamp: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
+          }));
           setMessages(formattedMessages);
-
-          // Agar xabarlar bo'lsa, birinchi AI javobidan chat nomini olish
-          const firstAssistantMsg = formattedMessages.find(
-            (msg) => msg.role === 'assistant'
-          );
-          if (firstAssistantMsg && firstAssistantMsg.content) {
-            const chatTitle = generateChatTitle(firstAssistantMsg.content);
-            // Sidebar'ga chat nomini yangilash uchun event yuborish
-            window.dispatchEvent(
-              new CustomEvent('updateChatTitle', {
-                detail: { sessionId: urlSessionId, title: chatTitle },
-              })
-            );
-          }
-
-          // Agar chat mavjud bo'lsa va title bo'lsa, sidebar'da ko'rinadi
-          // Bu yerda hech narsa qilmaymiz, chunki chat allaqachon tarixda bo'lishi kerak
         } else {
-          // URL'dan session_id yo'q, session yaratilmaydi
-          // Faqat input ko'rsatiladi, birinchi xabar yuborilganda session yaratiladi
           setCurrentSessionId(null);
           setMessages([]);
+          if (user?.id) {
+            const createdChat = await chatApi.createChat({ userId: user.id });
+            if (createdChat.chatId) {
+              setCurrentSessionId(createdChat.chatId);
+              navigate(`?chat=${createdChat.chatId}`, { replace: true });
+              if (createdChat.title?.trim()) {
+                window.dispatchEvent(
+                  new CustomEvent('addChatToHistory', {
+                    detail: {
+                      sessionId: createdChat.chatId,
+                      title: createdChat.title,
+                    },
+                  })
+                );
+              }
+            }
+          }
         }
       } catch (err: any) {
         const errorMessage =
@@ -152,7 +143,30 @@ function AiAssistant() {
 
     initializeSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlSessionId]);
+  }, [urlSessionId, user?.id, navigate]);
+
+  // Chat history ni backenddan olib, sidebar tarixiga ulash
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadChatHistory = async () => {
+      try {
+        const chats = await chatApi.getChatHistory(user.id);
+        chats.forEach((chat) => {
+          if (!chat.title?.trim()) return;
+          window.dispatchEvent(
+            new CustomEvent('addChatToHistory', {
+              detail: { sessionId: chat.chatId, title: chat.title },
+            })
+          );
+        });
+      } catch (err) {
+        // History yuklanmasa, chat ishlashiga ta'sir qilmasin
+      }
+    };
+
+    loadChatHistory();
+  }, [user?.id]);
 
   const hasMessages = messages.length > 0;
 
@@ -170,30 +184,11 @@ function AiAssistant() {
 
   const handleSend = async () => {
     if (!draft.trim() || isLoading) return;
+    if (!user?.id) return;
     const content = draft.trim();
 
-    // Agar session_id yo'q bo'lsa, avval yangi session yaratish (loading ko'rsatmasdan)
-    let sessionId = currentSessionId;
-    if (!sessionId) {
-      try {
-        // Session yaratish - loading ko'rsatilmaydi, orqada o'zi bajarsin
-        const response = await chatApi.createSession();
-        sessionId = response.session_id;
-        setCurrentSessionId(sessionId);
-        // URL ni yangilash
-        navigate(`?chat=${sessionId}`, { replace: true });
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.message || err.message || 'Xatolik yuz berdi';
-        setError(errorMessage);
-        notifications.show({
-          title: 'Xatolik',
-          message: errorMessage,
-          color: 'red',
-        });
-        return;
-      }
-    }
+    const chatId = currentSessionId || urlSessionId;
+    if (!chatId) return;
 
     // User xabarini darhol qo'shish
     const userMsg: Message = {
@@ -206,74 +201,27 @@ function AiAssistant() {
     setMessages((prev) => [...prev, userMsg]);
     setDraft('');
     setAttachments([]);
-    setIsLoading(true); // Faqat xabar yuborilganda loading ko'rsatiladi
+    setIsLoading(true);
     setError(null);
 
     try {
-      // ChatGPT-style messages array yaratish
-      const messagesForApi = [
-        ...messages.map((msg) => ({
-          role: msg.role as 'user' | 'assistant' | 'system',
-          content: msg.content,
-        })),
-        {
-          role: 'user' as const,
-          content,
-        },
-      ];
-
-      // API ga xabar yuborish (ChatGPT formatida)
-      const response = await chatApi.sendMessage({
-        session_id: sessionId,
-        messages: messagesForApi,
-        model: DEFAULT_MODEL, // Backend'ga mos model nomi
+      const response = await chatApi.sendChatMessage(chatId, {
+        userId: user.id,
+        text: content,
+        role: 'user',
       });
 
-      // ChatGPT-style response'dan AI javobini olish
-      const assistantMessage =
-        response.choices?.[0]?.message ||
-        response.message ||
-        (response.reply
-          ? { role: 'assistant' as const, content: response.reply }
-          : null);
-
-      if (!assistantMessage) {
-        throw new Error('AI javob olinmadi');
+      if (response.role === 'assistant' && response.text?.trim()) {
+        const assistantMsg: Message = {
+          id: response.id || `msg_${Date.now()}_${Math.random()}`,
+          role: 'assistant',
+          content: response.text,
+          timestamp: response.createdAt
+            ? new Date(response.createdAt).getTime()
+            : Date.now(),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
       }
-
-      const replyContent = assistantMessage.content || '';
-      const assistantMsg: Message = {
-        id:
-          response.id ||
-          response.message?.id ||
-          `msg_${Date.now()}_${Math.random()}`,
-        role: 'assistant',
-        content: replyContent,
-        timestamp:
-          response.message?.timestamp ||
-          (response.created
-            ? response.created * 1000
-            : response.message?.created_at
-              ? new Date(response.message.created_at).getTime()
-              : Date.now()),
-      };
-
-      setMessages((prev) => {
-        const newMessages = [...prev, assistantMsg];
-
-        // Agar bu birinchi AI javobi bo'lsa (faqat user va assistant xabarlari bor), chat nomini yangilash va tarixga qo'shish
-        if (prev.length === 1 && replyContent) {
-          const chatTitle = generateChatTitle(replyContent);
-          // Sidebar'ga chat nomini yangilash va tarixga qo'shish uchun event yuborish
-          window.dispatchEvent(
-            new CustomEvent('addChatToHistory', {
-              detail: { sessionId: sessionId, title: chatTitle },
-            })
-          );
-        }
-
-        return newMessages;
-      });
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Xatolik yuz berdi';

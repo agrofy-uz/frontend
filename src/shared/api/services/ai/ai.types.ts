@@ -12,14 +12,6 @@ export interface ChatSession {
   updated_at?: string;
 }
 
-export interface SendMessageRequest {
-  session_id: string;
-  messages: ChatMessage[];
-  model?: string;
-  temperature?: number;
-  stream?: boolean;
-}
-
 export interface MinimalResultRequest {
   model: string;
   input: string;
@@ -57,11 +49,40 @@ export interface SendMessageResponse {
   session_id?: string;
 }
 
-export interface CreateSessionResponse {
-  session_id: string;
-  session?: ChatSession;
+export interface ChatHistoryItem {
+  chatId: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface SessionHistoryResponse {
-  messages: ChatMessage[];
+export interface CreateChatRequest {
+  userId: string;
+}
+
+export interface CreateChatResponse {
+  chatId: string;
+  title?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SendChatMessageRequest {
+  userId: string;
+  text: string;
+  role: 'user' | 'assistant';
+}
+
+export interface SendChatMessageResponse {
+  id?: string;
+  text?: string;
+  role?: 'user' | 'assistant';
+  createdAt?: string;
+}
+
+export interface ChatMessageItem {
+  id?: string;
+  text: string;
+  role: 'user' | 'assistant';
+  createdAt?: string;
 }

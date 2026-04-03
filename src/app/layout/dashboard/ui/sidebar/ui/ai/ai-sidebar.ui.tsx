@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { BsArrowLeft, BsPlus, BsThreeDots, BsPinAngle } from 'react-icons/bs';
 import { HiOutlineTrash } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { chatApi } from '@/shared/api';
+import { useAuthStore } from '@/shared/store/authStore';
 import styles from './ai-sidebar.module.css';
 
 type ChatItem = {
@@ -14,35 +16,15 @@ type ChatItem = {
   pinned?: boolean;
 };
 
-const STORAGE_KEY = 'agrofy_ai_chats_v1';
-
-function safeParse<T>(value: string | null, fallback: T): T {
-  if (!value) return fallback;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuthStore();
 
   const [historyOpen, { toggle: toggleHistoryOpen }] = useDisclosure(true);
   const [chatPopovers, setChatPopovers] = useState<Record<string, boolean>>({});
 
-  const [chats, setChats] = useState<ChatItem[]>(() => {
-    const initial = safeParse<ChatItem[]>(
-      localStorage.getItem(STORAGE_KEY),
-      []
-    );
-    return Array.isArray(initial) ? initial : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
-  }, [chats]);
+  const [chats, setChats] = useState<ChatItem[]>([]);
 
   // Chat nomini yangilash va chat qo'shish uchun event listener
   useEffect(() => {
@@ -71,37 +53,14 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
       });
     };
 
-    const handleAddChatIfNotExists = (
-      event: CustomEvent<{ sessionId: string }>
-    ) => {
-      const { sessionId } = event.detail;
-      setChats((prev) => {
-        // Agar chat allaqachon mavjud bo'lsa, qo'shmaslik
-        if (prev.some((chat) => chat.id === sessionId)) {
-          return prev;
-        }
-        // Bu event faqat mavjud chatlarni yuklash uchun ishlatiladi
-        // Yangi chatlar faqat addChatToHistory orqali qo'shiladi
-        return prev;
-      });
-    };
-
     window.addEventListener(
       'addChatToHistory',
       handleAddChatToHistory as EventListener
-    );
-    window.addEventListener(
-      'addChatIfNotExists',
-      handleAddChatIfNotExists as EventListener
     );
     return () => {
       window.removeEventListener(
         'addChatToHistory',
         handleAddChatToHistory as EventListener
-      );
-      window.removeEventListener(
-        'addChatIfNotExists',
-        handleAddChatIfNotExists as EventListener
       );
     };
   }, []);
@@ -115,10 +74,28 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
     navigate({ pathname: '/dashboard/ai', search: `?chat=${id}` });
   };
 
-  const createNewChat = () => {
-    // Yangi chat ochish - session yaratilmaydi
-    // Faqat URL'ni tozalash, birinchi xabar yuborilganda session yaratiladi
-    navigate({ pathname: '/dashboard/ai', search: '' });
+  const createNewChat = async () => {
+    if (!user?.id) {
+      navigate({ pathname: '/dashboard/ai', search: '' });
+      return;
+    }
+    try {
+      const createdChat = await chatApi.createChat({ userId: user.id });
+      if (!createdChat.chatId) {
+        navigate({ pathname: '/dashboard/ai', search: '' });
+        return;
+      }
+      if (createdChat.title?.trim()) {
+        window.dispatchEvent(
+          new CustomEvent('addChatToHistory', {
+            detail: { sessionId: createdChat.chatId, title: createdChat.title },
+          })
+        );
+      }
+      navigate({ pathname: '/dashboard/ai', search: `?chat=${createdChat.chatId}` });
+    } catch {
+      navigate({ pathname: '/dashboard/ai', search: '' });
+    }
   };
 
   const toggleChatPopover = (chatId: string, open?: boolean) => {

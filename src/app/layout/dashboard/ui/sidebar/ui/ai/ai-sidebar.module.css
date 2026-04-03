@@ -54,6 +54,8 @@ html[data-mantine-color-scheme='dark'] .historyHeaderText:hover {
   flex: 1;
   overflow: auto;
   padding: 0 8px 8px 8px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .chatItemWrapper {
