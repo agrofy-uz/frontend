@@ -6,27 +6,29 @@ import { ThemeToggle } from '@/app/layout/footer/ui/theme-toggle';
 const DashboardHeader = () => {
   const location = useLocation();
 
-  // Route pathname'ga qarab page nomini aniqlash
   const getPageName = () => {
     const pathname = location.pathname;
-    if (pathname === '/dashboard') return 'Dashboard';
-    if (pathname === '/dashboard/ai') return 'AI Assistant';
-    if (pathname === '/dashboard/fields') return 'Fields';
-    if (pathname === '/dashboard/market') return 'Market';
-    if (pathname === '/dashboard/reports') return 'Reports';
-    return 'Dashboard';
+    if (pathname === '/dashboard' || pathname === '/dashboard/home') {
+      return 'Boshqaruv paneli';
+    }
+    if (pathname === '/dashboard/ai') return 'AI yordamchi';
+    if (pathname === '/dashboard/fields') return 'Dalar';
+    if (pathname === '/dashboard/market') return 'Bozor';
+    if (pathname === '/dashboard/reports') return 'Hisobotlar';
+    if (pathname === '/dashboard/settings') return 'Sozlamalar';
+    if (pathname === '/dashboard/profile') return 'Profil';
+    if (pathname === '/dashboard/pricing') return 'Tariflar';
+    return 'Boshqaruv paneli';
   };
 
   return (
     <Group h="100%" justify="space-between" style={{ width: '100%' }}>
-      {/* Left side - Page name */}
       <Group>
         <Text fw={700} fz="lg" className="textPrimary">
           {getPageName()}
         </Text>
       </Group>
 
-      {/* Right side - Notifications and Theme toggle */}
       <Group gap="md">
         <ActionIcon variant="subtle" size="lg" style={{ position: 'relative' }}>
           <IoIosNotifications size={24} className="textPrimary" />

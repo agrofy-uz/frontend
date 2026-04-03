@@ -3,9 +3,9 @@ import { Box, Text, Title } from '@mantine/core';
 function Profile() {
   return (
     <Box>
-      <Title order={3}>Profile</Title>
+      <Title order={2}>Profil</Title>
       <Text c="dimmed" mt="xs">
-        profile.ui
+        Profil maʼlumotlari — tez orada.
       </Text>
     </Box>
   );

@@ -30,8 +30,8 @@ function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
     username: authUser?.username || '',
     name: authUser
       ? `${authUser.first_name || ''} ${authUser.last_name || ''}`.trim() ||
-        'User'
-      : 'User',
+        'Foydalanuvchi'
+      : 'Foydalanuvchi',
     phone: authUser?.phone_number || '',
     avatar: null, // Avatar URL yoki null
   };
@@ -116,7 +116,7 @@ function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
           {isAiMode && (
             <Box px="xs" pt="xs">
               <NavLink
-                label="Upgrade plan"
+                label="Tarifni yangilash"
                 leftSection={<HiLightningBolt size={18} />}
                 onClick={handleUpgrade}
                 className={styles.navLink}
@@ -127,7 +127,7 @@ function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
           {/* Settings */}
           <Box px="xs">
             <NavLink
-              label="Settings"
+              label="Sozlamalar"
               leftSection={<FaCog size={18} />}
               onClick={handleSettings}
               className={styles.navLink}
@@ -137,7 +137,7 @@ function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
           {/* Log out */}
           <Box px="xs" pb="xs">
             <NavLink
-              label="Log out"
+              label="Chiqish"
               leftSection={<FaSignOutAlt size={18} />}
               onClick={handleLogout}
               className={`${styles.navLink} ${styles.logoutLink}`}

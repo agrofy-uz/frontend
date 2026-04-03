@@ -1,1 +1,1 @@
-export { default as AiSidebar } from './ai-sidebar.ui';
+export { default as AiSidebar } from './sidebar.ui';

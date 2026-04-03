@@ -18,6 +18,7 @@
     "@mantine/hooks": "^8.3.1",
     "@mantine/modals": "^8.3.1",
     "@mantine/notifications": "^8.3.1",
+    "@microsoft/signalr": "^10.0.0",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-query-devtools": "^5.90.2",
     "axios": "^1.12.2",
@@ -28,7 +29,10 @@
     "react-dom": "^19.1.1",
     "react-i18next": "^15.7.3",
     "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.9.1",
+    "rehype-sanitize": "^6.0.0",
+    "remark-gfm": "^4.0.1",
     "sass": "^1.92.1",
     "swiper": "^12.0.1",
     "zustand": "^5.0.8"

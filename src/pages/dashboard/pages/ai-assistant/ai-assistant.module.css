@@ -188,6 +188,167 @@ html[data-mantine-color-scheme='dark'] .assistantMessage .messageContent {
   color: var(--mantine-color-white);
 }
 
+/* Assistant: Markdown */
+.markdownRoot {
+  font-size: 15px;
+  line-height: 1.75;
+  word-break: break-word;
+}
+
+.markdownRoot :global(p) {
+  margin: 0 0 0.65em;
+}
+
+.markdownRoot :global(p:last-child) {
+  margin-bottom: 0;
+}
+
+.markdownRoot :global(ul),
+.markdownRoot :global(ol) {
+  margin: 0 0 0.65em;
+  padding-left: 1.35em;
+}
+
+.markdownRoot :global(li) {
+  margin: 0.2em 0;
+}
+
+.markdownRoot :global(h1),
+.markdownRoot :global(h2),
+.markdownRoot :global(h3),
+.markdownRoot :global(h4) {
+  margin: 1em 0 0.5em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.markdownRoot :global(h1) {
+  font-size: 1.35em;
+}
+
+.markdownRoot :global(h2) {
+  font-size: 1.2em;
+}
+
+.markdownRoot :global(h3) {
+  font-size: 1.08em;
+}
+
+.markdownRoot :global(h1:first-child),
+.markdownRoot :global(h2:first-child),
+.markdownRoot :global(h3:first-child) {
+  margin-top: 0;
+}
+
+.markdownRoot :global(blockquote) {
+  margin: 0.65em 0;
+  padding: 0.35em 0 0.35em 0.9em;
+  border-left: 3px solid var(--mantine-color-green-5);
+  color: var(--mantine-color-gray-7);
+}
+
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(blockquote) {
+  color: var(--mantine-color-dark-2);
+  border-left-color: var(--mantine-color-green-6);
+}
+
+.markdownRoot :global(hr) {
+  margin: 1em 0;
+  border: none;
+  border-top: 1px solid var(--mantine-color-gray-4);
+}
+
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(hr) {
+  border-top-color: var(--mantine-color-dark-4);
+}
+
+.markdownRoot :global(a) {
+  color: var(--mantine-color-green-7);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(a) {
+  color: var(--mantine-color-green-5);
+}
+
+.markdownRoot :global(pre) {
+  margin: 0.65em 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  overflow-x: auto;
+  background: var(--mantine-color-gray-3);
+  border: 1px solid var(--mantine-color-gray-4);
+}
+
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(pre) {
+  background: var(--mantine-color-dark-5);
+  border-color: var(--mantine-color-dark-4);
+}
+
+.markdownRoot :global(pre code) {
+  background: none;
+  padding: 0;
+  font-size: 0.88em;
+  line-height: 1.5;
+}
+
+.markdownRoot :global(code) {
+  font-family:
+    ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
+    monospace;
+  font-size: 0.9em;
+}
+
+.markdownRoot :global(p code),
+.markdownRoot :global(li code),
+.markdownRoot :global(td code) {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--mantine-color-gray-3);
+}
+
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(p code),
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(li code),
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(td code) {
+  background: var(--mantine-color-dark-5);
+}
+
+.markdownRoot :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.65em 0;
+  font-size: 0.95em;
+}
+
+.markdownRoot :global(th),
+.markdownRoot :global(td) {
+  border: 1px solid var(--mantine-color-gray-4);
+  padding: 8px 10px;
+  text-align: left;
+}
+
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(th),
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(td) {
+  border-color: var(--mantine-color-dark-4);
+}
+
+.markdownRoot :global(th) {
+  background: var(--mantine-color-gray-1);
+  font-weight: 600;
+}
+
+html[data-mantine-color-scheme='dark'] .markdownRoot :global(th) {
+  background: var(--mantine-color-dark-5);
+}
+
+.markdownRoot :global(img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.5em 0;
+}
+
 /* Typing indicator */
 .typingIndicator {
   display: flex;
@@ -228,10 +389,11 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
   }
 }
 
-/* Input Area */
+/* Input Area — o‘zi shaffof; asl “quti” .composer (blur + yarim shaffof fon) */
 .inputArea {
   width: 100%;
   flex-shrink: 0;
+  background: transparent;
 }
 
 .inputAreaCentered {
@@ -251,30 +413,49 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
   flex-direction: column;
   padding: 12px;
   border-radius: 24px;
-  border: 1px solid var(--mantine-color-gray-3);
-  background: var(--mantine-color-gray-1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 1px solid
+    color-mix(in srgb, var(--mantine-color-gray-4) 55%, transparent);
+  /* Orqa fon chat bilan “yopishib” ketishi uchun shaffof + blur */
+  background: color-mix(in srgb, var(--mantine-color-body) 42%, transparent);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  box-shadow: 0 2px 16px
+    color-mix(in srgb, var(--mantine-color-dark-9) 6%, transparent);
   overflow: hidden;
 }
 
 html[data-mantine-color-scheme='dark'] .composer {
   border-color: color-mix(
     in srgb,
-    var(--mantine-color-dark-4) 70%,
+    var(--mantine-color-dark-3) 45%,
     transparent
   );
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  background: var(--mantine-color-body);
+  background: color-mix(in srgb, var(--mantine-color-dark-7) 38%, transparent);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
 }
 
 .composer:focus-within {
-  border-color: var(--mantine-color-green-4);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border-color: color-mix(
+    in srgb,
+    var(--mantine-color-green-5) 65%,
+    transparent
+  );
+  background: color-mix(in srgb, var(--mantine-color-body) 58%, transparent);
+  box-shadow:
+    0 2px 20px color-mix(in srgb, var(--mantine-color-dark-9) 8%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--mantine-color-green-4) 25%, transparent);
 }
 
 html[data-mantine-color-scheme='dark'] .composer:focus-within {
-  border-color: var(--mantine-color-green-7);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  border-color: color-mix(
+    in srgb,
+    var(--mantine-color-green-7) 55%,
+    transparent
+  );
+  background: color-mix(in srgb, var(--mantine-color-dark-7) 52%, transparent);
+  box-shadow:
+    0 2px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 1px color-mix(in srgb, var(--mantine-color-green-8) 22%, transparent);
 }
 
 .plusBtn {

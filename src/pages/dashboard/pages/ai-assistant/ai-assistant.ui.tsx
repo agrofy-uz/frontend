@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
 import { IoArrowUp } from 'react-icons/io5';
 import {
-  MdAttachFile,
+  // MdAttachFile,
   MdContentCopy,
   MdEdit,
   MdCheck,
@@ -30,7 +30,8 @@ import {
   TYPING_DOT_ANIMATION,
 } from './ai-assistant.const';
 import { VoiceModal } from './ui/voice-modal/voice-modal.ui';
-import { AttachMenu } from './ui/attach-menu';
+// import { AttachMenu } from './ui/attach-menu';
+import { ChatMarkdown } from './ui/chat-markdown';
 
 type Message = ChatMessage & {
   id: string;
@@ -56,7 +57,7 @@ function AiAssistant() {
   const [_isInitializing, setIsInitializing] = useState(true);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [voiceModalOpened, setVoiceModalOpened] = useState(false);
-  const [attachMenuOpened, setAttachMenuOpened] = useState(false);
+  // const [attachMenuOpened, setAttachMenuOpened] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
@@ -98,14 +99,37 @@ function AiAssistant() {
       try {
         if (urlSessionId) {
           setCurrentSessionId(urlSessionId);
-          const historyMessages = await chatApi.getChatMessages(urlSessionId);
-          const formattedMessages: Message[] = historyMessages.map((msg) => ({
-            id: msg.id || `msg_${Date.now()}_${Math.random()}`,
-            role: msg.role,
-            content: msg.text,
-            timestamp: msg.createdAt ? new Date(msg.createdAt).getTime() : Date.now(),
-          }));
-          setMessages(formattedMessages);
+          if (!user?.id) {
+            setMessages([]);
+          } else {
+            const envelope = await chatApi.getChatMessages(
+              urlSessionId,
+              user.id
+            );
+            const formattedMessages: Message[] = envelope.messages.map(
+              (msg) => {
+                const r = msg.role?.toLowerCase();
+                const role: Message['role'] =
+                  r === 'assistant'
+                    ? 'assistant'
+                    : r === 'system'
+                      ? 'system'
+                      : 'user';
+                return {
+                  id:
+                    msg.id !== undefined && msg.id !== null
+                      ? String(msg.id)
+                      : `msg_${Date.now()}_${Math.random()}`,
+                  role,
+                  content: msg.text,
+                  timestamp: msg.createdAt
+                    ? new Date(msg.createdAt).getTime()
+                    : Date.now(),
+                };
+              }
+            );
+            setMessages(formattedMessages);
+          }
         } else {
           setCurrentSessionId(null);
           setMessages([]);
@@ -145,29 +169,6 @@ function AiAssistant() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlSessionId, user?.id, navigate]);
 
-  // Chat history ni backenddan olib, sidebar tarixiga ulash
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const loadChatHistory = async () => {
-      try {
-        const chats = await chatApi.getChatHistory(user.id);
-        chats.forEach((chat) => {
-          if (!chat.title?.trim()) return;
-          window.dispatchEvent(
-            new CustomEvent('addChatToHistory', {
-              detail: { sessionId: chat.chatId, title: chat.title },
-            })
-          );
-        });
-      } catch (err) {
-        // History yuklanmasa, chat ishlashiga ta'sir qilmasin
-      }
-    };
-
-    loadChatHistory();
-  }, [user?.id]);
-
   const hasMessages = messages.length > 0;
 
   // Scroll to bottom when messages change or loading state changes
@@ -204,24 +205,55 @@ function AiAssistant() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await chatApi.sendChatMessage(chatId, {
-        userId: user.id,
-        text: content,
-        role: 'user',
-      });
+    const assistantId = `msg_${Date.now()}_assistant`;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: '',
+        timestamp: Date.now(),
+      },
+    ]);
 
-      if (response.role === 'assistant' && response.text?.trim()) {
-        const assistantMsg: Message = {
-          id: response.id || `msg_${Date.now()}_${Math.random()}`,
-          role: 'assistant',
-          content: response.text,
-          timestamp: response.createdAt
-            ? new Date(response.createdAt).getTime()
-            : Date.now(),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
-      }
+    try {
+      const response = await chatApi.sendChatMessage(
+        chatId,
+        {
+          userId: user.id,
+          text: content,
+        },
+        (accumulated) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, content: accumulated } : m
+            )
+          );
+        }
+      );
+
+      const finalText = response.text?.trim() ?? '';
+      setMessages((prev) => {
+        const next = prev.map((m) =>
+          m.id === assistantId
+            ? {
+                ...m,
+                id: response.id ?? m.id,
+                content: finalText || m.content,
+                timestamp: response.createdAt
+                  ? new Date(response.createdAt).getTime()
+                  : m.timestamp,
+              }
+            : m
+        );
+        if (
+          !finalText &&
+          !next.find((m) => m.id === assistantId)?.content.trim()
+        ) {
+          return next.filter((m) => m.id !== assistantId);
+        }
+        return next;
+      });
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message || err.message || 'Xatolik yuz berdi';
@@ -231,7 +263,7 @@ function AiAssistant() {
         message: errorMessage,
         color: 'red',
       });
-      // Xatolik bo'lganda user xabarini olib tashlash (yoki qoldirish mumkin)
+      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
       setIsLoading(false);
     }
@@ -274,9 +306,14 @@ function AiAssistant() {
         <ScrollArea className={styles.messagesArea} scrollbarSize={12}>
           <Stack gap="md" className={styles.messagesList}>
             <AnimatePresence mode="popLayout">
-              {messages.map((message) => {
+              {messages.map((message, index) => {
                 const isUser = message.role === 'user';
                 const isCopied = copiedMessageId === message.id;
+                const showStreamingTyping =
+                  !isUser &&
+                  isLoading &&
+                  index === messages.length - 1 &&
+                  !message.content.trim();
 
                 return (
                   <motion.div
@@ -288,66 +325,67 @@ function AiAssistant() {
                   >
                     <Box className={styles.messageContentWrapper}>
                       <Box className={styles.messageContent}>
-                        <Text className={styles.messageText}>
-                          {message.content}
-                        </Text>
+                        {showStreamingTyping ? (
+                          <motion.div {...TYPING_DOT_ANIMATION}>
+                            <Box className={styles.typingIndicator}>
+                              <span />
+                              <span />
+                              <span />
+                            </Box>
+                          </motion.div>
+                        ) : isUser ? (
+                          <Text className={styles.messageText}>
+                            {message.content}
+                          </Text>
+                        ) : (
+                          <ChatMarkdown content={message.content} />
+                        )}
                       </Box>
 
                       {/* Copy va Edit tugmalari — xabarga hover qilganda chiqadi */}
-                      <Box className={styles.messageActions}>
-                        <Tooltip label="Nusxa olish" position="top">
-                          <ActionIcon
-                            variant="subtle"
-                            size="md"
-                            onClick={() =>
-                              handleCopyMessage(message.content, message.id)
-                            }
-                            aria-label="Copy message"
-                            color={isCopied ? 'green' : undefined}
-                            className={styles.actionIcon}
-                          >
-                            {isCopied ? (
-                              <MdCheck size={20} />
-                            ) : (
-                              <MdContentCopy size={20} />
-                            )}
-                          </ActionIcon>
-                        </Tooltip>
-
-                        {isUser && (
-                          <Tooltip label="Tahrirlash" position="top">
+                      {!showStreamingTyping && (
+                        <Box className={styles.messageActions}>
+                          <Tooltip label="Nusxa olish" position="top">
                             <ActionIcon
                               variant="subtle"
                               size="md"
-                              onClick={() => handleEditMessage(message.content)}
-                              aria-label="Edit message"
+                              onClick={() =>
+                                handleCopyMessage(message.content, message.id)
+                              }
+                              aria-label="Copy message"
+                              color={isCopied ? 'green' : undefined}
                               className={styles.actionIcon}
                             >
-                              <MdEdit size={20} />
+                              {isCopied ? (
+                                <MdCheck size={20} />
+                              ) : (
+                                <MdContentCopy size={20} />
+                              )}
                             </ActionIcon>
                           </Tooltip>
-                        )}
-                      </Box>
+
+                          {isUser && (
+                            <Tooltip label="Tahrirlash" position="top">
+                              <ActionIcon
+                                variant="subtle"
+                                size="md"
+                                onClick={() =>
+                                  handleEditMessage(message.content)
+                                }
+                                aria-label="Edit message"
+                                className={styles.actionIcon}
+                              >
+                                <MdEdit size={20} />
+                              </ActionIcon>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      )}
                     </Box>
                   </motion.div>
                 );
               })}
             </AnimatePresence>
-
-            {isLoading && (
-              <motion.div
-                {...TYPING_DOT_ANIMATION}
-                className={styles.assistantMessage}
-              >
-                <Box className={styles.messageContent}>
-                  <Box className={styles.typingIndicator}>
-                    <span />
-                    <span />
-                    <span />
-                  </Box>
-                </Box>
-              </motion.div>
-            )}
 
             <div ref={messagesEndRef} />
           </Stack>
@@ -452,7 +490,7 @@ function AiAssistant() {
           </Box>
 
           <Box className={styles.actionsContainer}>
-            <AttachMenu
+            {/* <AttachMenu
               opened={attachMenuOpened}
               onOpenChange={setAttachMenuOpened}
               onFilesSelected={(files) =>
@@ -469,7 +507,7 @@ function AiAssistant() {
               >
                 <MdAttachFile size={18} />
               </ActionIcon>
-            </AttachMenu>
+            </AttachMenu> */}
 
             <Box className={styles.actions}>
               <ActionIcon

@@ -70,7 +70,6 @@ export interface CreateChatResponse {
 export interface SendChatMessageRequest {
   userId: string;
   text: string;
-  role: 'user' | 'assistant';
 }
 
 export interface SendChatMessageResponse {
@@ -81,8 +80,14 @@ export interface SendChatMessageResponse {
 }
 
 export interface ChatMessageItem {
-  id?: string;
+  id?: number | string;
   text: string;
-  role: 'user' | 'assistant';
+  role: string;
   createdAt?: string;
+}
+
+export interface ChatMessagesResponse {
+  chatId: string;
+  title: string;
+  messages: ChatMessageItem[];
 }

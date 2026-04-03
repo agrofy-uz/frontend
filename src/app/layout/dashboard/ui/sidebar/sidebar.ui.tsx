@@ -42,8 +42,8 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
   const user = {
     name: authUser
       ? `${authUser.first_name || ''} ${authUser.last_name || ''}`.trim() ||
-        'User'
-      : 'User',
+        'Foydalanuvchi'
+      : 'Foydalanuvchi',
     phone: authUser?.phone_number || '',
     avatar: null, // Avatar URL yoki null
   };
@@ -59,11 +59,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
   };
 
   const navItems = [
-    { label: 'Dashboard', icon: FaHome, path: '/dashboard/home' },
-    { label: 'AI Assistant', icon: IoChatbubbleOutline, path: '/dashboard/ai' },
-    { label: 'Fields', icon: FaRegMap, path: '/dashboard/fields' },
-    // { label: 'Market', icon: FaShoppingCart, path: '/dashboard/market' },
-    { label: 'Reports', icon: FaChartColumn, path: '/dashboard/reports' },
+    { label: 'Boshqaruv paneli', icon: FaHome, path: '/dashboard/home' },
+    { label: 'AI yordamchi', icon: IoChatbubbleOutline, path: '/dashboard/ai' },
+    { label: 'Dalar', icon: FaRegMap, path: '/dashboard/fields' },
+    { label: 'Hisobotlar', icon: FaChartColumn, path: '/dashboard/reports' },
   ];
 
   return (
@@ -212,7 +211,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                   </Flex>
                   {isAiMode && (
                     <Text fz="12px" className={styles.profileStatus}>
-                      Free
+                      Bepul rejim
                     </Text>
                   )}
                 </Flex>
@@ -227,7 +226,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                   }}
                   style={{ cursor: 'pointer' }}
                 >
-                  Upgrade
+                  Tarifni yangilash
                 </Badge>
               )}
             </Flex>
