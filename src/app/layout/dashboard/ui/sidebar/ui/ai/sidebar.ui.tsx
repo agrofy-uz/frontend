@@ -6,7 +6,14 @@ import {
   useState,
   type MouseEvent,
 } from 'react';
-import { ActionIcon, Box, Button, Popover, Skeleton, Text } from '@mantine/core';
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Popover,
+  Skeleton,
+  Text,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -436,7 +443,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
                       {Array.from({ length: 4 }).map((_, idx) => (
                         <Skeleton
                           key={idx}
-                          height={18}
+                          height={30}
                           radius="sm"
                           mb={idx === 3 ? 0 : 10}
                         />
