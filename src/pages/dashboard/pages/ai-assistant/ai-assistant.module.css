@@ -1,14 +1,60 @@
 .container {
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
 .containerCentered {
-  padding-top: 15vh;
+  padding-top: 30vh;
   align-items: center;
   overflow: hidden;
+}
+
+/* Mobile: chapdan drawer + header ostida chat maydoni to‘liq balandlikka cho‘ziladi,
+   bo‘sh chatda salom matni markazda, input doim pastda */
+@media (max-width: 48em) {
+  .container {
+    /* ~ header 60px + content padding 1rem * 2 */
+    min-height: calc(100dvh - 60px - 2rem);
+  }
+
+  .containerCentered {
+    padding-top: 0;
+    align-items: stretch;
+    min-height: inherit;
+    justify-content: flex-start;
+  }
+
+  .welcomeState {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0;
+    min-height: 0;
+  }
+
+  .inputArea {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    margin-top: auto;
+  }
+
+  .inputAreaCentered {
+    margin-top: 0;
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .messagesArea {
+    min-height: 0;
+  }
 }
 
 .emptyState {
@@ -295,8 +341,7 @@ html[data-mantine-color-scheme='dark'] .markdownRoot :global(pre) {
 
 .markdownRoot :global(code) {
   font-family:
-    ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas,
-    monospace;
+    ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
   font-size: 0.9em;
 }
 

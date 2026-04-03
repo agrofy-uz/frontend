@@ -111,6 +111,7 @@ const DashboardLayout = () => {
           className={styles.content}
           style={{
             flex: 1,
+            minHeight: 0,
             overflow: 'auto',
             padding: '1rem',
           }}
