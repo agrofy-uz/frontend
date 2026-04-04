@@ -57,8 +57,9 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
       setSearchParams((prev) =>
         mergeServicesFilterIntoSearchParams(prev, next)
       );
+      if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();
     },
-    [setSearchParams]
+    [mobileDrawer, setSearchParams]
   );
 
   const activeCategoryId = useMemo(
@@ -67,20 +68,18 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
   );
 
   const goBack = useCallback(() => {
-    if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();
     navigate('/dashboard/home');
-  }, [mobileDrawer, navigate]);
+  }, [navigate]);
 
   const openCategory = useCallback(
     (id: string) => {
-      if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();
       setSearchParams((prev) => {
         const next = mergeServicesFilterIntoSearchParams(prev, appliedFilter);
         next.set('turkum', id);
         return next;
       });
     },
-    [appliedFilter, mobileDrawer, setSearchParams]
+    [appliedFilter, setSearchParams]
   );
 
   const clearEverything = useCallback(() => {
@@ -92,7 +91,8 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
       for (const k of SERVICES_FILTER_QUERY_KEYS) next.delete(k);
       return next;
     });
-  }, [setSearchParams]);
+    if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();
+  }, [mobileDrawer, setSearchParams]);
 
   const createService = useCallback(() => {
     if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();

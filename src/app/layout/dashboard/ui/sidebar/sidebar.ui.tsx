@@ -155,10 +155,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                       }
                       active={isActive}
                       onClick={() => {
-                        if (
-                          mobileDrawer?.isMobile &&
-                          item.path !== '/dashboard/ai'
-                        ) {
+                        const keepOpenOnMobile =
+                          item.path === '/dashboard/ai' ||
+                          item.path === '/dashboard/services';
+                        if (mobileDrawer?.isMobile && !keepOpenOnMobile) {
                           mobileDrawer.closeMobileDrawer();
                         }
                         navigate(item.path);
