@@ -3,7 +3,7 @@ import { Box, ScrollArea, Text, Tooltip } from '@mantine/core';
 import { motion } from 'framer-motion';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import { useQuery } from '@tanstack/react-query';
-import { servicesApi } from '@/shared/api/services/services';
+import { getServicesCategories } from '@/shared/api/services/services';
 import s from '../../services.module.css';
 import {
   getCategoryListHeightPx,
@@ -31,7 +31,7 @@ function CategoriesBlock({
 }: CategoriesBlockProps) {
   const categoriesQuery = useQuery({
     queryKey: ['services', 'categories'],
-    queryFn: () => servicesApi.getCategories(),
+    queryFn: () => getServicesCategories(),
     staleTime: 60_000,
   });
 

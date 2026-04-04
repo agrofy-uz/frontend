@@ -41,3 +41,6 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+/** Axios instance — `API.get<T>(...)` / `API.post<T>(...)` */
+export const API = api;

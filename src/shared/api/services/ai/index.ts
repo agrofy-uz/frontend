@@ -1,2 +1,10 @@
 export * from './ai.types';
-export { chatApi } from './ai.api';
+export {
+  createChat,
+  deleteChat,
+  getChatHistory,
+  getChatMessages,
+  sendChatMessage,
+  sendMinimalResult,
+  transcribeAudio,
+} from './ai.api';

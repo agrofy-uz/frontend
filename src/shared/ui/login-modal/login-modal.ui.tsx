@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
 import { FaArrowLeft, FaCheckCircle, FaTelegram } from 'react-icons/fa';
-import { authApi } from '@/shared/api';
+import { startTelegramAuth, verifyOtp } from '@/shared/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { OtpInput } from './components/otp-input';
@@ -39,7 +39,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     setViewState('loading');
 
     try {
-      const response = await authApi.startTelegramAuth({ clientId: 'string' });
+      const response = await startTelegramAuth({ clientId: 'string' });
       setLoginSessionId(response.token);
       setTelegramDeepLink(response.deepLink);
       setViewState('otp');
@@ -68,7 +68,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     setViewState('loading');
 
     try {
-      const response = await authApi.verifyOtp(loginSessionId, otp);
+      const response = await verifyOtp(loginSessionId, otp);
 
       if (response.success) {
         const userData = {

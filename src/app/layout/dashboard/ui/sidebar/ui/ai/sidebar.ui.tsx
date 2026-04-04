@@ -20,7 +20,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BsArrowLeft, BsPlus, BsThreeDots, BsPinAngle } from 'react-icons/bs';
 import { HiOutlineTrash } from 'react-icons/hi';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { chatApi, type ChatHistoryItem } from '@/shared/api';
+import {
+  createChat,
+  deleteChat,
+  getChatHistory,
+  type ChatHistoryItem,
+} from '@/shared/api';
 import {
   AI_CHATS_LIST_SYNC,
   startAiChatsHub,
@@ -118,7 +123,7 @@ function useAiSidebarChats() {
 
     const loadHistoryFromApi = async () => {
       try {
-        const list = await chatApi.getChatHistory(uid);
+        const list = await getChatHistory(uid);
         if (cancelled) return;
         window.dispatchEvent(
           new CustomEvent(AI_CHATS_LIST_SYNC, {
@@ -214,7 +219,7 @@ function useAiSidebarChats() {
       return;
     }
     try {
-      const createdChat = await chatApi.createChat({ userId: user.id });
+      const createdChat = await createChat({ userId: user.id });
       if (!createdChat.chatId) {
         navigate({ pathname: '/dashboard/ai', search: '' });
         return;
@@ -277,7 +282,7 @@ function useAiSidebarChats() {
         return;
       }
       try {
-        await chatApi.deleteChat(chatId, user.id);
+        await deleteChat(chatId, user.id);
         removePinnedChat(chatId);
         setTitleRevealIds((prev) => {
           const next = new Set(prev);

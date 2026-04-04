@@ -1,4 +1,4 @@
-import api, { API_BASE_URL } from '../../api.interface';
+import API, { API_BASE_URL } from '../../api.interface';
 import { useAuthStore } from '../../../store/authStore';
 import type {
   ChatHistoryItem,
@@ -20,7 +20,7 @@ function normalizeApiPath(path: string): string {
 function parseSseDataPayload(
   payload: string,
   fullText: string,
-  lastMeta: Partial<SendChatMessageResponse>
+  lastMeta: Partial<SendChatMessageResponse>,
 ): string {
   if (!payload || payload === '[DONE]') return fullText;
   try {
@@ -50,7 +50,7 @@ function processSseBlock(
   block: string,
   fullText: string,
   lastMeta: Partial<SendChatMessageResponse>,
-  onDelta?: (text: string) => void
+  onDelta?: (text: string) => void,
 ): string {
   let next = fullText;
   for (const line of block.split('\n')) {
@@ -63,159 +63,166 @@ function processSseBlock(
   return next;
 }
 
-export const chatApi = {
-  createChat: async (data: CreateChatRequest): Promise<CreateChatResponse> => {
-    const response = await api.post<CreateChatResponse>('/ai/chats/new', data);
-    return response.data;
-  },
+export const createChat = async (
+  data: CreateChatRequest,
+): Promise<CreateChatResponse> => {
+  const response = await API.post<CreateChatResponse>('/ai/chats/new', data);
+  return response.data;
+};
 
-  /**
-   * POST — javob odatda text/event-stream (SSE). Har bir data: qatorida JSON yoki matn bo'lishi mumkin.
-   */
-  sendChatMessage: async (
-    chatId: string,
-    data: SendChatMessageRequest,
-    onDelta?: (accumulatedText: string) => void
-  ): Promise<SendChatMessageResponse> => {
-    const { accessToken } = useAuthStore.getState();
-    const url = normalizeApiPath(`/ai/chats/${chatId}/messages`);
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Accept: 'text/event-stream, application/json',
-    };
-    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+/**
+ * POST — javob odatda text/event-stream (SSE). Har bir data: qatorida JSON yoki matn bo'lishi mumkin.
+ */
+export const sendChatMessage = async (
+  chatId: string,
+  data: SendChatMessageRequest,
+  onDelta?: (accumulatedText: string) => void,
+): Promise<SendChatMessageResponse> => {
+  const { accessToken } = useAuthStore.getState();
+  const url = normalizeApiPath(`/ai/chats/${chatId}/messages`);
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Accept: 'text/event-stream, application/json',
+  };
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      credentials: 'include',
-      headers,
-      body: JSON.stringify(data),
-    });
+  const res = await fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    headers,
+    body: JSON.stringify(data),
+  });
 
-    if (res.status === 401) {
-      useAuthStore.getState().logout();
-      throw new Error('Unauthorized');
-    }
+  if (res.status === 401) {
+    useAuthStore.getState().logout();
+    throw new Error('Unauthorized');
+  }
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(errText || `HTTP ${res.status}`);
-    }
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(errText || `HTTP ${res.status}`);
+  }
 
-    const contentType = res.headers.get('content-type') || '';
+  const contentType = res.headers.get('content-type') || '';
 
-    if (!contentType.includes('text/event-stream')) {
-      const text = await res.text();
-      if (!text.trim()) {
-        return { role: 'assistant', text: '' };
-      }
-      try {
-        const j = JSON.parse(text) as SendChatMessageResponse;
-        if (j.text != null || j.role != null) {
-          onDelta?.(j.text ?? '');
-          return {
-            id: j.id,
-            role: j.role ?? 'assistant',
-            text: j.text ?? '',
-            createdAt: j.createdAt,
-          };
-        }
-      } catch {
-        /* not JSON */
-      }
-      onDelta?.(text);
-      return { role: 'assistant', text };
-    }
-
-    if (!res.body) {
+  if (!contentType.includes('text/event-stream')) {
+    const text = await res.text();
+    if (!text.trim()) {
       return { role: 'assistant', text: '' };
     }
+    try {
+      const j = JSON.parse(text) as SendChatMessageResponse;
+      if (j.text != null || j.role != null) {
+        onDelta?.(j.text ?? '');
+        return {
+          id: j.id,
+          role: j.role ?? 'assistant',
+          text: j.text ?? '',
+          createdAt: j.createdAt,
+        };
+      }
+    } catch {
+      /* not JSON */
+    }
+    onDelta?.(text);
+    return { role: 'assistant', text };
+  }
 
-    let fullText = '';
-    const lastMeta: Partial<SendChatMessageResponse> = {};
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+  if (!res.body) {
+    return { role: 'assistant', text: '' };
+  }
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split('\n\n');
-      buffer = parts.pop() ?? '';
-      for (const part of parts) {
-        if (part.trim()) {
-          fullText = processSseBlock(part, fullText, lastMeta, onDelta);
-        }
+  let fullText = '';
+  const lastMeta: Partial<SendChatMessageResponse> = {};
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() ?? '';
+    for (const part of parts) {
+      if (part.trim()) {
+        fullText = processSseBlock(part, fullText, lastMeta, onDelta);
       }
     }
-    if (buffer.trim()) {
-      fullText = processSseBlock(buffer, fullText, lastMeta, onDelta);
-    }
+  }
+  if (buffer.trim()) {
+    fullText = processSseBlock(buffer, fullText, lastMeta, onDelta);
+  }
 
-    return {
-      id: lastMeta.id,
-      role: lastMeta.role ?? 'assistant',
-      text: fullText,
-      createdAt: lastMeta.createdAt,
-    };
-  },
+  return {
+    id: lastMeta.id,
+    role: lastMeta.role ?? 'assistant',
+    text: fullText,
+    createdAt: lastMeta.createdAt,
+  };
+};
 
-  getChatHistory: async (userId: string): Promise<ChatHistoryItem[]> => {
-    const response = await api.get<ChatHistoryItem[]>('/ai/chats', {
-      params: { userId },
-    });
-    return response.data;
-  },
+export const getChatHistory = async (
+  userId: string,
+): Promise<ChatHistoryItem[]> => {
+  const response = await API.get<ChatHistoryItem[]>('/ai/chats', {
+    params: { userId },
+  });
+  return response.data;
+};
 
-  /** Chatni o‘chirish — DELETE ?userId=... */
-  deleteChat: async (chatId: string, userId: string): Promise<void> => {
-    await api.delete(`/ai/chats/${chatId}`, { params: { userId } });
-  },
+/** Chatni o‘chirish — DELETE ?userId=... */
+export const deleteChat = async (
+  chatId: string,
+  userId: string,
+): Promise<void> => {
+  await API.delete(`/ai/chats/${chatId}`, { params: { userId } });
+};
 
-  /** Chatga kirganda — GET ?userId=... */
-  getChatMessages: async (
-    chatId: string,
-    userId: string
-  ): Promise<ChatMessagesResponse> => {
-    const response = await api.get<ChatMessagesResponse>(
-      `/ai/chats/${chatId}/messages`,
-      { params: { userId } }
-    );
-    const d = response.data;
-    return {
-      chatId: d?.chatId ?? chatId,
-      title: d?.title ?? '',
-      messages: Array.isArray(d?.messages) ? d.messages : [],
-    };
-  },
+/** Chatga kirganda — GET ?userId=... */
+export const getChatMessages = async (
+  chatId: string,
+  userId: string,
+): Promise<ChatMessagesResponse> => {
+  const response = await API.get<ChatMessagesResponse>(
+    `/ai/chats/${chatId}/messages`,
+    { params: { userId } },
+  );
+  const d = response.data;
+  return {
+    chatId: d?.chatId ?? chatId,
+    title: d?.title ?? '',
+    messages: Array.isArray(d?.messages) ? d.messages : [],
+  };
+};
 
-  sendMinimalResult: async (
-    data: MinimalResultRequest
-  ): Promise<MinimalResultResponse> => {
-    const response = await api.post<MinimalResultResponse>('/chat/responses', {
-      model: data.model,
-      input: data.input,
-      store: data.store ?? true,
-      session_id: data.session_id,
-    });
-    return response.data;
-  },
+export const sendMinimalResult = async (
+  data: MinimalResultRequest,
+): Promise<MinimalResultResponse> => {
+  const response = await API.post<MinimalResultResponse>('/chat/responses', {
+    model: data.model,
+    input: data.input,
+    store: data.store ?? true,
+    session_id: data.session_id,
+  });
+  return response.data;
+};
 
-  transcribeAudio: async (audioFile: Blob): Promise<{ text: string }> => {
-    const formData = new FormData();
-    const fixedBlob = new Blob([audioFile], { type: 'audio/webm' });
-    formData.append('audio', fixedBlob, 'audio.webm');
+export const transcribeAudio = async (
+  audioFile: Blob,
+): Promise<{ text: string }> => {
+  const formData = new FormData();
+  const fixedBlob = new Blob([audioFile], { type: 'audio/webm' });
+  formData.append('audio', fixedBlob, 'audio.webm');
 
-    const response = await api.post<{ text: string }>(
-      '/v1/stt/convert',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    return response.data;
-  },
+  const response = await API.post<{ text: string }>(
+    '/v1/stt/convert',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
+  );
+  return response.data;
 };

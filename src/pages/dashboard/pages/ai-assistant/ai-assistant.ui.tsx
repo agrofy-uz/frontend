@@ -28,7 +28,12 @@ import {
 } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
 import styles from './ai-assistant.module.css';
-import { chatApi, type ChatMessage } from '@/shared/api';
+import {
+  createChat,
+  getChatMessages,
+  sendChatMessage,
+  type ChatMessage,
+} from '@/shared/api';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
   MAX_TEXTAREA_HEIGHT,
@@ -112,7 +117,7 @@ function AiAssistant() {
           if (!user?.id) {
             setMessages([]);
           } else {
-            const envelope = await chatApi.getChatMessages(
+            const envelope = await getChatMessages(
               urlSessionId,
               user.id
             );
@@ -144,7 +149,7 @@ function AiAssistant() {
           setCurrentSessionId(null);
           setMessages([]);
           if (user?.id) {
-            const createdChat = await chatApi.createChat({ userId: user.id });
+            const createdChat = await createChat({ userId: user.id });
             if (createdChat.chatId) {
               setCurrentSessionId(createdChat.chatId);
               navigate(`?chat=${createdChat.chatId}`, { replace: true });
@@ -252,7 +257,7 @@ function AiAssistant() {
     ]);
 
     try {
-      const response = await chatApi.sendChatMessage(
+      const response = await sendChatMessage(
         chatId,
         {
           userId: user.id,

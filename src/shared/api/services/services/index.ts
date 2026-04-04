@@ -1,2 +1,10 @@
-export { servicesApi } from './services.api';
-export type { ServiceCategoryDto } from './services.types';
+export {
+  getDistricts,
+  getRegions,
+  getServicesCategories,
+} from './services.api';
+export type {
+  DistrictDto,
+  RegionDto,
+  ServiceCategoryDto,
+} from './services.types';

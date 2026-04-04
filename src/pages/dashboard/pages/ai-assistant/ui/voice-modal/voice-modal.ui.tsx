@@ -14,7 +14,7 @@ import { Button } from '@/shared/ui/button';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MdMic, MdPlayArrow, MdPause, MdRefresh, MdSend } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
-import { chatApi } from '@/shared/api';
+import { transcribeAudio } from '@/shared/api';
 import { VOICE_MAX_DURATION, VOICE_MAX_SIZE } from '../../ai-assistant.const';
 import { VoiceModalStopButton } from './voice-modal-stop-button';
 import styles from './voice-modal.module.css';
@@ -223,7 +223,7 @@ export function VoiceModal({
     if (!recordedBlob) return;
     setIsTranscribing(true);
     try {
-      const response = await chatApi.transcribeAudio(recordedBlob);
+      const response = await transcribeAudio(recordedBlob);
       if (response.text?.trim()) {
         onTranscribed(response.text);
         onClose();

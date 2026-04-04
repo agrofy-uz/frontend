@@ -9,6 +9,8 @@ import {
   Text,
 } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
+import { useQuery } from '@tanstack/react-query';
+import { getDistricts, getRegions } from '@/shared/api/services/services';
 import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Slider } from '@/shared/ui/slider';
 import { Rating } from '@/shared/ui/rating';
@@ -19,8 +21,6 @@ import {
   FILTER_PRICE_MAX_SOM,
   FILTER_PRICE_MIN_SOM,
   formatSomLabel,
-  MOCK_TUMANLAR_BY_REGION,
-  MOCK_VILOYATLAR,
 } from './filter-modal.const';
 
 const MOBILE_BREAKPOINT = '(max-width: 48em)';
@@ -62,10 +62,37 @@ export function ServicesFilterModal({
     if (opened) setDraft({ ...value });
   }, [opened, value]);
 
-  const districtData = useMemo(() => {
-    if (!draft.regionId) return [];
-    return MOCK_TUMANLAR_BY_REGION[draft.regionId] ?? [];
-  }, [draft.regionId]);
+  const regionsQuery = useQuery({
+    queryKey: ['regions'],
+    queryFn: () => getRegions(),
+    enabled: opened,
+    staleTime: 300_000,
+  });
+
+  const districtsQuery = useQuery({
+    queryKey: ['districts', draft.regionId],
+    queryFn: () => getDistricts(draft.regionId!),
+    enabled: opened && Boolean(draft.regionId),
+    staleTime: 300_000,
+  });
+
+  const regionSelectData = useMemo(
+    () =>
+      (regionsQuery.data ?? []).map((r) => ({
+        value: r.id,
+        label: r.name,
+      })),
+    [regionsQuery.data],
+  );
+
+  const districtSelectData = useMemo(
+    () =>
+      (districtsQuery.data ?? []).map((d) => ({
+        value: d.id,
+        label: d.name,
+      })),
+    [districtsQuery.data],
+  );
 
   const formFields = (
     <>
@@ -82,23 +109,37 @@ export function ServicesFilterModal({
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg" verticalSpacing="lg">
         <Select
           label="Viloyat"
-          placeholder="Qidiring yoki tanlang"
-          data={MOCK_VILOYATLAR}
+          placeholder={
+            regionsQuery.isPending ? 'Yuklanmoqda…' : 'Qidiring yoki tanlang'
+          }
+          data={regionSelectData}
           value={draft.regionId}
           onChange={(regionId) =>
             setDraft((d) => ({ ...d, regionId, districtId: null }))
           }
+          disabled={regionsQuery.isPending || regionsQuery.isError}
           size="md"
         />
         <Select
           label="Tuman"
           placeholder={
-            draft.regionId ? 'Qidiring yoki tanlang' : 'Avval viloyatni tanlang'
+            !draft.regionId
+              ? 'Avval viloyatni tanlang'
+              : districtsQuery.isPending
+                ? 'Yuklanmoqda…'
+                : districtsQuery.isError
+                  ? 'Yuklab bo‘lmadi'
+                  : 'Qidiring yoki tanlang'
           }
-          data={districtData}
+          data={districtSelectData}
           value={draft.districtId}
           onChange={(districtId) => setDraft((d) => ({ ...d, districtId }))}
-          disabled={!draft.regionId || districtData.length === 0}
+          disabled={
+            !draft.regionId ||
+            districtsQuery.isPending ||
+            districtsQuery.isError ||
+            districtSelectData.length === 0
+          }
           nothingFoundMessage="Tuman topilmadi"
           size="md"
         />
