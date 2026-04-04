@@ -5,3 +5,4 @@ export { default as api } from './api.interface';
 export * from './api.types';
 export * from './services/auth';
 export * from './services/ai';
+export * from './services/services';
