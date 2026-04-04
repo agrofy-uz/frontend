@@ -1,2 +1,2 @@
-export { default as ServicesSidebar } from './sidebar.ui';
-export * from './sidebar.const';
+export { default as ServicesSidebar } from './services.ui';
+export * from './services.const';

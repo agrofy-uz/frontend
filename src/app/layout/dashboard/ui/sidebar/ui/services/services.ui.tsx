@@ -16,7 +16,12 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { motion } from 'framer-motion';
-import { BsArrowLeft, BsChevronDown, BsChevronUp, BsPlus } from 'react-icons/bs';
+import {
+  BsArrowLeft,
+  BsChevronDown,
+  BsChevronUp,
+  BsPlus,
+} from 'react-icons/bs';
 import { IoFilter } from 'react-icons/io5';
 import { HiOutlineTrash } from 'react-icons/hi';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -31,7 +36,7 @@ import {
   SERVICE_CATEGORY_ROWS_COLLAPSED,
   SERVICE_CATEGORY_TOGGLE_RESERVE_PX,
   type ServiceSidebarCategory,
-} from './sidebar.const';
+} from './services.const';
 import s from './services.module.css';
 
 interface ServicesSidebarProps {
@@ -82,7 +87,9 @@ function ServiceCategoryNavItem({
         size={18}
         className={`${s.categoryIcon} ${isRowActive ? s.categoryIconActive : ''}`}
       />
-      <span className={`${s.categoryLabel} ${isRowActive ? s.categoryLabelActive : ''}`}>
+      <span
+        className={`${s.categoryLabel} ${isRowActive ? s.categoryLabelActive : ''}`}
+      >
         {item.label}
       </span>
       <Badge size="sm" variant="light" color="gray" style={{ flexShrink: 0 }}>
@@ -329,7 +336,12 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
       <Box
         ref={categoriesBlockRef}
         px="sm"
-        style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
       >
         <motion.div
           initial={false}
@@ -368,7 +380,7 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
 
         {showListToggle && collapsed && (canExpandOnce || canCollapse) && (
           <Tooltip
-            label={canExpandOnce ? "Ko'proq" : "Kamroq"}
+            label={canExpandOnce ? "Ko'proq" : 'Kamroq'}
             position="right"
             withArrow
           >
@@ -468,7 +480,10 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
               label={f.label}
               checked={filterDraft[f.id] ?? false}
               onChange={(e) =>
-                setFilterDraft((d) => ({ ...d, [f.id]: e.currentTarget.checked }))
+                setFilterDraft((d) => ({
+                  ...d,
+                  [f.id]: e.currentTarget.checked,
+                }))
               }
             />
           ))}
