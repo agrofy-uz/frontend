@@ -9,10 +9,16 @@ import {
   Modal,
 } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+  useCallback,
+} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
-import { IoArrowUp } from 'react-icons/io5';
+import { IoArrowUp, IoChevronDown } from 'react-icons/io5';
 import {
   // MdAttachFile,
   MdContentCopy,
@@ -33,6 +39,8 @@ import { VoiceModal } from './ui/voice-modal/voice-modal.ui';
 // import { AttachMenu } from './ui/attach-menu';
 import { ChatMarkdown } from './ui/chat-markdown';
 
+const SCROLL_THRESHOLD_PX = 80;
+
 type Message = ChatMessage & {
   id: string;
   timestamp: number;
@@ -50,6 +58,8 @@ function AiAssistant() {
   );
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -170,6 +180,31 @@ function AiAssistant() {
   }, [urlSessionId, user?.id, navigate]);
 
   const hasMessages = messages.length > 0;
+
+  const syncScrollBtn = useCallback(() => {
+    const vp = scrollViewportRef.current;
+    if (!vp) {
+      setShowScrollBtn(false);
+      return;
+    }
+    const dist = vp.scrollHeight - vp.scrollTop - vp.clientHeight;
+    setShowScrollBtn(
+      vp.scrollHeight > vp.clientHeight + 1 && dist > SCROLL_THRESHOLD_PX
+    );
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    const vp = scrollViewportRef.current;
+    if (!vp) return;
+    vp.scrollTo({ top: vp.scrollHeight, behavior: 'smooth' });
+    setTimeout(syncScrollBtn, 350);
+  }, [syncScrollBtn]);
+
+  useLayoutEffect(() => {
+    if (!hasMessages && !isLoading) return;
+    const id = requestAnimationFrame(syncScrollBtn);
+    return () => cancelAnimationFrame(id);
+  }, [messages, hasMessages, isLoading, syncScrollBtn]);
 
   // Scroll to bottom when messages change or loading state changes
   useEffect(() => {
@@ -303,7 +338,12 @@ function AiAssistant() {
     >
       {/* Messages Area */}
       {hasMessages || isLoading ? (
-        <ScrollArea className={styles.messagesArea} scrollbarSize={12}>
+        <ScrollArea
+          className={styles.messagesArea}
+          scrollbarSize={12}
+          viewportRef={scrollViewportRef}
+          viewportProps={{ onScroll: syncScrollBtn }}
+        >
           <Stack gap="md" className={styles.messagesList}>
             <AnimatePresence mode="popLayout">
               {messages.map((message, index) => {
@@ -407,6 +447,29 @@ function AiAssistant() {
       <Box
         className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}
       >
+        <AnimatePresence>
+          {showScrollBtn && (
+            <motion.div
+              key="scroll-btn"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className={styles.scrollToBottomDock}
+            >
+              <ActionIcon
+                variant="default"
+                radius="50%"
+                size="lg"
+                className={styles.scrollToBottomBtn}
+                onClick={scrollToBottom}
+                aria-label="Scroll to bottom"
+              >
+                <IoChevronDown size={18} />
+              </ActionIcon>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div className={styles.composer}>
           {attachments.length > 0 && (
             <Group

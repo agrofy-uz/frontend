@@ -5,8 +5,8 @@ import { FaHome } from 'react-icons/fa';
 import { Logo } from '../logo';
 import styles from './sidebar.module.css';
 import { IoChatbubbleOutline } from 'react-icons/io5';
-import { FaRegMap } from 'react-icons/fa6';
-import { FaChartColumn } from 'react-icons/fa6';
+import { MdOutlineMiscellaneousServices } from 'react-icons/md';
+import { FaChartColumn, FaStore } from 'react-icons/fa6';
 import { Drower } from './ui/drower';
 import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -63,7 +63,13 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
   const navItems = [
     { label: 'Boshqaruv paneli', icon: FaHome, path: '/dashboard/home' },
     { label: 'AI yordamchi', icon: IoChatbubbleOutline, path: '/dashboard/ai' },
-    { label: 'Dalar', icon: FaRegMap, path: '/dashboard/fields' },
+    // { label: 'Dalar', icon: FaRegMap, path: '/dashboard/fields' },
+    {
+      label: 'Xizmatlar',
+      icon: MdOutlineMiscellaneousServices,
+      path: '/dashboard/services',
+    },
+    { label: 'Mahsulotlar', icon: FaStore, path: '/dashboard/market' },
     { label: 'Hisobotlar', icon: FaChartColumn, path: '/dashboard/reports' },
   ];
 

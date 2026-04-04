@@ -1,59 +1,31 @@
+/*
+  Container balandligi dvh bilan qattiq belgilangan:
+  header 60px + content padding yuqori+pastki 2rem.
+  overflow: hidden bilan xabarlar hech qachon input ostiga o'ta olmaydi.
+*/
 .container {
-  height: 100%;
+  height: calc(100dvh - 60px - 2rem);
   min-height: 0;
   display: flex;
   flex-direction: column;
   position: relative;
-}
-
-.containerCentered {
-  padding-top: 30vh;
-  align-items: center;
   overflow: hidden;
 }
 
-/* Mobile: chapdan drawer + header ostida chat maydoni to‘liq balandlikka cho‘ziladi,
-   bo‘sh chatda salom matni markazda, input doim pastda */
+/*
+  Bo'sh chat:
+  - desktop: welcome + input bir blok sifatida vertikal markazda
+  - mobile: sarlavha ustki qism markazida, input ekran pastida
+*/
+.containerCentered {
+  justify-content: center;
+  align-items: center;
+}
+
 @media (max-width: 48em) {
-  .container {
-    /* ~ header 60px + content padding 1rem * 2 */
-    min-height: calc(100dvh - 60px - 2rem);
-  }
-
   .containerCentered {
-    padding-top: 0;
-    align-items: stretch;
-    min-height: inherit;
     justify-content: flex-start;
-  }
-
-  .welcomeState {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 0;
-    min-height: 0;
-  }
-
-  .inputArea {
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-    margin-top: auto;
-  }
-
-  .inputAreaCentered {
-    margin-top: 0;
-    max-width: none;
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  .messagesArea {
-    min-height: 0;
+    align-items: stretch;
   }
 }
 
@@ -74,15 +46,23 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
   color: var(--mantine-color-dark-3);
 }
 
-/* Welcome State (Yangi chat) */
+/* Welcome State — desktop: blok o‘lchamida; mobile: qolgan joyni to‘ldiradi */
 .welcomeState {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 24px;
   width: 100%;
   max-width: 768px;
-  margin-bottom: 24px;
+  min-height: 0;
+}
+
+@media (max-width: 48em) {
+  .welcomeState {
+    flex: 1;
+  }
 }
 
 .welcomeTitle {
@@ -99,6 +79,7 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
 /* Messages Area */
 .messagesArea {
   flex: 1;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -146,19 +127,19 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
   opacity: 0;
   visibility: hidden;
   z-index: 10;
-  padding: 8px; /* Buffer area to prevent flicker */
+  padding: 8px;
   transition:
     opacity 0.3s ease 0.5s,
-    visibility 0.3s ease 0.5s; /* Hide slowly after 0.5s delay */
+    visibility 0.3s ease 0.5s;
 }
 
 .userMessage .messageActions {
-  left: -74px; /* User xabarida chap tomonda */
+  left: -74px;
   bottom: -9px;
 }
 
 .assistantMessage .messageActions {
-  right: -74px; /* Assistant xabarida o'ng tomonda */
+  right: -74px;
   bottom: -9px;
 }
 
@@ -167,7 +148,7 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
   visibility: visible;
   transition:
     opacity 0s,
-    visibility 0s; /* Show instantly */
+    visibility 0s;
 }
 
 .actionIcon {
@@ -268,17 +249,9 @@ html[data-mantine-color-scheme='dark'] .assistantMessage .messageContent {
   line-height: 1.3;
 }
 
-.markdownRoot :global(h1) {
-  font-size: 1.35em;
-}
-
-.markdownRoot :global(h2) {
-  font-size: 1.2em;
-}
-
-.markdownRoot :global(h3) {
-  font-size: 1.08em;
-}
+.markdownRoot :global(h1) { font-size: 1.35em; }
+.markdownRoot :global(h2) { font-size: 1.2em; }
+.markdownRoot :global(h3) { font-size: 1.08em; }
 
 .markdownRoot :global(h1:first-child),
 .markdownRoot :global(h2:first-child),
@@ -409,47 +382,95 @@ html[data-mantine-color-scheme='dark'] .markdownRoot :global(th) {
   animation: typing 1.4s infinite;
 }
 
-.typingIndicator span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typingIndicator span:nth-child(3) {
-  animation-delay: 0.4s;
-}
+.typingIndicator span:nth-child(2) { animation-delay: 0.2s; }
+.typingIndicator span:nth-child(3) { animation-delay: 0.4s; }
 
 html[data-mantine-color-scheme='dark'] .typingIndicator span {
   background-color: var(--mantine-color-dark-4);
 }
 
 @keyframes typing {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.7;
-  }
-  30% {
-    transform: translateY(-10px);
-    opacity: 1;
-  }
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+  30%            { transform: translateY(-10px); opacity: 1; }
 }
 
-/* Input Area — o‘zi shaffof; asl “quti” .composer (blur + yarim shaffof fon) */
+/* ─── Input Area ─────────────────────────────────────────────────────────── */
+/*
+  position: relative — scroll button absolute positioned unga nisbatan.
+  overflow: visible  — button container tashqarisida ko'rinishi uchun.
+  background: transparent — container overflow:hidden tufayli xabarlar
+  input ostiga o'tolmaydi, shuning uchun fon shart emas.
+*/
 .inputArea {
+  position: relative;
   width: 100%;
   flex-shrink: 0;
   background: transparent;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow: visible;
 }
 
+/* Bo'sh chatda input: desktopda markazdagi blokning pastki qismi */
 .inputAreaCentered {
+  flex: 0 0 auto;
   width: 100%;
   max-width: 768px;
   padding: 0 16px;
+  margin-top: 24px;
   display: flex;
   justify-content: center;
-  margin-top: 24px;
 }
 
+@media (max-width: 48em) {
+  .inputAreaCentered {
+    margin-top: auto;
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* Scroll-to-bottom tugmasi — inputArea tepasiga absolute */
+.scrollToBottomDock {
+  position: absolute;
+  top: -52px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scrollToBottomDock > * {
+  pointer-events: auto;
+}
+
+.scrollToBottomBtn {
+  border: 1px solid var(--mantine-color-gray-3) !important;
+  background-color: var(--mantine-color-body) !important;
+  color: var(--mantine-color-gray-7);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transition: color 0.15s ease;
+}
+
+html[data-mantine-color-scheme='dark'] .scrollToBottomBtn {
+  border-color: var(--mantine-color-dark-4) !important;
+  background-color: var(--mantine-color-dark-7) !important;
+  color: var(--mantine-color-dark-0);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+.scrollToBottomBtn:hover {
+  color: var(--mantine-color-green-7) !important;
+}
+
+html[data-mantine-color-scheme='dark'] .scrollToBottomBtn:hover {
+  color: var(--mantine-color-green-5) !important;
+}
+
+/* Composer quti — to'liq shaffof, faqat border */
 .composer {
   max-width: 768px;
   margin: 0 auto;
@@ -460,12 +481,10 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
   border-radius: 24px;
   border: 1px solid
     color-mix(in srgb, var(--mantine-color-gray-4) 55%, transparent);
-  /* Orqa fon chat bilan “yopishib” ketishi uchun shaffof + blur */
-  background: color-mix(in srgb, var(--mantine-color-body) 42%, transparent);
-  backdrop-filter: blur(16px) saturate(1.15);
-  -webkit-backdrop-filter: blur(16px) saturate(1.15);
-  box-shadow: 0 2px 16px
-    color-mix(in srgb, var(--mantine-color-dark-9) 6%, transparent);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -475,8 +494,6 @@ html[data-mantine-color-scheme='dark'] .composer {
     var(--mantine-color-dark-3) 45%,
     transparent
   );
-  background: color-mix(in srgb, var(--mantine-color-dark-7) 38%, transparent);
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
 }
 
 .composer:focus-within {
@@ -485,10 +502,8 @@ html[data-mantine-color-scheme='dark'] .composer {
     var(--mantine-color-green-5) 65%,
     transparent
   );
-  background: color-mix(in srgb, var(--mantine-color-body) 58%, transparent);
-  box-shadow:
-    0 2px 20px color-mix(in srgb, var(--mantine-color-dark-9) 8%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--mantine-color-green-4) 25%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--mantine-color-green-4) 25%, transparent);
 }
 
 html[data-mantine-color-scheme='dark'] .composer:focus-within {
@@ -497,19 +512,13 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
     var(--mantine-color-green-7) 55%,
     transparent
   );
-  background: color-mix(in srgb, var(--mantine-color-dark-7) 52%, transparent);
-  box-shadow:
-    0 2px 24px rgba(0, 0, 0, 0.35),
-    0 0 0 1px color-mix(in srgb, var(--mantine-color-green-8) 22%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--mantine-color-green-8) 22%, transparent);
 }
 
-.plusBtn {
-  flex: 0 0 auto;
-}
+.plusBtn { flex: 0 0 auto; }
 
-.attachmentsRow {
-  width: 100%;
-}
+.attachmentsRow { width: 100%; }
 
 .attachmentImageWrap {
   position: relative;
@@ -523,9 +532,7 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
   background: var(--mantine-color-default-hover);
 }
 
-.attachmentImageWrap:hover {
-  opacity: 0.95;
-}
+.attachmentImageWrap:hover { opacity: 0.95; }
 
 .attachmentImage {
   width: 100%;
@@ -546,9 +553,7 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
   opacity: 0.9;
 }
 
-.attachmentImageRemove:hover {
-  opacity: 1;
-}
+.attachmentImageRemove:hover { opacity: 1; }
 
 .attachmentChip {
   display: inline-flex;
@@ -602,44 +607,26 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
   height: 100%;
 }
 
-/* Textarea scrollbar styles */
-.textareaInput::-webkit-scrollbar {
-  width: 6px;
-}
-
-.textareaInput::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+.textareaInput::-webkit-scrollbar { width: 6px; }
+.textareaInput::-webkit-scrollbar-track { background: transparent; }
 .textareaInput::-webkit-scrollbar-thumb {
   background: var(--mantine-color-gray-4);
   border-radius: 3px;
 }
-
 .textareaInput::-webkit-scrollbar-thumb:hover {
   background: var(--mantine-color-gray-5);
 }
-
 html[data-mantine-color-scheme='dark'] .textareaInput::-webkit-scrollbar-thumb {
   background: var(--mantine-color-dark-4);
 }
-
 html[data-mantine-color-scheme='dark']
   .textareaInput::-webkit-scrollbar-thumb:hover {
   background: var(--mantine-color-dark-3);
 }
+.textareaInput:focus { outline: none; }
 
-.textareaInput:focus {
-  outline: none;
-}
-
-.micBtn {
-  flex: 0 0 auto;
-}
-
-.sendBtn {
-  flex: 0 0 auto;
-}
+.micBtn { flex: 0 0 auto; }
+.sendBtn { flex: 0 0 auto; }
 
 /* Top Bar */
 .topBar {

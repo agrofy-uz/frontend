@@ -12,8 +12,9 @@ const DashboardHeader = () => {
       return 'Boshqaruv paneli';
     }
     if (pathname === '/dashboard/ai') return 'AI yordamchi';
-    if (pathname === '/dashboard/fields') return 'Dalar';
-    if (pathname === '/dashboard/market') return 'Bozor';
+    // if (pathname === '/dashboard/fields') return 'Dalar';
+    if (pathname === '/dashboard/services') return 'Xizmatlar';
+    if (pathname === '/dashboard/market') return 'Mahsulotlar';
     if (pathname === '/dashboard/reports') return 'Hisobotlar';
     if (pathname === '/dashboard/settings') return 'Sozlamalar';
     if (pathname === '/dashboard/profile') return 'Profil';
