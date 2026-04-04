@@ -12,7 +12,10 @@ import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboar
 import { useAuthStore } from '@/shared/store/authStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AiSidebar } from './ui/ai';
+import { ServicesSidebar } from './ui/services';
 import { useEffect, useRef } from 'react';
+
+type SidebarShellMode = 'main' | 'ai' | 'services';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -30,15 +33,22 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
     location.pathname === '/dashboard/ai' ||
     location.pathname.startsWith('/dashboard/ai/');
 
-  // Yo'nalishni sinxron aniqlaymiz (bo'sh joy bo'lmasligi va parallel animatsiya uchun)
-  const prevIsAiModeRef = useRef(isAiMode);
-  const wasAiMode = prevIsAiModeRef.current;
-  const isMovingToAi = isAiMode && !wasAiMode; // main -> ai
-  const isMovingFromAi = !isAiMode && wasAiMode; // ai -> main
+  const isServicesMode =
+    location.pathname === '/dashboard/services' ||
+    location.pathname.startsWith('/dashboard/services/');
+
+  const shellMode: SidebarShellMode = isAiMode
+    ? 'ai'
+    : isServicesMode
+      ? 'services'
+      : 'main';
+
+  const prevShellModeRef = useRef<SidebarShellMode>(shellMode);
+  const prevShellMode = prevShellModeRef.current;
 
   useEffect(() => {
-    prevIsAiModeRef.current = isAiMode;
-  }, [isAiMode]);
+    prevShellModeRef.current = shellMode;
+  }, [shellMode]);
 
   // User ma'lumotlari
   const user = {
@@ -81,26 +91,45 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
       <Box className={styles.navArea}>
         {/* mode="sync" -> eski chiqayotganda yangi ham bir vaqtda kiradi */}
         <AnimatePresence mode="sync" initial={false}>
-          {isAiMode ? (
+          {shellMode === 'ai' ? (
             <motion.div
               key="ai"
-              // main -> ai: ai o'ngdan kiradi
-              initial={{ x: isMovingToAi ? 280 : -280, opacity: 0 }}
+              initial={{
+                x: prevShellMode === 'services' ? -280 : 280,
+                opacity: 0,
+              }}
               animate={{ x: 0, opacity: 1 }}
-              // ai -> main: ai o'ngga chiqadi
               exit={{ x: 280, opacity: 0 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
               style={{ position: 'absolute', inset: 0, height: '100%' }}
             >
               <AiSidebar collapsed={collapsed} />
             </motion.div>
+          ) : shellMode === 'services' ? (
+            <motion.div
+              key="services"
+              initial={{
+                x: prevShellMode === 'ai' ? -280 : 280,
+                opacity: 0,
+              }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 280, opacity: 0 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              style={{ position: 'absolute', inset: 0, height: '100%' }}
+            >
+              <ServicesSidebar collapsed={collapsed} />
+            </motion.div>
           ) : (
             <motion.div
               key="main"
-              // ai -> main: main chapdan kiradi
-              initial={{ x: isMovingFromAi ? -280 : 280, opacity: 0 }}
+              initial={{
+                x:
+                  prevShellMode === 'ai' || prevShellMode === 'services'
+                    ? -280
+                    : 280,
+                opacity: 0,
+              }}
               animate={{ x: 0, opacity: 1 }}
-              // main -> ai: main chapga chiqadi
               exit={{ x: -280, opacity: 0 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
               style={{ position: 'absolute', inset: 0, height: '100%' }}
@@ -173,82 +202,84 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
           )}
         </AnimatePresence>
       </Box>
-      <Drower
-        opened={drawerOpened}
-        onClose={closeDrawer}
-        isAiMode={isAiMode}
-        target={
-          collapsed ? (
-            <Box
-              mx="sm"
-              mb={10}
-              style={{
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-              onClick={openDrawer}
-            >
-              <Avatar src={user.avatar} size="md" radius="md">
-                {getInitials(user.name)}
-              </Avatar>
-            </Box>
-          ) : (
-            <Flex
-              justify="space-between"
-              align="center"
-              p="5px"
-              gap="md"
-              mx="sm"
-              mb={10}
-              className={styles.profileCard}
-              style={{
-                borderRadius: 'var(--mantine-radius-md)',
-                cursor: 'pointer',
-              }}
-              onClick={openDrawer}
-            >
-              <Flex gap="md" align="center" style={{ flex: 1, minWidth: 0 }}>
+      {!isServicesMode && (
+        <Drower
+          opened={drawerOpened}
+          onClose={closeDrawer}
+          isAiMode={isAiMode}
+          target={
+            collapsed ? (
+              <Box
+                mx="sm"
+                mb={10}
+                style={{
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'center',
+                }}
+                onClick={openDrawer}
+              >
                 <Avatar src={user.avatar} size="md" radius="md">
                   {getInitials(user.name)}
                 </Avatar>
-                <Flex direction="column" gap="0">
-                  <Flex direction="row" gap="5px">
-                    {user.name.split(' ').map((part, index) => (
-                      <Text
-                        key={index}
-                        fz="14px"
-                        fw={500}
-                        className={styles.profileName}
-                      >
-                        {part}
+              </Box>
+            ) : (
+              <Flex
+                justify="space-between"
+                align="center"
+                p="5px"
+                gap="md"
+                mx="sm"
+                mb={10}
+                className={styles.profileCard}
+                style={{
+                  borderRadius: 'var(--mantine-radius-md)',
+                  cursor: 'pointer',
+                }}
+                onClick={openDrawer}
+              >
+                <Flex gap="md" align="center" style={{ flex: 1, minWidth: 0 }}>
+                  <Avatar src={user.avatar} size="md" radius="md">
+                    {getInitials(user.name)}
+                  </Avatar>
+                  <Flex direction="column" gap="0">
+                    <Flex direction="row" gap="5px">
+                      {user.name.split(' ').map((part, index) => (
+                        <Text
+                          key={index}
+                          fz="14px"
+                          fw={500}
+                          className={styles.profileName}
+                        >
+                          {part}
+                        </Text>
+                      ))}
+                    </Flex>
+                    {isAiMode && (
+                      <Text fz="12px" className={styles.profileStatus}>
+                        Bepul rejim
                       </Text>
-                    ))}
+                    )}
                   </Flex>
-                  {isAiMode && (
-                    <Text fz="12px" className={styles.profileStatus}>
-                      Bepul rejim
-                    </Text>
-                  )}
                 </Flex>
+                {isAiMode && (
+                  <Badge
+                    size="sm"
+                    className={styles.profileBadge}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/dashboard/pricing');
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    Tarifni yangilash
+                  </Badge>
+                )}
               </Flex>
-              {isAiMode && (
-                <Badge
-                  size="sm"
-                  className={styles.profileBadge}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate('/dashboard/pricing');
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  Tarifni yangilash
-                </Badge>
-              )}
-            </Flex>
-          )
-        }
-      />
+            )
+          }
+        />
+      )}
     </Stack>
   );
 };
