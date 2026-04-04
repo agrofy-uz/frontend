@@ -9,7 +9,7 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import { MdCategory } from 'react-icons/md';
-import s from '../../services.module.css';
+import s from '../../../services.module.css';
 import {
   SERVICE_CATEGORY_GAP_PX,
   SERVICE_CATEGORY_ROW_PX,
