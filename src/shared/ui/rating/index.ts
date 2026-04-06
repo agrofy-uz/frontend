@@ -1,1 +1,6 @@
-export { Rating, type RatingProps } from './rating.ui';
+export {
+  Rating,
+  RatingValueDisplay,
+  type RatingProps,
+  type RatingValueDisplayProps,
+} from './rating.ui';

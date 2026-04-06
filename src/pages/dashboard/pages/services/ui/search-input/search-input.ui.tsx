@@ -14,9 +14,11 @@ import {
   mergeServicesSearchParams,
   SERVICES_SEARCH_QUERY_KEY,
 } from '@/app/layout/dashboard/ui/sidebar/ui/services/services.const';
-import { MOCK_SERVICES } from '@/shared/data/services-mock.data';
+import { getRegularServices } from '@/shared/api/services/services';
 import { filterServicesSearch } from '@/shared/lib/filter-services-search';
 import s from './search-input.module.css';
+import { useQuery } from '@tanstack/react-query';
+import type { RegularServiceDto } from '@/shared/api/services/services/services.types';
 
 type SearchFieldProps = Omit<
   TextInputProps,
@@ -72,7 +74,10 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
 export function SearchInput() {
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get(SERVICES_SEARCH_QUERY_KEY) ?? '';
-
+  const { data: regularServices } = useQuery({
+    queryKey: ['services', 'regular'],
+    queryFn: getRegularServices,
+  });
   const setQ = (next: string) => {
     setSearchParams(
       (prev) => mergeServicesSearchParams(new URLSearchParams(prev), next),
@@ -87,13 +92,16 @@ export function SearchInput() {
   const hasQuery = q.trim().length > 0;
 
   const suggestions = useMemo(() => {
-    if (!hasQuery) return MOCK_SERVICES.slice(0, 8);
-    return filterServicesSearch(MOCK_SERVICES, q);
+    if (!hasQuery) return regularServices?.slice(0, 8) ?? [];
+    return filterServicesSearch(
+      regularServices ?? [],
+      q
+    ) as RegularServiceDto[];
   }, [hasQuery, q]);
 
   const handleSelect = (id: string) => {
-    const item = MOCK_SERVICES.find((x) => x.id === id);
-    if (item) setQ(item.title);
+    const item = regularServices?.find((x: RegularServiceDto) => x.id === id);
+    if (item) setQ(item.title ?? '');
     combobox.closeDropdown();
   };
 

@@ -1,6 +1,8 @@
 import API from '../../api.interface';
 import type {
   DistrictDto,
+  PremiumServiceDto,
+  RegularServiceDto,
   RegionDto,
   ServiceCategoryDto,
 } from './services.types';
@@ -29,6 +31,20 @@ export const getDistricts = async (
   const response = await API.get<DistrictDto[]>('/districts', {
     params: { regionId },
   });
+  const { data } = response;
+  return Array.isArray(data) ? data : [];
+};
+
+/** GET /api/services/premium */
+export const getPremiumServices = async (): Promise<PremiumServiceDto[]> => {
+  const response = await API.get<PremiumServiceDto[]>('/services/premium');
+  const { data } = response;
+  return Array.isArray(data) ? data : [];
+};
+
+/** GET /api/services/regular */
+export const getRegularServices = async (): Promise<RegularServiceDto[]> => {
+  const response = await API.get<RegularServiceDto[]>('/services/regular');
   const { data } = response;
   return Array.isArray(data) ? data : [];
 };

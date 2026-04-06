@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Badge, Button, Text } from '@mantine/core';
 import { MdBrokenImage } from 'react-icons/md';
+import { RatingValueDisplay } from '@/shared/ui/rating';
+import { CardLoading } from './ui/card-loading';
 import s from './card.module.css';
 
 /** Mingliklar vergul emas, oddiy bo‘shliq bilan */
@@ -14,12 +16,13 @@ export function formatServicePriceSom(value: number): string {
 }
 
 export type CardProps = {
-  title: string;
-  description: string;
+  id?: string;
+  title?: string;
+  description?: string;
   /** Minimal narx */
-  priceFrom: number;
+  priceFrom?: number;
   /** Maksimal / «gacha» narx */
-  priceUntil: number;
+  priceUntil?: number;
   imageUrl?: string | null;
   /** Rasm ustidagi ixtiyoriy yorliq (masalan «Chegirma») */
   badge?: string | null;
@@ -27,27 +30,52 @@ export type CardProps = {
   premium?: boolean;
   /** Tugma matni */
   actionLabel?: string;
+  /** API dan telefon kelganda tugma bosilishida qo‘ng‘iroq qilish uchun */
+  phone?: string;
+  /** Backend string bo‘lib kelishi mumkin (masalan "3.4") */
+  rating?: string | number | null;
+  loading?: boolean;
   onAction?: () => void;
   className?: string;
   imageAlt?: string;
 };
 
 export function Card({
-  title,
-  description,
-  priceFrom,
-  priceUntil,
+  title = '',
+  description = '',
+  priceFrom = 0,
+  priceUntil = 0,
   imageUrl,
   badge,
   premium = false,
   actionLabel = 'Bog‘lanish',
+  phone,
+  rating,
+  loading = false,
   onAction,
   className,
   imageAlt,
 }: CardProps) {
+  if (loading) {
+    return <CardLoading />;
+  }
+
   const [imageFailed, setImageFailed] = useState(false);
   const src = typeof imageUrl === 'string' ? imageUrl.trim() : '';
   const showImg = Boolean(src) && !imageFailed;
+  const phoneText = typeof phone === 'string' ? phone.trim() : '';
+  const parsedRating = Number(String(rating ?? '').replace(',', '.'));
+  const hasRating = Number.isFinite(parsedRating);
+
+  const handleAction = () => {
+    if (onAction) {
+      onAction();
+      return;
+    }
+    if (phoneText && typeof window !== 'undefined') {
+      window.location.href = `tel:${phoneText}`;
+    }
+  };
 
   return (
     <div
@@ -100,6 +128,11 @@ export function Card({
       <div className={s.body}>
         <Text className={s.title}>{title}</Text>
         <Text className={s.description}>{description}</Text>
+        {hasRating ? (
+          <div className={s.ratingRow}>
+            <RatingValueDisplay value={parsedRating} />
+          </div>
+        ) : null}
 
         <div className={s.priceRow}>
           <Text component="span" className={s.priceLine}>
@@ -121,7 +154,7 @@ export function Card({
             h={36}
             radius="md"
             color={premium ? undefined : 'green'}
-            onClick={onAction}
+            onClick={handleAction}
             classNames={premium ? { root: s.btnPremium } : undefined}
           >
             {actionLabel}

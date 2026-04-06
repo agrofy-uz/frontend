@@ -117,6 +117,10 @@
   min-height: calc(1.5em * 2);
 }
 
+.ratingRow {
+  margin-top: 2px;
+}
+
 .priceRow {
   margin-top: auto;
   padding-top: var(--mantine-spacing-xs);
