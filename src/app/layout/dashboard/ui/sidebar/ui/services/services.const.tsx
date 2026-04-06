@@ -26,6 +26,20 @@ export const SERVICES_FILTER_QUERY = {
 
 export const SERVICES_FILTER_QUERY_KEYS = Object.values(SERVICES_FILTER_QUERY);
 
+/** Header qidiruv matni (`?q=`) */
+export const SERVICES_SEARCH_QUERY_KEY = 'q';
+
+export function mergeServicesSearchParams(
+  current: URLSearchParams,
+  query: string,
+): URLSearchParams {
+  const out = new URLSearchParams(current);
+  const t = query.trim();
+  if (t) out.set(SERVICES_SEARCH_QUERY_KEY, t);
+  else out.delete(SERVICES_SEARCH_QUERY_KEY);
+  return out;
+}
+
 export function parseServicesFilterFromSearchParams(
   params: URLSearchParams
 ): ServicesFilterValues {

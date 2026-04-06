@@ -1,10 +1,15 @@
-import { Group, Text, ActionIcon, Badge } from '@mantine/core';
+import { Box, Flex, Group, Text, ActionIcon, Badge } from '@mantine/core';
 import { IoIosNotifications } from 'react-icons/io';
 import { useLocation } from 'react-router-dom';
 import { ThemeToggle } from '@/app/layout/footer/ui/theme-toggle';
+import { SearchInput } from '@/pages/dashboard/pages/services/ui/search-input/search-input.ui';
+
+const isServicesRoute = (pathname: string) =>
+  pathname === '/dashboard/services' || pathname.startsWith('/dashboard/services/');
 
 const DashboardHeader = () => {
   const location = useLocation();
+  const showServicesSearch = isServicesRoute(location.pathname);
 
   const getPageName = () => {
     const pathname = location.pathname;
@@ -12,7 +17,6 @@ const DashboardHeader = () => {
       return 'Boshqaruv paneli';
     }
     if (pathname === '/dashboard/ai') return 'AI yordamchi';
-    // if (pathname === '/dashboard/fields') return 'Dalar';
     if (pathname === '/dashboard/services') return 'Xizmatlar';
     if (pathname === '/dashboard/market') return 'Mahsulotlar';
     if (pathname === '/dashboard/reports') return 'Hisobotlar';
@@ -23,14 +27,37 @@ const DashboardHeader = () => {
   };
 
   return (
-    <Group h="100%" justify="space-between" style={{ width: '100%' }}>
-      <Group>
-        <Text fw={700} fz="lg" className="textPrimary">
+    <Flex
+      align="center"
+      justify="space-between"
+      gap="md"
+      wrap="nowrap"
+      w="100%"
+      style={{ minWidth: 0 }}
+    >
+      <Box miw={0} style={{ flex: '0 1 auto' }}>
+        <Text fw={700} fz="lg" className="textPrimary" lineClamp={1}>
           {getPageName()}
         </Text>
-      </Group>
+      </Box>
 
-      <Group gap="md">
+      {showServicesSearch && (
+        <Box
+          visibleFrom="md"
+          miw={0}
+          style={{
+            flex: '1 1 auto',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            maxWidth: 'min(100%, 28rem)',
+          }}
+        >
+          <SearchInput />
+        </Box>
+      )}
+
+      <Group gap="md" wrap="nowrap" style={{ flexShrink: 0 }}>
         <ActionIcon variant="subtle" size="lg" style={{ position: 'relative' }}>
           <IoIosNotifications size={24} className="textPrimary" />
           <Badge
@@ -56,7 +83,7 @@ const DashboardHeader = () => {
         </ActionIcon>
         <ThemeToggle />
       </Group>
-    </Group>
+    </Flex>
   );
 };
 

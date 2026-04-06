@@ -10,6 +10,8 @@ export interface IUser {
   username: string | null;
   created_at: string | null;
   is_active: boolean | null;
+  /** Login / verify javobidagi `photoUrl` */
+  photo_url?: string | null;
 }
 
 interface AuthState {

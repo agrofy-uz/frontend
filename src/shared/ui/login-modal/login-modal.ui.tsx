@@ -71,6 +71,11 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
       const response = await verifyOtp(loginSessionId, otp);
 
       if (response.success) {
+        const photo =
+          typeof response.photoUrl === 'string' && response.photoUrl.trim()
+            ? response.photoUrl.trim()
+            : null;
+
         const userData = {
           id: response.telegramUserId?.toString() || response.clientId,
           phone_number: response.phoneNumber || '',
@@ -80,6 +85,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
           username: response.telegramUsername || null,
           created_at: response.verifiedAt || null,
           is_active: true,
+          photo_url: photo,
         };
 
         // Hozircha authStore token talab qilgani uchun backend tokenini saqlaymiz

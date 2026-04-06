@@ -22,4 +22,6 @@ export interface VerifyOtpResponse {
   lastName: string;
   clientId: string;
   verifiedAt: string;
+  /** Profil rasmi (backend DB dagi URL) */
+  photoUrl?: string | null;
 }

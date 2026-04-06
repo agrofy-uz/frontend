@@ -57,7 +57,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
         'Foydalanuvchi'
       : 'Foydalanuvchi',
     phone: authUser?.phone_number || '',
-    avatar: null, // Avatar URL yoki null
+    avatar: authUser?.photo_url || null,
   };
 
   // Avatar uchun bosh harflar

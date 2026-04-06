@@ -1,0 +1,21 @@
+.root {
+  width: 100%;
+  max-width: min(100%, 36rem);
+}
+
+.dropdown {
+  z-index: 400;
+}
+
+.dropdownOptions {
+  max-height: min(50vh, 280px);
+  overflow-y: auto;
+}
+
+.dropdownOption {
+  padding-block: var(--mantine-spacing-xs);
+}
+
+.dropdownEmpty {
+  padding: var(--mantine-spacing-sm);
+}

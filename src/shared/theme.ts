@@ -34,6 +34,9 @@ const theme = createTheme({
     md: '768px',
     lg: '1200px',
     xl: '1440px',
+    /** Services carousel: 700+ → 3 karta, 1200+ → 4, 1440+ → 5, 1600+ → fluid */
+    svc700: '700px',
+    svcWide: '1600px',
   },
   colors: {
     // Asosiy rang - Green Light

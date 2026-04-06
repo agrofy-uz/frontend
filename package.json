@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
+    "@mantine/carousel": "^8.3.10",
     "@mantine/core": "^8.3.1",
     "@mantine/dates": "^8.3.1",
     "@mantine/form": "^8.3.1",
@@ -24,6 +25,8 @@
     "@tanstack/react-query-devtools": "^5.90.2",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.23.26",
     "i18next": "^25.5.2",
     "react": "^19.1.1",
