@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
 import { FaArrowLeft, FaCheckCircle, FaTelegram } from 'react-icons/fa';
-import { startTelegramAuth, verifyOtp } from '@/shared/api';
+import { getAuthMe, startTelegramAuth, verifyOtp } from '@/shared/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { OtpInput } from './components/otp-input';
@@ -68,41 +68,43 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     setViewState('loading');
 
     try {
-      const response = await verifyOtp(loginSessionId, otp);
+      const verifyResponse = await verifyOtp(loginSessionId, otp);
+      const me = await getAuthMe(verifyResponse.accessToken);
 
-      if (response.success) {
-        const photo =
-          typeof response.photoUrl === 'string' && response.photoUrl.trim()
-            ? response.photoUrl.trim()
-            : null;
+      const userData = {
+        id: String(me.id),
+        phone_number: me.phoneNumber || '',
+        telegram_id: me.telegramUserId || 0,
+        first_name: me.firstName || null,
+        last_name: me.lastName || null,
+        username: me.telegramUsername || null,
+        created_at: me.createdAt || null,
+        is_active: true,
+        photo_url:
+          typeof me.imageUrl === 'string' && me.imageUrl.trim()
+            ? me.imageUrl.trim()
+            : null,
+        premium: Boolean(me.premium),
+        premium_expires_at: me.premiumExpiresAt ?? null,
+      };
 
-        const userData = {
-          id: response.telegramUserId?.toString() || response.clientId,
-          phone_number: response.phoneNumber || '',
-          telegram_id: response.telegramUserId || 0,
-          first_name: response.firstName || null,
-          last_name: response.lastName || null,
-          username: response.telegramUsername || null,
-          created_at: response.verifiedAt || null,
-          is_active: true,
-          photo_url: photo,
-        };
+      login(userData, verifyResponse.accessToken, verifyResponse.refreshToken, {
+        accessExpiresAt: verifyResponse.accessExpiresAt ?? null,
+        refreshExpiresAt: verifyResponse.refreshExpiresAt ?? null,
+        forcedLogoutAt: verifyResponse.forcedLogoutAt ?? null,
+      });
 
-        // Hozircha authStore token talab qilgani uchun backend tokenini saqlaymiz
-        login(userData, loginSessionId, loginSessionId);
+      openNotification({
+        title: 'Muvaffaqiyatli kirildi!',
+        type: 'success',
+        icon: <FaCheckCircle size={24} />,
+      });
 
-        openNotification({
-          title: 'Muvaffaqiyatli kirildi!',
-          type: 'success',
-          icon: <FaCheckCircle size={24} />,
-        });
+      // Modal'ni yopish
+      onClose();
 
-        // Modal'ni yopish
-        onClose();
-
-        // Redirect qilish
-        navigate('/dashboard');
-      }
+      // Redirect qilish
+      navigate('/dashboard');
     } catch (err: unknown) {
       const errorMessage = getErrorMessage(err);
       setError(errorMessage);

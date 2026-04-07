@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   Badge,
   Box,
@@ -8,7 +9,10 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
+import * as FaIcons from 'react-icons/fa';
 import { MdCategory } from 'react-icons/md';
+import * as FiIcons from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 import s from '../../../services.module.css';
 import {
   SERVICE_CATEGORY_GAP_PX,
@@ -26,14 +30,31 @@ function IconGlyph({
   size: number;
   className?: string;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
   const src = icon?.trim();
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [icon]);
+
   if (!src) {
     return <MdCategory size={size} className={className} aria-hidden />;
   }
+  if (/^(Fi|Fa)[A-Z0-9]/.test(src)) {
+    const iconMap: Record<string, IconType> = {
+      ...(FiIcons as Record<string, IconType>),
+      ...(FaIcons as Record<string, IconType>),
+    };
+    const NamedIcon = iconMap[src];
+    if (NamedIcon) {
+      return <NamedIcon size={size} className={className} aria-hidden />;
+    }
+  }
   if (
+    !imageFailed &&
     /^https?:\/\//i.test(src) ||
-    src.startsWith('/') ||
-    src.startsWith('data:')
+    (!imageFailed && src.startsWith('/')) ||
+    (!imageFailed && src.startsWith('data:'))
   ) {
     return (
       <Box
@@ -44,21 +65,11 @@ function IconGlyph({
         h={size}
         className={className}
         style={{ objectFit: 'contain', flexShrink: 0 }}
+        onError={() => setImageFailed(true)}
       />
     );
   }
-  return (
-    <Text
-      component="span"
-      fz={Math.round(size * 0.95)}
-      lh={`${size}px`}
-      className={className}
-      style={{ flexShrink: 0 }}
-      aria-hidden
-    >
-      {src}
-    </Text>
-  );
+  return <MdCategory size={size} className={className} aria-hidden />;
 }
 
 function CategoriesSkeleton({ collapsed }: { collapsed: boolean }) {

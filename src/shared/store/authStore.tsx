@@ -12,6 +12,8 @@ export interface IUser {
   is_active: boolean | null;
   /** Login / verify javobidagi `photoUrl` */
   photo_url?: string | null;
+  premium?: boolean;
+  premium_expires_at?: string | null;
 }
 
 interface AuthState {
@@ -19,7 +21,19 @@ interface AuthState {
   user: IUser | null;
   accessToken: string | null;
   refreshToken: string | null;
-  login: (user: IUser, accessToken: string, refreshToken: string) => void;
+  accessExpiresAt: string | null;
+  refreshExpiresAt: string | null;
+  forcedLogoutAt: string | null;
+  login: (
+    user: IUser,
+    accessToken: string,
+    refreshToken: string,
+    meta?: {
+      accessExpiresAt?: string | null;
+      refreshExpiresAt?: string | null;
+      forcedLogoutAt?: string | null;
+    }
+  ) => void;
   logout: () => void;
   updateUser: (user: IUser) => void;
 }
@@ -31,12 +45,18 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
-      login: (user: IUser, accessToken: string, refreshToken: string) => {
+      accessExpiresAt: null,
+      refreshExpiresAt: null,
+      forcedLogoutAt: null,
+      login: (user: IUser, accessToken: string, refreshToken: string, meta) => {
         set({
           isAuthenticated: true,
           user,
           accessToken,
           refreshToken,
+          accessExpiresAt: meta?.accessExpiresAt ?? null,
+          refreshExpiresAt: meta?.refreshExpiresAt ?? null,
+          forcedLogoutAt: meta?.forcedLogoutAt ?? null,
         });
       },
       logout: () => {
@@ -45,6 +65,9 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           accessToken: null,
           refreshToken: null,
+          accessExpiresAt: null,
+          refreshExpiresAt: null,
+          forcedLogoutAt: null,
         });
       },
       updateUser: (user: IUser) => {

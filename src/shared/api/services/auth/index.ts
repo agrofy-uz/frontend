@@ -1,2 +1,8 @@
 export * from './auth.types';
-export { startTelegramAuth, verifyOtp } from './auth.api';
+export {
+  startTelegramAuth,
+  verifyOtp,
+  getAuthMe,
+  refreshAuthToken,
+  logoutAuth,
+} from './auth.api';

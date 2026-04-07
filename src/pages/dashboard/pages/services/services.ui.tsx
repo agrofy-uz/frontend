@@ -27,7 +27,9 @@ function Services() {
     return filterServicesSearch(source, q, 100);
   }, [q, regularFromApi]);
   const cardsToRender = isRegularLoading
-    ? Array.from({ length: 8 }, (_, index) => ({ id: `regular-loading-${index}` }))
+    ? Array.from({ length: 8 }, (_, index) => ({
+        id: `regular-loading-${index}`,
+      }))
     : visibleServices;
 
   return (
@@ -39,10 +41,10 @@ function Services() {
         <PremiumSection />
       </Stack>
 
-      <Stack gap="md" mt="md">
-        <Title order={isMobile ? 4 : 3}>Xizmatlar</Title>
+      {cardsToRender.length > 0 ? (
+        <Stack gap="md" mt="md">
+          <Title order={isMobile ? 4 : 3}>Xizmatlar</Title>
 
-        {cardsToRender.length > 0 ? (
           <Box className={s.servicesGrid}>
             {cardsToRender.map((card) => (
               <Box key={card.id} className={s.servicesGridItem} w="100%">
@@ -50,10 +52,10 @@ function Services() {
               </Box>
             ))}
           </Box>
-        ) : (
-          <RegularEmpty />
-        )}
-      </Stack>
+        </Stack>
+      ) : (
+        <RegularEmpty />
+      )}
     </Box>
   );
 }

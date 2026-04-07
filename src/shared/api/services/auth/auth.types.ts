@@ -13,15 +13,31 @@ export interface VerifyOtpRequest {
   otp: string;
 }
 
-export interface VerifyOtpResponse {
-  success: boolean;
+export interface AuthTokensResponse {
+  accessToken: string;
+  accessExpiresAt: string;
+  refreshToken: string;
+  refreshExpiresAt: string;
+  forcedLogoutAt: string;
+}
+
+export type VerifyOtpResponse = AuthTokensResponse;
+
+export interface AuthMeResponse {
+  id: number;
   phoneNumber: string;
   telegramUserId: number;
-  telegramUsername: string;
-  firstName: string;
-  lastName: string;
-  clientId: string;
-  verifiedAt: string;
-  /** Profil rasmi (backend DB dagi URL) */
-  photoUrl?: string | null;
+  telegramUsername: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  lastClientId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastVerifiedAt: string | null;
+  imageUrl: string | null;
+  premium: boolean;
+  premiumExpiresAt: string | null;
+
+  /** JWT access token */
+  // NOTE: me javobida tokenlar bo'lmaydi, ular verify javobidan olinadi
 }

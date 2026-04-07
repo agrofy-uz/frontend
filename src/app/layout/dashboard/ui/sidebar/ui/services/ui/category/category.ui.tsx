@@ -39,7 +39,6 @@ function CategoriesBlock({
   const categoriesBlockRef = useRef<HTMLDivElement>(null);
   const [maxRowsFit, setMaxRowsFit] = useState(categories.length);
   const [listMoreOpen, setListMoreOpen] = useState(false);
-
   useLayoutEffect(() => {
     setListMoreOpen(false);
   }, [listResetKey]);

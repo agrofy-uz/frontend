@@ -15,12 +15,75 @@ const api = axios.create({
   },
 });
 
+const refreshApi = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+let refreshPromise: Promise<void> | null = null;
+
+function isExpired(isoDate: string | null | undefined): boolean {
+  if (!isoDate) return false;
+  const expiresAt = Date.parse(isoDate);
+  if (Number.isNaN(expiresAt)) return false;
+  return Date.now() >= expiresAt;
+}
+
+async function ensureFreshAccessToken(): Promise<void> {
+  const state = useAuthStore.getState();
+  const { refreshToken, accessExpiresAt, refreshExpiresAt, forcedLogoutAt } = state;
+
+  if (!isExpired(accessExpiresAt)) return;
+  if (!refreshToken || isExpired(refreshExpiresAt) || isExpired(forcedLogoutAt)) {
+    state.logout();
+    throw new Error('Session expired');
+  }
+
+  if (!refreshPromise) {
+    refreshPromise = refreshApi
+      .post<{
+        accessToken: string;
+        accessExpiresAt: string;
+        refreshToken: string;
+        refreshExpiresAt: string;
+        forcedLogoutAt: string;
+      }>('/auth/refresh', { refreshToken })
+      .then((res) => {
+        const next = res.data;
+        useAuthStore.setState({
+          isAuthenticated: true,
+          accessToken: next.accessToken,
+          refreshToken: next.refreshToken,
+          accessExpiresAt: next.accessExpiresAt,
+          refreshExpiresAt: next.refreshExpiresAt,
+          forcedLogoutAt: next.forcedLogoutAt,
+        });
+      })
+      .catch((error) => {
+        useAuthStore.getState().logout();
+        throw error;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+
+  await refreshPromise;
+}
+
 // Request interceptor - token qo'shish
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    await ensureFreshAccessToken();
     const { accessToken } = useAuthStore.getState();
     if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+      // axios v1: config.headers ba'zida undefined yoki AxiosHeaders bo'lishi mumkin
+      config.headers = config.headers ?? {};
+      (config.headers as Record<string, unknown>).Authorization =
+        `Bearer ${accessToken}`;
     }
     return config;
   },

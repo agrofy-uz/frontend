@@ -10,6 +10,7 @@ import {
 import { FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { HiLightningBolt } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
+import { logoutAuth } from '@/shared/api';
 import { useAuthStore } from '@/shared/store/authStore';
 import { localStorageHelper } from '@/shared/lib/localStorage';
 import styles from './drower.module.css';
@@ -23,7 +24,7 @@ interface DrowerProps {
 
 function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
   const navigate = useNavigate();
-  const { user: authUser, logout } = useAuthStore();
+  const { user: authUser, logout, refreshToken } = useAuthStore();
 
   // User ma'lumotlari
   const user = {
@@ -56,7 +57,14 @@ function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
     onClose();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (refreshToken) {
+      try {
+        await logoutAuth(refreshToken);
+      } catch {
+        // Server logout xatolik bersa ham local sessionni tozalaymiz
+      }
+    }
     logout();
     localStorageHelper.clear();
     onClose();
