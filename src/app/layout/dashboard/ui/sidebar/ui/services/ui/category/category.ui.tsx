@@ -141,7 +141,23 @@ function CategoriesBlock({
             minHeight: 0,
           }}
         >
-          <ScrollArea type="auto" offsetScrollbars h="100%" mah="100%">
+          <ScrollArea
+            type="hover"
+            offsetScrollbars
+            scrollHideDelay={400}
+            scrollbarSize={collapsed ? 4 : 7}
+            h="100%"
+            mah="100%"
+            styles={{
+              scrollbar: {
+                padding: collapsed ? 1 : 2,
+              },
+              thumb: {
+                backgroundColor:
+                  'light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3))',
+              },
+            }}
+          >
             <Categories
               collapsed={collapsed}
               isPending={categoriesQuery.isPending}
