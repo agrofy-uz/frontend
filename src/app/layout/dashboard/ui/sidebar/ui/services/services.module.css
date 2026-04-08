@@ -83,7 +83,7 @@ html[data-mantine-color-scheme='dark'] .categoryLabel {
 }
 
 .categoryLabelActive {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--mantine-color-gray-9) !important;
 }
 
