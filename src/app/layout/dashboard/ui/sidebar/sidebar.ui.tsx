@@ -10,12 +10,15 @@ import { FaChartColumn, FaStore } from 'react-icons/fa6';
 import { Drower } from './ui/drower';
 import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import { useAuthStore } from '@/shared/store/authStore';
+import { parseBackendInstantMs } from '@/shared/lib/dateHelper';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AiSidebar } from './ui/ai';
 import { ServicesSidebar } from './ui/services';
 import { useEffect, useRef } from 'react';
 
 type SidebarShellMode = 'main' | 'ai' | 'services';
+
+const PREMIUM_UPGRADE_BADGE_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
 interface SidebarProps {
   collapsed: boolean;
@@ -37,6 +40,13 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
     location.pathname === '/dashboard/services' ||
     location.pathname.startsWith('/dashboard/services/');
 
+  const isMarketMode =
+    location.pathname === '/dashboard/market' ||
+    location.pathname.startsWith('/dashboard/market/');
+
+  /** Profil + Drower — hozircha xizmatlar va mahsulotlar rejimida ko‘rinmaydi */
+  const showProfileDrawer = !isServicesMode && !isMarketMode;
+
   const shellMode: SidebarShellMode = isAiMode
     ? 'ai'
     : isServicesMode
@@ -50,6 +60,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
     prevShellModeRef.current = shellMode;
   }, [shellMode]);
 
+  useEffect(() => {
+    if (!showProfileDrawer) closeDrawer();
+  }, [showProfileDrawer, closeDrawer]);
+
   // User ma'lumotlari
   const user = {
     name: authUser
@@ -58,7 +72,15 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
       : 'Foydalanuvchi',
     phone: authUser?.phone_number || '',
     avatar: authUser?.photo_url || null,
+    planLabel: authUser?.premium_plan_tier_label_uz?.trim() || 'Bepul tarif',
   };
+
+  const shouldShowUpgradeBadge = (() => {
+    // Null bo'lsa ham badge chiqsin (masalan: free tier)
+    const expiresMs = parseBackendInstantMs(authUser?.premium_expires_at);
+    if (expiresMs == null) return true;
+    return expiresMs - Date.now() <= PREMIUM_UPGRADE_BADGE_WINDOW_MS;
+  })();
 
   // Avatar uchun bosh harflar
   const getInitials = (name: string) => {
@@ -202,11 +224,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
           )}
         </AnimatePresence>
       </Box>
-      {!isServicesMode && (
+      {showProfileDrawer && (
         <Drower
           opened={drawerOpened}
           onClose={closeDrawer}
-          isAiMode={isAiMode}
           target={
             collapsed ? (
               <Box
@@ -255,14 +276,13 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                         </Text>
                       ))}
                     </Flex>
-                    {isAiMode && (
-                      <Text fz="12px" className={styles.profileStatus}>
-                        Bepul rejim
-                      </Text>
-                    )}
+
+                    <Text fz="12px" className={styles.profileStatus}>
+                      {user.planLabel}
+                    </Text>
                   </Flex>
                 </Flex>
-                {isAiMode && (
+                {shouldShowUpgradeBadge && (
                   <Badge
                     size="sm"
                     className={styles.profileBadge}

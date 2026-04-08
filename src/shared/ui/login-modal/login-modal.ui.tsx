@@ -86,6 +86,9 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
             : null,
         premium: Boolean(me.premium),
         premium_expires_at: me.premiumExpiresAt ?? null,
+        premium_plan_tier: me.premiumPlanTier ?? null,
+        premium_plan_tier_label_uz: me.premiumPlanTierLabelUz ?? null,
+        premium_plan_months: me.premiumPlanMonths ?? null,
       };
 
       login(userData, verifyResponse.accessToken, verifyResponse.refreshToken, {

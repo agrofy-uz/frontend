@@ -19,10 +19,9 @@ interface DrowerProps {
   opened: boolean;
   onClose: () => void;
   target: React.ReactNode;
-  isAiMode?: boolean;
 }
 
-function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
+function Drower({ opened, onClose, target }: DrowerProps) {
   const navigate = useNavigate();
   const { user: authUser, logout, refreshToken } = useAuthStore();
 
@@ -120,17 +119,15 @@ function Drower({ opened, onClose, target, isAiMode = false }: DrowerProps) {
             </Flex>
           </Box>
 
-          {/* Upgrade Plan - faqat AI mode da */}
-          {isAiMode && (
-            <Box px="xs" pt="xs">
-              <NavLink
-                label="Tarifni yangilash"
-                leftSection={<HiLightningBolt size={18} />}
-                onClick={handleUpgrade}
-                className={styles.navLink}
-              />
-            </Box>
-          )}
+          {/* Tarif */}
+          <Box px="xs" pt="xs">
+            <NavLink
+              label="Tarifni yangilash"
+              leftSection={<HiLightningBolt size={18} />}
+              onClick={handleUpgrade}
+              className={styles.navLink}
+            />
+          </Box>
 
           {/* Settings */}
           <Box px="xs">

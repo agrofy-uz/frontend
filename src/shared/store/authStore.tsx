@@ -15,6 +15,9 @@ export interface IUser {
   photo_url?: string | null;
   premium?: boolean;
   premium_expires_at?: string | null;
+  premium_plan_tier?: string | null;
+  premium_plan_tier_label_uz?: string | null;
+  premium_plan_months?: number | null;
 }
 
 interface AuthState {
