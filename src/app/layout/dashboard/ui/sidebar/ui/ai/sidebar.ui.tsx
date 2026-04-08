@@ -46,7 +46,7 @@ import {
   type AiSidebarChatItem,
 } from './sidebar.const';
 import styles from './sidebar.module.css';
-import { SidebarRevealTitle } from './ui';
+import { DeleteChatConfirmationModal, SidebarRevealTitle } from './ui';
 
 function useAiSidebarChats() {
   const navigate = useNavigate();
@@ -269,17 +269,15 @@ function useAiSidebarChats() {
     setChatPopovers((p) => ({ ...p, [chatId]: false }));
   }, []);
 
-  const handleDeleteChat = useCallback(
-    async (chatId: string, e: MouseEvent) => {
-      e.stopPropagation();
-      setChatPopovers((p) => ({ ...p, [chatId]: false }));
+  const executeDeleteChat = useCallback(
+    async (chatId: string) => {
       if (!user?.id) {
         notifications.show({
           title: 'Xatolik',
           message: 'Foydalanuvchi aniqlanmadi',
           color: 'red',
         });
-        return;
+        throw new Error('NO_USER');
       }
       try {
         await deleteChat(chatId, user.id);
@@ -313,6 +311,7 @@ function useAiSidebarChats() {
           message: msg,
           color: 'red',
         });
+        throw err;
       }
     },
     [activeChatId, navigate, user?.id]
@@ -336,7 +335,7 @@ function useAiSidebarChats() {
     createNewChat,
     toggleChatPopover,
     handlePinChat,
-    handleDeleteChat,
+    executeDeleteChat,
     completeTitleReveal,
   };
 }
@@ -344,6 +343,11 @@ function useAiSidebarChats() {
 export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate();
   const [historyOpen, { toggle: toggleHistoryOpen }] = useDisclosure(true);
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   const {
     sortedChats,
@@ -355,9 +359,27 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
     createNewChat,
     toggleChatPopover,
     handlePinChat,
-    handleDeleteChat,
+    executeDeleteChat,
     completeTitleReveal,
   } = useAiSidebarChats();
+
+  const closeDeleteModal = useCallback(() => {
+    setPendingDelete(null);
+    setDeleteSubmitting(false);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!pendingDelete) return;
+    setDeleteSubmitting(true);
+    try {
+      await executeDeleteChat(pendingDelete.id);
+      closeDeleteModal();
+    } catch {
+      /* xabar executeDeleteChat ichida */
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  }, [pendingDelete, executeDeleteChat, closeDeleteModal]);
 
   return (
     <Box className={styles.root}>
@@ -530,7 +552,11 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
                               </div>
                               <div
                                 className={styles.chatPopoverItem}
-                                onClick={(e) => handleDeleteChat(c.id, e)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleChatPopover(c.id, false);
+                                  setPendingDelete({ id: c.id, title: c.title });
+                                }}
                               >
                                 <HiOutlineTrash size={16} />
                                 <span>O'chirish</span>
@@ -547,6 +573,14 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
           </AnimatePresence>
         </>
       )}
+
+      <DeleteChatConfirmationModal
+        opened={pendingDelete !== null}
+        onClose={closeDeleteModal}
+        onConfirm={handleConfirmDelete}
+        chatTitle={pendingDelete?.title}
+        loading={deleteSubmitting}
+      />
     </Box>
   );
 }

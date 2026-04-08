@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -79,3 +80,23 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+/** `persist` localStorage'dan qayta yuklanguncha auth `null` — API chaqiruvlardan oldin kutish kerak */
+export function useAuthStoreHydrated(): boolean {
+  const [hydrated, setHydrated] = useState(() =>
+    useAuthStore.persist.hasHydrated()
+  );
+
+  useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      setHydrated(true);
+      return undefined;
+    }
+    const unsub = useAuthStore.persist.onFinishHydration(() => {
+      setHydrated(true);
+    });
+    return unsub;
+  }, []);
+
+  return hydrated;
+}

@@ -1,5 +1,45 @@
-import axios from 'axios';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '../store/authStore';
+
+/** Access JWT tugashidan ~shu vaqt oldin yangilash (tarmoq kechikishi uchun) */
+const ACCESS_REFRESH_SKEW_MS = 60_000;
+
+type AuthTokensPayload = {
+  accessToken: string;
+  accessExpiresAt: string;
+  refreshToken: string;
+  refreshExpiresAt: string;
+  forcedLogoutAt: string;
+};
+
+/** .NET kabi 7 xonali kasr sonli ISO — JS Date.parse ba'zan NaN qaytaradi */
+function normalizeBackendIso(iso: string): string {
+  return iso.trim().replace(/(\.\d{3})\d+(?=[Z+-]|$)/i, '$1');
+}
+
+function parseAuthInstant(iso: string | null | undefined): number | null {
+  if (!iso?.trim()) return null;
+  const raw = iso.trim();
+  let ms = Date.parse(raw);
+  if (!Number.isNaN(ms)) return ms;
+  ms = Date.parse(normalizeBackendIso(raw));
+  if (!Number.isNaN(ms)) return ms;
+  return null;
+}
+
+/** true: muddat tugagan yoki skew ichida (tez orada tugaydi) */
+function isAccessStale(iso: string | null | undefined): boolean {
+  const t = parseAuthInstant(iso);
+  if (t == null) return false;
+  return Date.now() >= t - ACCESS_REFRESH_SKEW_MS;
+}
+
+/** refresh / forcedLogout uchun — aniq tugagan deb hisoblanadi */
+function isInstantPassed(iso: string | null | undefined): boolean {
+  const t = parseAuthInstant(iso);
+  if (t == null) return false;
+  return Date.now() >= t;
+}
 
 // API base URL - .env faylida VITE_API_URL o'rnatish kerak
 export const API_BASE_URL =
@@ -25,42 +65,36 @@ const refreshApi = axios.create({
 
 let refreshPromise: Promise<void> | null = null;
 
-function isExpired(isoDate: string | null | undefined): boolean {
-  if (!isoDate) return false;
-  const expiresAt = Date.parse(isoDate);
-  if (Number.isNaN(expiresAt)) return false;
-  return Date.now() >= expiresAt;
+function applyAuthTokens(next: AuthTokensPayload) {
+  useAuthStore.setState({
+    isAuthenticated: true,
+    accessToken: next.accessToken,
+    refreshToken: next.refreshToken,
+    accessExpiresAt: next.accessExpiresAt,
+    refreshExpiresAt: next.refreshExpiresAt,
+    forcedLogoutAt: next.forcedLogoutAt,
+  });
 }
 
-async function ensureFreshAccessToken(): Promise<void> {
+/** Bir marta refresh (parallel so'rovlar bitta promise kutadi) */
+async function performTokenRefresh(): Promise<void> {
   const state = useAuthStore.getState();
-  const { refreshToken, accessExpiresAt, refreshExpiresAt, forcedLogoutAt } = state;
+  const { refreshToken, refreshExpiresAt, forcedLogoutAt } = state;
 
-  if (!isExpired(accessExpiresAt)) return;
-  if (!refreshToken || isExpired(refreshExpiresAt) || isExpired(forcedLogoutAt)) {
+  if (
+    !refreshToken ||
+    isInstantPassed(refreshExpiresAt) ||
+    isInstantPassed(forcedLogoutAt)
+  ) {
     state.logout();
     throw new Error('Session expired');
   }
 
   if (!refreshPromise) {
     refreshPromise = refreshApi
-      .post<{
-        accessToken: string;
-        accessExpiresAt: string;
-        refreshToken: string;
-        refreshExpiresAt: string;
-        forcedLogoutAt: string;
-      }>('/auth/refresh', { refreshToken })
+      .post<AuthTokensPayload>('/auth/refresh', { refreshToken })
       .then((res) => {
-        const next = res.data;
-        useAuthStore.setState({
-          isAuthenticated: true,
-          accessToken: next.accessToken,
-          refreshToken: next.refreshToken,
-          accessExpiresAt: next.accessExpiresAt,
-          refreshExpiresAt: next.refreshExpiresAt,
-          forcedLogoutAt: next.forcedLogoutAt,
-        });
+        applyAuthTokens(res.data);
       })
       .catch((error) => {
         useAuthStore.getState().logout();
@@ -72,6 +106,22 @@ async function ensureFreshAccessToken(): Promise<void> {
   }
 
   await refreshPromise;
+}
+
+async function ensureFreshAccessToken(): Promise<void> {
+  const { accessExpiresAt } = useAuthStore.getState();
+
+  if (!isAccessStale(accessExpiresAt)) return;
+
+  await performTokenRefresh();
+}
+
+function shouldSkip401Refresh(config: InternalAxiosRequestConfig): boolean {
+  const url = String(config.url ?? '');
+  if (url.includes('/auth/refresh')) return true;
+  if (url.includes('/auth/telegram/start')) return true;
+  if (url.includes('/auth/telegram/verify')) return true;
+  return false;
 }
 
 // Request interceptor - token qo'shish
@@ -92,14 +142,39 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - 401 xatolikni boshqarish
+// Response: 401 — avval refresh, keyin so'rovni 1 marta qayta urinish
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
+  async (error) => {
+    const status = error.response?.status;
+    const originalRequest = error.config as
+      | (InternalAxiosRequestConfig & { _retry?: boolean })
+      | undefined;
+
+    if (
+      status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      shouldSkip401Refresh(originalRequest)
+    ) {
+      if (status === 401) {
+        useAuthStore.getState().logout();
+      }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
+
+    try {
+      await performTokenRefresh();
+      originalRequest._retry = true;
+      const { accessToken } = useAuthStore.getState();
+      originalRequest.headers = originalRequest.headers ?? {};
+      (originalRequest.headers as Record<string, unknown>).Authorization =
+        accessToken ? `Bearer ${accessToken}` : undefined;
+      return api(originalRequest);
+    } catch {
+      useAuthStore.getState().logout();
+      return Promise.reject(error);
+    }
   }
 );
 

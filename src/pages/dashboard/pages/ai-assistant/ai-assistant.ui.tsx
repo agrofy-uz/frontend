@@ -34,7 +34,7 @@ import {
   sendChatMessage,
   type ChatMessage,
 } from '@/shared/api';
-import { useAuthStore } from '@/shared/store/authStore';
+import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import {
   MAX_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
@@ -54,6 +54,7 @@ type Message = ChatMessage & {
 function AiAssistant() {
   const location = useLocation();
   const navigate = useNavigate();
+  const authHydrated = useAuthStoreHydrated();
   const { user } = useAuthStore();
   const params = new URLSearchParams(location.search);
   const urlSessionId = params.get('chat');
@@ -107,6 +108,10 @@ function AiAssistant() {
 
   // Session yaratish yoki mavjud session history yuklash
   useEffect(() => {
+    if (!authHydrated) return undefined;
+
+    let cancelled = false;
+
     const initializeSession = async () => {
       setIsInitializing(true);
       setError(null);
@@ -114,13 +119,14 @@ function AiAssistant() {
       try {
         if (urlSessionId) {
           setCurrentSessionId(urlSessionId);
-          if (!user?.id) {
+          if (!user?.id?.trim()) {
             setMessages([]);
           } else {
             const envelope = await getChatMessages(
               urlSessionId,
               user.id
             );
+            if (cancelled) return;
             const formattedMessages: Message[] = envelope.messages.map(
               (msg) => {
                 const r = msg.role?.toLowerCase();
@@ -148,8 +154,9 @@ function AiAssistant() {
         } else {
           setCurrentSessionId(null);
           setMessages([]);
-          if (user?.id) {
+          if (user?.id?.trim()) {
             const createdChat = await createChat({ userId: user.id });
+            if (cancelled) return;
             if (createdChat.chatId) {
               setCurrentSessionId(createdChat.chatId);
               navigate(`?chat=${createdChat.chatId}`, { replace: true });
@@ -167,6 +174,7 @@ function AiAssistant() {
           }
         }
       } catch (err: any) {
+        if (cancelled) return;
         const errorMessage =
           err.response?.data?.message || err.message || 'Xatolik yuz berdi';
         setError(errorMessage);
@@ -176,13 +184,17 @@ function AiAssistant() {
           color: 'red',
         });
       } finally {
-        setIsInitializing(false);
+        if (!cancelled) {
+          setIsInitializing(false);
+        }
       }
     };
 
-    initializeSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlSessionId, user?.id, navigate]);
+    void initializeSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [authHydrated, urlSessionId, user?.id, navigate]);
 
   const hasMessages = messages.length > 0;
 
