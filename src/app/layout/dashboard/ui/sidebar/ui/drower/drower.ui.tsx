@@ -12,6 +12,7 @@ import { HiLightningBolt } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { logoutAuth } from '@/shared/api';
 import { useAuthStore } from '@/shared/store/authStore';
+import { formatPhoneNumber } from '@/shared/lib/formatNumber';
 import { localStorageHelper } from '@/shared/lib/localStorage';
 import styles from './drower.module.css';
 
@@ -110,10 +111,10 @@ function Drower({ opened, onClose, target }: DrowerProps) {
               </Avatar>
               <Box style={{ flex: 1 }}>
                 <Text fw={600} size="md" className={styles.username}>
-                  {user.username}
+                  @{user.username}
                 </Text>
                 <Text size="sm" className={styles.phoneText}>
-                  {user.phone}
+                  {formatPhoneNumber(user.phone)}
                 </Text>
               </Box>
             </Flex>
