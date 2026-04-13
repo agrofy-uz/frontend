@@ -1,4 +1,4 @@
-import { Children, useEffect, useMemo, useState } from 'react';
+import { Children, Fragment, useEffect, useMemo, useState } from 'react';
 import type { EmblaCarouselType } from 'embla-carousel';
 import { Box, type BoxProps } from '@mantine/core';
 import { Carousel, type CarouselProps } from '@mantine/carousel';
@@ -100,6 +100,7 @@ export function ResponsiveCarousel({
    */
   const [hasMeasuredFit, setHasMeasuredFit] = useState(!hideControlsWhenAllFit);
   const slideCount = Children.count(children);
+  const childrenArray = useMemo(() => Children.toArray(children), [children]);
 
   useEffect(() => {
     if (!hideControlsWhenAllFit) {
@@ -110,7 +111,9 @@ export function ResponsiveCarousel({
     if (!embla) return;
 
     const sync = () => {
-      setScrollNeeded(embla.canScrollNext() || embla.canScrollPrev());
+      const snapCount = embla.scrollSnapList().length;
+      const canScroll = embla.canScrollNext() || embla.canScrollPrev();
+      setScrollNeeded(snapCount > 1 && canScroll);
       setHasMeasuredFit(true);
     };
 
@@ -162,7 +165,6 @@ export function ResponsiveCarousel({
       ...userStyles,
       container: {
         ...userContainer,
-        ...(hideControlsWhenAllFit && !scrollNeeded ? { justifyContent: 'center' as const } : {}),
       },
       slide: {
         ...baseSlide,
@@ -187,6 +189,22 @@ export function ResponsiveCarousel({
       ? false
       : (emblaOptions?.loop ?? true);
 
+  const loopReadySlides = useMemo(() => {
+    if (!effectiveLoop || !scrollNeeded || childrenArray.length <= 1) {
+      return childrenArray;
+    }
+    if (childrenArray.length >= 6) {
+      return childrenArray;
+    }
+
+    const repeatCount = Math.ceil(6 / childrenArray.length);
+    return Array.from({ length: repeatCount }, (_, batchIndex) =>
+      childrenArray.map((child, childIndex) => (
+        <Fragment key={`loop-copy-${batchIndex}-${childIndex}`}>{child}</Fragment>
+      )),
+    ).flat();
+  }, [childrenArray, effectiveLoop, scrollNeeded]);
+
   return (
     <Box className={`${s.root} ${className ?? ''}`.trim()} style={style}>
       <Carousel
@@ -209,12 +227,14 @@ export function ResponsiveCarousel({
         }}
         emblaOptions={{
           align: 'start',
-          containScroll: false,
+          containScroll:
+            emblaOptions?.containScroll ??
+            (hideControlsWhenAllFit ? 'trimSnaps' : false),
           ...emblaOptions,
           loop: effectiveLoop,
         }}
       >
-        {children}
+        {loopReadySlides}
       </Carousel>
     </Box>
   );

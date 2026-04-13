@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Text } from '@mantine/core';
+import { Carousel } from '@mantine/carousel';
 import { MdBrokenImage } from 'react-icons/md';
 import { RatingValueDisplay } from '@/shared/ui/rating';
 import { CardLoading } from './ui/card-loading';
@@ -23,7 +24,8 @@ export type CardProps = {
   priceFrom?: number;
   /** Maksimal / «gacha» narx */
   priceUntil?: number;
-  imageUrl?: string | null;
+  /** Rasm URLlari (ketma-ket karusel) */
+  images?: (string | null)[];
   /** Rasm ustidagi ixtiyoriy yorliq (masalan «Chegirma») */
   badge?: string | null;
   /** Tilla uslub, Premium yorlig‘i */
@@ -45,7 +47,7 @@ export function Card({
   description = '',
   priceFrom = 0,
   priceUntil = 0,
-  imageUrl,
+  images: imagesProp,
   badge,
   premium = false,
   actionLabel = 'Bog‘lanish',
@@ -56,13 +58,33 @@ export function Card({
   className,
   imageAlt,
 }: CardProps) {
+  const validUrls = useMemo(
+    () =>
+      (imagesProp ?? [])
+        .map((u) => (typeof u === 'string' ? u.trim() : ''))
+        .filter(Boolean),
+    [imagesProp],
+  );
+
+  const [failedSlides, setFailedSlides] = useState<Set<number>>(() => new Set());
+
+  const urlsKey = validUrls.join('\u0001');
+  useEffect(() => {
+    setFailedSlides(new Set());
+  }, [urlsKey]);
+
+  const markFailed = useCallback((index: number) => {
+    setFailedSlides((prev) => {
+      const next = new Set(prev);
+      next.add(index);
+      return next;
+    });
+  }, []);
+
   if (loading) {
     return <CardLoading />;
   }
 
-  const [imageFailed, setImageFailed] = useState(false);
-  const src = typeof imageUrl === 'string' ? imageUrl.trim() : '';
-  const showImg = Boolean(src) && !imageFailed;
   const phoneText = typeof phone === 'string' ? phone.trim() : '';
   const parsedRating = Number(String(rating ?? '').replace(',', '.'));
   const hasRating = Number.isFinite(parsedRating);
@@ -76,6 +98,27 @@ export function Card({
       window.location.href = `tel:${phoneText}`;
     }
   };
+
+  const renderSlideContent = (url: string, index: number) => {
+    if (failedSlides.has(index)) {
+      return (
+        <div className={s.fallback} aria-hidden>
+          <MdBrokenImage size={48} />
+        </div>
+      );
+    }
+    return (
+      <img
+        className={s.slideImg}
+        src={url}
+        alt={imageAlt ?? title}
+        onError={() => markFailed(index)}
+        loading={index === 0 ? 'eager' : 'lazy'}
+      />
+    );
+  };
+
+  const showCarousel = validUrls.length > 1;
 
   return (
     <div
@@ -111,17 +154,34 @@ export function Card({
             ) : null}
           </div>
         )}
-        {showImg ? (
-          <img
-            src={src}
-            alt={imageAlt ?? title}
-            onError={() => setImageFailed(true)}
-            loading="lazy"
-          />
-        ) : (
+        {validUrls.length === 0 ? (
           <div className={s.fallback} aria-hidden>
             <MdBrokenImage size={48} />
           </div>
+        ) : showCarousel ? (
+          <Carousel
+            classNames={{
+              root: s.carouselRoot,
+              viewport: s.carouselViewport,
+              container: s.carouselContainer,
+              slide: s.carouselSlide,
+              indicators: s.carouselIndicators,
+            }}
+            h="100%"
+            withControls={false}
+            withIndicators
+            slideSize="100%"
+            slideGap={0}
+            emblaOptions={{ loop: true }}
+          >
+            {validUrls.map((url, index) => (
+              <Carousel.Slide key={`${url}-${index}`}>
+                {renderSlideContent(url, index)}
+              </Carousel.Slide>
+            ))}
+          </Carousel>
+        ) : (
+          renderSlideContent(validUrls[0], 0)
         )}
       </div>
 

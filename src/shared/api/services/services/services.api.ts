@@ -7,6 +7,22 @@ import type {
   ServiceCategoryDto,
 } from './services.types';
 
+/** API `images[]` yoki (legacy) bitta `imageUrl` */
+type ServiceImagesApiRow = {
+  images?: string[];
+  imageUrl?: string;
+};
+
+function normalizeServiceImages(row: ServiceImagesApiRow): string[] {
+  if (Array.isArray(row.images) && row.images.length > 0) {
+    return row.images.filter((u) => typeof u === 'string' && u.trim() !== '');
+  }
+  if (typeof row.imageUrl === 'string' && row.imageUrl.trim()) {
+    return [row.imageUrl.trim()];
+  }
+  return [];
+}
+
 /**
  * GET /api/services/categories
  * (VITE_API_BASE_URL oxirida /api bo‘lsin, masalan http://localhost:5167/api)
@@ -37,14 +53,24 @@ export const getDistricts = async (
 
 /** GET /api/services/premium */
 export const getPremiumServices = async (): Promise<PremiumServiceDto[]> => {
-  const response = await API.get<PremiumServiceDto[]>('/services/premium');
+  const response = await API.get<(Omit<PremiumServiceDto, 'images'> &
+    ServiceImagesApiRow)[]>('/services/premium');
   const { data } = response;
-  return Array.isArray(data) ? data : [];
+  if (!Array.isArray(data)) return [];
+  return data.map(({ imageUrl, images, ...rest }) => ({
+    ...rest,
+    images: normalizeServiceImages({ images, imageUrl }),
+  }));
 };
 
 /** GET /api/services/regular */
 export const getRegularServices = async (): Promise<RegularServiceDto[]> => {
-  const response = await API.get<RegularServiceDto[]>('/services/regular');
+  const response = await API.get<(Omit<RegularServiceDto, 'images'> &
+    ServiceImagesApiRow)[]>('/services/regular');
   const { data } = response;
-  return Array.isArray(data) ? data : [];
+  if (!Array.isArray(data)) return [];
+  return data.map(({ imageUrl, images, ...rest }) => ({
+    ...rest,
+    images: normalizeServiceImages({ images, imageUrl }),
+  }));
 };

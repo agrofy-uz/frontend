@@ -12,7 +12,7 @@ export type PremiumServiceDto = {
   description: string;
   priceFrom: number;
   priceUntil: number;
-  imageUrl: string;
+  images: string[];
   premium: boolean;
   phone: string;
   rating?: string;
@@ -25,7 +25,7 @@ export type RegularServiceDto = {
   description: string;
   priceFrom: number;
   priceUntil: number;
-  imageUrl: string;
+  images: string[];
   rating?: string;
   premium: boolean;
   phone: string;

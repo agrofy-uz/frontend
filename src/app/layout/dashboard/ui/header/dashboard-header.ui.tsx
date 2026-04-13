@@ -5,7 +5,8 @@ import { ThemeToggle } from '@/app/layout/footer/ui/theme-toggle';
 import { SearchInput } from '@/pages/dashboard/pages/services/ui/search-input/search-input.ui';
 
 const isServicesRoute = (pathname: string) =>
-  pathname === '/dashboard/services' || pathname.startsWith('/dashboard/services/');
+  pathname === '/dashboard/services' ||
+  pathname.startsWith('/dashboard/services/');
 
 const DashboardHeader = () => {
   const location = useLocation();
@@ -20,6 +21,7 @@ const DashboardHeader = () => {
     if (pathname === '/dashboard/services') return 'Xizmatlar';
     if (pathname === '/dashboard/market') return 'Mahsulotlar';
     if (pathname === '/dashboard/reports') return 'Hisobotlar';
+    if (pathname === '/dashboard/my-ads') return "Mening e'lonlarim";
     if (pathname === '/dashboard/settings') return 'Sozlamalar';
     if (pathname === '/dashboard/profile') return 'Profil';
     if (pathname === '/dashboard/pricing') return 'Tariflar';

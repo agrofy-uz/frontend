@@ -45,7 +45,7 @@
   position: relative;
   flex-shrink: 0;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   background: light-dark(
     var(--mantine-color-gray-1),
     var(--mantine-color-dark-5)
@@ -53,7 +53,7 @@
   overflow: hidden;
 }
 
-.media img {
+.slideImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -62,8 +62,28 @@
   transform: scale(1);
 }
 
-.root:hover .media img {
+.root:hover .slideImg {
   transform: scale(1.045);
+}
+
+.carouselRoot {
+  position: relative;
+  height: 100%;
+}
+
+.carouselViewport,
+.carouselContainer,
+.carouselSlide {
+  height: 100%;
+}
+
+.carouselIndicators {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  gap: 6px;
 }
 
 .fallback {
