@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Modal, Stack, Text } from '@mantine/core';
+import { Stack, Text } from '@mantine/core';
 import { Segmented } from '@/shared/ui/segmented';
-import { useMediaQuery } from '@mantine/hooks';
+import { ServiceCreateForm } from './ui/service-create-form.ui';
+import { Modal } from '@/shared/ui/modal';
 
 type CreateProps = {
   opened: boolean;
@@ -13,7 +14,6 @@ function Create({ opened, onClose, initialType }: CreateProps) {
   const [createType, setCreateType] = useState<'services' | 'products'>(
     initialType
   );
-  const isMobile = useMediaQuery('(max-width: 768px)');
   useEffect(() => {
     if (!opened) return;
     setCreateType(initialType);
@@ -24,8 +24,6 @@ function Create({ opened, onClose, initialType }: CreateProps) {
       opened={opened}
       onClose={onClose}
       title="Yangi e'lon yaratish"
-      size={isMobile ? '100%' : '60%'}
-      yOffset={isMobile ? 100 : '15vh'}
       radius="md"
     >
       <Stack gap="md">
@@ -39,11 +37,13 @@ function Create({ opened, onClose, initialType }: CreateProps) {
           ]}
         />
 
-        <Text c="dimmed">
-          {createType === 'services'
-            ? 'Xizmat yaratish formasi shu yerga qo‘yiladi.'
-            : 'Mahsulot yaratish formasi shu yerga qo‘yiladi.'}
-        </Text>
+        {createType === 'services' ? (
+          <ServiceCreateForm onCancel={onClose} />
+        ) : (
+          <Text c="dimmed">
+            Mahsulot yaratish formasi keyingi bosqichda qo‘shiladi.
+          </Text>
+        )}
       </Stack>
     </Modal>
   );

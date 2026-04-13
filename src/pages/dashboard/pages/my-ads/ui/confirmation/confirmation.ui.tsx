@@ -1,5 +1,6 @@
-import { Alert, Button, Group, Modal, Stack, Text } from '@mantine/core';
+import { Alert, Button, Group, Stack, Text } from '@mantine/core';
 import { MdOutlineWarningAmber } from 'react-icons/md';
+import { Modal } from '@/shared/ui/modal';
 
 type ConfirmationProps = {
   opened: boolean;
