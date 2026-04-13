@@ -198,6 +198,11 @@ html[data-mantine-color-scheme='dark'] .premium .priceFrom {
   margin-top: 4px;
 }
 
+.manageIcon {
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
 .btnPremium {
   background: linear-gradient(135deg, #ffd700 0%, #d4af37 50%, #b8860b 100%);
   border: none !important;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Badge, Button, Text } from '@mantine/core';
+import { ActionIcon, Badge, Button, Group, Text } from '@mantine/core';
 import { Carousel } from '@mantine/carousel';
-import { MdBrokenImage } from 'react-icons/md';
+import { MdBrokenImage, MdDeleteOutline, MdOutlineEdit } from 'react-icons/md';
 import { RatingValueDisplay } from '@/shared/ui/rating';
 import { CardLoading } from './ui/card-loading';
 import s from './card.module.css';
@@ -46,6 +46,9 @@ export type CardProps = {
   rating?: string | number | null;
   loading?: boolean;
   onAction?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  actionMode?: 'contact' | 'manage';
   className?: string;
   imageAlt?: string;
 };
@@ -63,6 +66,9 @@ export function Card({
   rating,
   loading = false,
   onAction,
+  onEdit,
+  onDelete,
+  actionMode = 'contact',
   className,
   imageAlt,
 }: CardProps) {
@@ -71,10 +77,12 @@ export function Card({
       (imagesProp ?? [])
         .map((u) => (typeof u === 'string' ? u.trim() : ''))
         .filter(Boolean),
-    [imagesProp],
+    [imagesProp]
   );
 
-  const [failedSlides, setFailedSlides] = useState<Set<number>>(() => new Set());
+  const [failedSlides, setFailedSlides] = useState<Set<number>>(
+    () => new Set()
+  );
 
   const urlsKey = validUrls.join('\u0001');
   useEffect(() => {
@@ -90,7 +98,7 @@ export function Card({
   }, []);
 
   if (loading) {
-    return <CardLoading />;
+    return <CardLoading actionMode={actionMode} />;
   }
 
   const phoneText = typeof phone === 'string' ? phone.trim() : '';
@@ -105,6 +113,14 @@ export function Card({
     if (phoneText && typeof window !== 'undefined') {
       window.location.href = `tel:${phoneText}`;
     }
+  };
+
+  const handleEdit = () => {
+    onEdit?.();
+  };
+
+  const handleDelete = () => {
+    onDelete?.();
   };
 
   const renderSlideContent = (url: string, index: number) => {
@@ -218,17 +234,44 @@ export function Card({
         </div>
 
         <div className={s.action}>
-          <Button
-            fullWidth
-            size="sm"
-            h={36}
-            radius="md"
-            color={premium ? undefined : 'green'}
-            onClick={handleAction}
-            classNames={premium ? { root: s.btnPremium } : undefined}
-          >
-            {actionLabel}
-          </Button>
+          {actionMode === 'manage' ? (
+            <Group grow gap="xs" wrap="nowrap">
+              <ActionIcon
+                variant="light"
+                color="green"
+                size={36}
+                radius="md"
+                aria-label="Tahrirlash"
+                onClick={handleEdit}
+                className={s.manageIcon}
+              >
+                <MdOutlineEdit size={18} />
+              </ActionIcon>
+              <ActionIcon
+                variant="light"
+                color="red"
+                size={36}
+                radius="md"
+                aria-label="O‘chirish"
+                onClick={handleDelete}
+                className={s.manageIcon}
+              >
+                <MdDeleteOutline size={18} />
+              </ActionIcon>
+            </Group>
+          ) : (
+            <Button
+              fullWidth
+              size="sm"
+              h={36}
+              radius="md"
+              color={premium ? undefined : 'green'}
+              onClick={handleAction}
+              classNames={premium ? { root: s.btnPremium } : undefined}
+            >
+              {actionLabel}
+            </Button>
+          )}
         </div>
       </div>
     </div>

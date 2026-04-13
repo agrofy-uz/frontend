@@ -27,7 +27,9 @@ function normalizeServiceImages(row: ServiceImagesApiRow): string[] {
  * GET /api/services/categories
  * (VITE_API_BASE_URL oxirida /api bo‘lsin, masalan http://localhost:5167/api)
  */
-export const getServicesCategories = async (): Promise<ServiceCategoryDto[]> => {
+export const getServicesCategories = async (): Promise<
+  ServiceCategoryDto[]
+> => {
   const response = await API.get<ServiceCategoryDto[]>('/services/categories');
   const { data } = response;
   return Array.isArray(data) ? data : [];
@@ -42,7 +44,7 @@ export const getRegions = async (): Promise<RegionDto[]> => {
 
 /** GET /api/districts?regionId=… */
 export const getDistricts = async (
-  regionId: string,
+  regionId: string
 ): Promise<DistrictDto[]> => {
   const response = await API.get<DistrictDto[]>('/districts', {
     params: { regionId },
@@ -53,8 +55,10 @@ export const getDistricts = async (
 
 /** GET /api/services/premium */
 export const getPremiumServices = async (): Promise<PremiumServiceDto[]> => {
-  const response = await API.get<(Omit<PremiumServiceDto, 'images'> &
-    ServiceImagesApiRow)[]>('/services/premium');
+  const response =
+    await API.get<(Omit<PremiumServiceDto, 'images'> & ServiceImagesApiRow)[]>(
+      '/services/premium'
+    );
   const { data } = response;
   if (!Array.isArray(data)) return [];
   return data.map(({ imageUrl, images, ...rest }) => ({
@@ -65,8 +69,10 @@ export const getPremiumServices = async (): Promise<PremiumServiceDto[]> => {
 
 /** GET /api/services/regular */
 export const getRegularServices = async (): Promise<RegularServiceDto[]> => {
-  const response = await API.get<(Omit<RegularServiceDto, 'images'> &
-    ServiceImagesApiRow)[]>('/services/regular');
+  const response =
+    await API.get<(Omit<RegularServiceDto, 'images'> & ServiceImagesApiRow)[]>(
+      '/services/regular'
+    );
   const { data } = response;
   if (!Array.isArray(data)) return [];
   return data.map(({ imageUrl, images, ...rest }) => ({
