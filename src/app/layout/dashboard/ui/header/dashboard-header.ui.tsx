@@ -3,6 +3,7 @@ import { IoIosNotifications } from 'react-icons/io';
 import { useLocation } from 'react-router-dom';
 import { ThemeToggle } from '@/app/layout/footer/ui/theme-toggle';
 import { SearchInput } from '@/pages/dashboard/pages/services/ui/search-input/search-input.ui';
+import { useMediaQuery } from '@mantine/hooks';
 
 const isServicesRoute = (pathname: string) =>
   pathname === '/dashboard/services' ||
@@ -11,7 +12,7 @@ const isServicesRoute = (pathname: string) =>
 const DashboardHeader = () => {
   const location = useLocation();
   const showServicesSearch = isServicesRoute(location.pathname);
-
+  const isMobile = useMediaQuery('(max-width: 1000px)');
   const getPageName = () => {
     const pathname = location.pathname;
     if (pathname === '/dashboard' || pathname === '/dashboard/home') {
@@ -38,7 +39,12 @@ const DashboardHeader = () => {
       style={{ minWidth: 0 }}
     >
       <Box miw={0} style={{ flex: '0 1 auto' }}>
-        <Text fw={700} fz="lg" className="textPrimary" lineClamp={1}>
+        <Text
+          fw={700}
+          fz={isMobile ? 'md' : 'lg'}
+          className="textPrimary"
+          lineClamp={1}
+        >
           {getPageName()}
         </Text>
       </Box>

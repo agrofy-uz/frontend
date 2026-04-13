@@ -1,4 +1,5 @@
 import { SegmentedControl, type SegmentedControlProps } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 
 type SegmentedItem = {
   label: string;
@@ -15,13 +16,14 @@ type SegmentedProps = Omit<
 };
 
 export function Segmented({ data, value, onChange, ...props }: SegmentedProps) {
+  const isMobile = useMediaQuery('(max-width: 1000px)');
   return (
     <SegmentedControl
       data={data}
       value={value}
       onChange={onChange}
       radius="md"
-      size="md"
+      size={isMobile ? 'sm' : 'md'}
       color="green"
       styles={() => ({
         root: {
