@@ -150,7 +150,7 @@
 .priceLine {
   display: block;
   font-size: var(--mantine-font-size-xs);
-  line-height: 1.4;
+  line-height: 1.25;
   word-break: break-word;
 }
 
@@ -160,7 +160,9 @@
 }
 
 .priceFrom {
+  font-size: var(--mantine-font-size-sm);
   font-weight: 600;
+  line-height: 1.15;
   color: var(--mantine-color-green-7);
 }
 
@@ -174,8 +176,14 @@ html[data-mantine-color-scheme='dark'] .priceFrom {
 }
 
 .priceUntil {
-  font-weight: 500;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
   color: var(--mantine-color-dimmed);
+}
+
+.priceTail {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
 }
 
 .premium .priceFrom {

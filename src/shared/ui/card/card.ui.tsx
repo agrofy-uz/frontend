@@ -16,6 +16,14 @@ export function formatServicePriceSom(value: number): string {
   return `${body} so‘m`;
 }
 
+function formatServicePriceAmount(value: number): string {
+  const n = Math.trunc(value);
+  const digits = Math.abs(n)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return n < 0 ? `-${digits}` : digits;
+}
+
 export type CardProps = {
   id?: string;
   title?: string;
@@ -198,11 +206,13 @@ export function Card({
           <Text component="span" className={s.priceLine}>
             <span className={s.priceLabel}>Narx:</span>{' '}
             <span className={s.priceFrom}>
-              {formatServicePriceSom(priceFrom)}
+              {formatServicePriceAmount(priceFrom)}{' '}
+              <span className={s.priceTail}>so‘m</span>
             </span>
             <span className={s.priceMid}> dan - </span>
             <span className={s.priceUntil}>
-              {formatServicePriceSom(priceUntil)} gacha
+              {formatServicePriceAmount(priceUntil)}{' '}
+              <span className={s.priceTail}>so‘m gacha</span>
             </span>
           </Text>
         </div>
