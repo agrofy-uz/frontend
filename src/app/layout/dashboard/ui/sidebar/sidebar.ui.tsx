@@ -1,12 +1,13 @@
 import { NavLink, Stack, Box, Avatar, Badge, Text, Flex } from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
+import { TbClipboardList } from 'react-icons/tb';
 import { FaHome } from 'react-icons/fa';
 import { Logo } from '../logo';
 import styles from './sidebar.module.css';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import { MdOutlineMiscellaneousServices } from 'react-icons/md';
-import { FaChartColumn, FaStore } from 'react-icons/fa6';
+import { FaStore } from 'react-icons/fa6';
 import { Drower } from './ui/drower';
 import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import { useAuthStore } from '@/shared/store/authStore';
@@ -102,7 +103,12 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
       path: '/dashboard/services',
     },
     { label: 'Mahsulotlar', icon: FaStore, path: '/dashboard/market' },
-    { label: 'Hisobotlar', icon: FaChartColumn, path: '/dashboard/reports' },
+    // { label: 'Hisobotlar', icon: FaChartColumn, path: '/dashboard/reports' },
+    {
+      label: "Mening e'lonlarim",
+      icon: TbClipboardList,
+      path: '/dashboard/my-ads',
+    },
   ];
 
   return (
