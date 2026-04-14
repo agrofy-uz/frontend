@@ -17,6 +17,7 @@ import {
 } from '@mantine/core';
 import { useQuery } from '@tanstack/react-query';
 import { MdAddPhotoAlternate, MdDeleteOutline } from 'react-icons/md';
+import { PhoneInput } from '@/shared/ui/phone-input';
 import {
   getDistricts,
   getRegions,
@@ -186,12 +187,11 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
         />
       </SimpleGrid>
 
-      <TextInput
+      <PhoneInput
         label="Telefon raqam"
-        type="tel"
-        placeholder="+998 90 123 45 67"
+        placeholder="+998 (__) ___-__-__"
         value={phone}
-        onChange={(e) => setPhone(e.currentTarget.value)}
+        onChange={setPhone}
         required
         error={errors.phone}
       />
