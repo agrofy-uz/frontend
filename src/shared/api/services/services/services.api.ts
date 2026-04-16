@@ -4,6 +4,8 @@ import type {
   PremiumServiceDto,
   RegularServiceDto,
   RegionDto,
+  ServiceDetailDto,
+  ServiceReactionsDto,
   ServiceCategoryDto,
 } from './services.types';
 
@@ -22,6 +24,23 @@ function normalizeServiceImages(row: ServiceImagesApiRow): string[] {
   }
   return [];
 }
+
+/** GET /api/services/:id */
+export const getServiceById = async (
+  id: string
+): Promise<ServiceDetailDto | null> => {
+  if (!id.trim()) return null;
+  const response = await API.get<Omit<ServiceDetailDto, 'images'> & ServiceImagesApiRow>(
+    `/services/${id}`
+  );
+  const data = response.data;
+  if (!data || typeof data !== 'object') return null;
+  const { imageUrl, images, ...rest } = data;
+  return {
+    ...rest,
+    images: normalizeServiceImages({ images, imageUrl }),
+  };
+};
 
 /**
  * GET /api/services/categories
@@ -79,4 +98,27 @@ export const getRegularServices = async (): Promise<RegularServiceDto[]> => {
     ...rest,
     images: normalizeServiceImages({ images, imageUrl }),
   }));
+};
+
+/** GET /api/reactions/:itemId */
+export const getServiceReactions = async (
+  itemId: string
+): Promise<ServiceReactionsDto | null> => {
+  if (!itemId.trim()) return null;
+  const response = await API.get<ServiceReactionsDto>(`/reactions/${itemId}`);
+  const data = response.data;
+  if (!data || typeof data !== 'object') return null;
+  return data;
+};
+
+/** POST /api/reactions/:itemId/like */
+export const likeService = async (itemId: string): Promise<void> => {
+  if (!itemId.trim()) return;
+  await API.post(`/reactions/${itemId}/like`);
+};
+
+/** POST /api/reactions/:itemId/dislike */
+export const dislikeService = async (itemId: string): Promise<void> => {
+  if (!itemId.trim()) return;
+  await API.post(`/reactions/${itemId}/dislike`);
 };

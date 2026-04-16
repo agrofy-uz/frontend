@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Flex } from '@mantine/core';
 import { Segmented } from '@/shared/ui/segmented';
 import { useMediaQuery } from '@mantine/hooks';
+import { useSearchParams } from 'react-router-dom';
 import { ServicesTab } from './ui/services-tab';
 import { ProductsTab } from './ui/products-tab';
 import { Button } from '@/shared/ui/button';
@@ -13,7 +14,22 @@ function MyAds() {
     'services'
   );
   const [createOpened, setCreateOpened] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useMediaQuery('(max-width: 1000px)');
+
+  useEffect(() => {
+    const createType = searchParams.get('create');
+    if (createType !== 'services' && createType !== 'products') return;
+
+    setActiveTab(createType);
+    setCreateOpened(true);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('create');
+      return next;
+    });
+  }, [searchParams, setSearchParams]);
+
   return (
     <Box>
       <Flex

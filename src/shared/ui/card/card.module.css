@@ -23,6 +23,10 @@
   box-shadow: var(--mantine-shadow-md);
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 .premium {
   border-color: #c9a227;
   background: linear-gradient(
@@ -126,15 +130,26 @@
 }
 
 .description {
-  font-size: var(--mantine-font-size-xs);
-  line-height: 1.5;
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.35;
   color: var(--mantine-color-dimmed);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  min-height: calc(1.5em * 2);
+}
+
+.regionText {
+  color: var(--mantine-color-green-7);
+  font-weight: 600;
+}
+
+html[data-mantine-color-scheme='dark'] .regionText {
+  color: var(--mantine-color-green-4);
+}
+
+.locationSep {
+  color: var(--mantine-color-dimmed);
+}
+
+.districtText {
+  color: var(--mantine-color-dimmed);
 }
 
 .ratingRow {

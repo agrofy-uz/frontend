@@ -9,7 +9,9 @@ export type ServiceCategoryDto = {
 export type PremiumServiceDto = {
   id: string;
   title: string;
-  description: string;
+  description?: string;
+  regions?: string;
+  districts?: string;
   priceFrom: number;
   priceUntil: number;
   images: string[];
@@ -22,7 +24,9 @@ export type PremiumServiceDto = {
 export type RegularServiceDto = {
   id: string;
   title: string;
-  description: string;
+  description?: string;
+  regions?: string;
+  districts?: string;
   priceFrom: number;
   priceUntil: number;
   images: string[];
@@ -41,4 +45,30 @@ export type RegionDto = {
 export type DistrictDto = {
   id: string;
   name: string;
+};
+
+/** GET /api/services/:id */
+export type ServiceDetailDto = {
+  id: string;
+  title: string;
+  regions: string;
+  districts: string;
+  priceFrom: number;
+  priceUntil: number;
+  images: string[];
+  premium: boolean;
+  phone: string;
+  description: string;
+  telegram: string;
+  instagram: string;
+  category: string;
+};
+
+/** GET /api/reactions/:itemId */
+export type ServiceReactionsDto = {
+  itemId: string;
+  likes: number;
+  dislikes: number;
+  rating: number;
+  myReaction: 'like' | 'dislike' | null;
 };

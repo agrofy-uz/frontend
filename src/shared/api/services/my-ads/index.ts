@@ -1,2 +1,2 @@
-export { deleteMyService, getMyServices } from './my-ads.api';
-export type { MyServiceDto } from './my-ads.types';
+export { createMyService, deleteMyService, getMyServices } from './my-ads.api';
+export type { CreateMyServicePayload, MyServiceDto } from './my-ads.types';

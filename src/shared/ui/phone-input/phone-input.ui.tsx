@@ -41,10 +41,25 @@ export function PhoneInput({ value, onChange, ...props }: PhoneInputProps) {
     <TextInput
       {...props}
       type="tel"
-      leftSection={COUNTRY_CODE}
+      leftSection={
+        <span
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: 'light-dark(var(--mantine-color-dark-7), var(--mantine-color-gray-1))',
+          }}
+        >
+          {COUNTRY_CODE}
+        </span>
+      }
       leftSectionWidth={50}
       placeholder={cleanPlaceholder}
       value={formattedLocal}
+      styles={{
+        input: {
+          fontWeight: 600,
+        },
+      }}
       onChange={(event) => {
         const nextLocal = extractLocalDigits(event.currentTarget.value);
         const nextLocalFormatted = formatLocalDigits(nextLocal);

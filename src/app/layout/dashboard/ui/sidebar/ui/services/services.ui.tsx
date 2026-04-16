@@ -96,14 +96,8 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
 
   const createService = useCallback(() => {
     if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();
-    navigate({
-      pathname: '/dashboard/services',
-      search: mergeServicesFilterIntoSearchParams(
-        new URLSearchParams(),
-        appliedFilter
-      ).toString(),
-    });
-  }, [appliedFilter, mobileDrawer, navigate]);
+    navigate('/dashboard/my-ads?create=services');
+  }, [mobileDrawer, navigate]);
 
   return (
     <Stack gap={0} h="100%" style={{ minHeight: 0 }}>

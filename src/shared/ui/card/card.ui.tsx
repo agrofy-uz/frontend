@@ -4,6 +4,7 @@ import { Carousel } from '@mantine/carousel';
 import { MdBrokenImage, MdDeleteOutline, MdOutlineEdit } from 'react-icons/md';
 import { RatingValueDisplay } from '@/shared/ui/rating';
 import { CardLoading } from './ui/card-loading';
+import { CardDetailModal } from './ui/carddetail';
 import s from './card.module.css';
 
 /** Mingliklar vergul emas, oddiy bo‘shliq bilan */
@@ -27,7 +28,8 @@ function formatServicePriceAmount(value: number): string {
 export type CardProps = {
   id?: string;
   title?: string;
-  description?: string;
+  regions?: string;
+  districts?: string;
   /** Minimal narx */
   priceFrom?: number;
   /** Maksimal / «gacha» narx */
@@ -54,8 +56,10 @@ export type CardProps = {
 };
 
 export function Card({
+  id,
   title = '',
-  description = '',
+  regions = '',
+  districts = '',
   priceFrom = 0,
   priceUntil = 0,
   images: imagesProp,
@@ -83,6 +87,7 @@ export function Card({
   const [failedSlides, setFailedSlides] = useState<Set<number>>(
     () => new Set()
   );
+  const [detailOpened, setDetailOpened] = useState(false);
 
   const urlsKey = validUrls.join('\u0001');
   useEffect(() => {
@@ -143,12 +148,21 @@ export function Card({
   };
 
   const showCarousel = validUrls.length > 1;
+  const regionText = regions.trim();
+  const districtText = districts.trim();
+  const canOpenDetail = Boolean(id?.trim());
 
   return (
     <div
-      className={`${s.root} ${premium ? s.premium : ''} ${className ?? ''}`.trim()}
+      className={`${s.root} ${premium ? s.premium : ''} ${canOpenDetail ? s.clickable : ''} ${className ?? ''}`.trim()}
+      onClick={(e) => {
+        if (!e.currentTarget.contains(e.target as Node)) return;
+        if (canOpenDetail) setDetailOpened(true);
+      }}
     >
-      <div className={s.media}>
+      <div
+        className={s.media}
+      >
         {(badge || premium) && (
           <div className={s.badgeWrap}>
             {badge ? (
@@ -211,7 +225,13 @@ export function Card({
 
       <div className={s.body}>
         <Text className={s.title}>{title}</Text>
-        <Text className={s.description}>{description}</Text>
+
+        <Text className={s.description}>
+          <span className={s.regionText}>{regionText || '—'}</span>
+          <span className={s.locationSep}> - </span>
+          <span className={s.districtText}>{districtText || '—'}</span>
+        </Text>
+
         {hasRating ? (
           <div className={s.ratingRow}>
             <RatingValueDisplay value={parsedRating} />
@@ -242,7 +262,10 @@ export function Card({
                 size={36}
                 radius="md"
                 aria-label="Tahrirlash"
-                onClick={handleEdit}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEdit();
+                }}
                 className={s.manageIcon}
               >
                 <MdOutlineEdit size={18} />
@@ -253,7 +276,10 @@ export function Card({
                 size={36}
                 radius="md"
                 aria-label="O‘chirish"
-                onClick={handleDelete}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete();
+                }}
                 className={s.manageIcon}
               >
                 <MdDeleteOutline size={18} />
@@ -266,7 +292,10 @@ export function Card({
               h={36}
               radius="md"
               color={premium ? undefined : 'green'}
-              onClick={handleAction}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAction();
+              }}
               classNames={premium ? { root: s.btnPremium } : undefined}
             >
               {actionLabel}
@@ -274,6 +303,11 @@ export function Card({
           )}
         </div>
       </div>
+      <CardDetailModal
+        serviceId={id ?? null}
+        opened={detailOpened}
+        onClose={() => setDetailOpened(false)}
+      />
     </div>
   );
 }

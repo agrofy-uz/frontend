@@ -15,23 +15,35 @@ import {
   TextInput,
   Textarea,
 } from '@mantine/core';
-import { useQuery } from '@tanstack/react-query';
-import { MdAddPhotoAlternate, MdDeleteOutline } from 'react-icons/md';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  MdAddPhotoAlternate,
+  MdCheckCircle,
+  MdDeleteOutline,
+} from 'react-icons/md';
 import { PhoneInput } from '@/shared/ui/phone-input';
+import { createMyService } from '@/shared/api/services/my-ads';
 import {
   getDistricts,
   getRegions,
   getServicesCategories,
 } from '@/shared/api/services/services';
 import { openNotification } from '@/shared/lib/notification';
-
-const MAX_IMAGES = 3;
-
+import { useAuthStore } from '@/shared/store/authStore';
+import {
+  buildCreateServiceFormData,
+  MAX_IMAGES,
+  renderCategoryIcon,
+  type CategoryOption,
+  validateServiceCreateDraft,
+} from './service-create-form.const';
 type ServiceCreateFormProps = {
   onCancel: () => void;
 };
 
 export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
+  const queryClient = useQueryClient();
+  const userPremium = useAuthStore((state) => Boolean(state.user?.premium));
   const [regionId, setRegionId] = useState<string | null>(null);
   const [districtId, setDistrictId] = useState<string | null>(null);
   const [images, setImages] = useState<File[]>([]);
@@ -44,6 +56,7 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
   const [telegram, setTelegram] = useState('');
   const [instagram, setInstagram] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputs = useRef<Array<HTMLInputElement | null>>([]);
 
   const { data: categories } = useQuery({
@@ -68,8 +81,16 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
 
   const categoryOptions = useMemo(
     () =>
-      (categories ?? []).map((item) => ({ value: item.id, label: item.name })),
+      (categories ?? []).map((item) => ({
+        value: item.id,
+        label: item.name,
+        icon: item.icon,
+      })),
     [categories]
+  );
+  const selectedCategory = useMemo(
+    () => categoryOptions.find((item) => item.value === categoryId) ?? null,
+    [categoryId, categoryOptions]
   );
 
   const regionOptions = useMemo(
@@ -91,6 +112,28 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
       })),
     [images]
   );
+
+  const createMutation = useMutation({
+    mutationFn: createMyService,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['my-services'] });
+      await queryClient.invalidateQueries({ queryKey: ['services', 'regular'] });
+      await queryClient.invalidateQueries({ queryKey: ['services', 'premium'] });
+      openNotification({
+        title: "Xizmat e'loni yaratildi",
+        type: 'success',
+        icon: <MdCheckCircle size={20} />,
+      });
+      onCancel();
+    },
+    onError: () => {
+      openNotification({
+        title: "Xizmat e'lonini yaratishda xatolik yuz berdi",
+        type: 'error',
+        icon: <MdDeleteOutline size={20} />,
+      });
+    },
+  });
 
   useEffect(() => {
     return () => {
@@ -114,27 +157,83 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
-    const nextErrors: Record<string, string> = {};
-    if (!categoryId) nextErrors.categoryId = 'Xizmat turi majburiy';
-    if (!title.trim()) nextErrors.title = 'Xizmat nomi majburiy';
-    if (!regionId) nextErrors.regionId = 'Viloyat majburiy';
-    if (!districtId) nextErrors.districtId = 'Tuman majburiy';
-    if (!phone.trim()) nextErrors.phone = 'Telefon raqam majburiy';
-    if (Number(priceFrom) <= 0)
-      nextErrors.priceFrom = "Boshlang'ich narx majburiy";
-    if (Number(priceUntil) <= 0) nextErrors.priceUntil = 'Oxirgi narx majburiy';
-    if (!description.trim()) nextErrors.description = 'Qisqacha majburiy';
-    if (images.length < 1) nextErrors.images = 'Kamida 1 ta rasm yuklang';
+  const getImageFromTransfer = async (
+    transfer: DataTransfer
+  ): Promise<File | null> => {
+    const droppedFile = Array.from(transfer.files).find((file) =>
+      file.type.startsWith('image/')
+    );
+    if (droppedFile) return droppedFile;
 
+    const url =
+      transfer.getData('text/uri-list') || transfer.getData('text/plain');
+    if (!url || !/^https?:\/\//i.test(url)) return null;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) return null;
+      const ext = blob.type.split('/')[1] || 'jpg';
+      return new File([blob], `dropped-image.${ext}`, { type: blob.type });
+    } catch {
+      return null;
+    }
+  };
+
+  const handleDropAt = async (slotIndex: number, transfer: DataTransfer) => {
+    const file = await getImageFromTransfer(transfer);
+    if (!file) {
+      openNotification({
+        title: "Rasmni o'qib bo'lmadi",
+        type: 'error',
+        icon: <MdDeleteOutline size={20} />,
+      });
+      return;
+    }
+    setImageAt(slotIndex, file);
+    setErrors((prev) => {
+      if (!prev.images) return prev;
+      const next = { ...prev };
+      delete next.images;
+      return next;
+    });
+  };
+
+  const handleSave = () => {
+    const nextErrors = validateServiceCreateDraft({
+      categoryId,
+      title,
+      regionId,
+      districtId,
+      phone,
+      priceFrom,
+      priceUntil,
+      description,
+      telegram,
+      instagram,
+      images,
+    });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    openNotification({
-      title: "Xizmat e'loni saqlashga tayyor",
-      type: 'success',
-      icon: <MdAddPhotoAlternate size={20} />,
-    });
+    const formData = buildCreateServiceFormData(
+      {
+        categoryId,
+        title,
+        regionId,
+        districtId,
+        phone,
+        priceFrom,
+        priceUntil,
+        description,
+        telegram,
+        instagram,
+        premium: userPremium,
+        images,
+      }
+    );
+    createMutation.mutate(formData);
   };
 
   return (
@@ -143,6 +242,23 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
         label="Xizmat turi"
         placeholder="Xizmat turini tanlang"
         data={categoryOptions}
+        leftSection={renderCategoryIcon(selectedCategory?.icon)}
+        withCheckIcon={false}
+        renderOption={({ option, checked }) => {
+          const typedOption = option as unknown as CategoryOption;
+          return (
+            <Group gap="xs" wrap="nowrap">
+              {renderCategoryIcon(typedOption.icon)}
+              <Text
+                size="sm"
+                c={checked ? 'green.7' : undefined}
+                fw={checked ? 600 : 400}
+              >
+                {typedOption.label}
+              </Text>
+            </Group>
+          );
+        }}
         searchable
         nothingFoundMessage="Topilmadi"
         value={categoryId}
@@ -223,14 +339,14 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
 
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
         <TextInput
-          label="Telegram (ixtiyoriy)"
-          placeholder="@username"
+          label="Telegram"
+          placeholder="Masalan, @username"
           value={telegram}
           onChange={(e) => setTelegram(e.currentTarget.value)}
         />
         <TextInput
-          label="Instagram (ixtiyoriy)"
-          placeholder="@instagram"
+          label="Instagram"
+          placeholder="Masalan, @username"
           value={instagram}
           onChange={(e) => setInstagram(e.currentTarget.value)}
         />
@@ -265,13 +381,28 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
                 style={{
                   borderRadius: 10,
                   border:
-                    '1px dashed light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3))',
+                    dragOverIndex === index
+                      ? '1px dashed var(--mantine-color-green-6)'
+                      : '1px dashed light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3))',
                   overflow: 'hidden',
                   cursor: 'pointer',
                   background:
                     'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))',
                 }}
                 onClick={() => fileInputs.current[index]?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'copy';
+                  setDragOverIndex(index);
+                }}
+                onDragLeave={() => {
+                  setDragOverIndex((prev) => (prev === index ? null : prev));
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverIndex(null);
+                  void handleDropAt(index, e.dataTransfer);
+                }}
               >
                 {preview ? (
                   <>
@@ -321,10 +452,18 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
       </Input.Wrapper>
 
       <Group justify="flex-end" mt="sm" gap="xs">
-        <Button variant="default" onClick={onCancel}>
+        <Button
+          variant="default"
+          onClick={onCancel}
+          disabled={createMutation.isPending}
+        >
           Bekor qilish
         </Button>
-        <Button color="green" onClick={handleSave}>
+        <Button
+          color="green"
+          onClick={handleSave}
+          loading={createMutation.isPending}
+        >
           Saqlash
         </Button>
       </Group>

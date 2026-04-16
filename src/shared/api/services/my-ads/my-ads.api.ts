@@ -30,3 +30,10 @@ export const getMyServices = async (): Promise<MyServiceDto[]> => {
 export const deleteMyService = async (id: string): Promise<void> => {
   await API.delete(`/my-services/${id}`);
 };
+
+/** POST /api/my-services (multipart/form-data) */
+export const createMyService = async (formData: FormData): Promise<void> => {
+  await API.post('/my-services', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
