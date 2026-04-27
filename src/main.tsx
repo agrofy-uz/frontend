@@ -7,13 +7,14 @@ import './index.css';
 import './shared/i18n';
 import { initializeLocale } from './shared/lib/language';
 
-initializeLocale();
-const savedPath = sessionStorage.getItem('path');
+const redirect = sessionStorage.getItem('redirect');
 
-if (savedPath) {
-  sessionStorage.removeItem('path');
-  window.history.replaceState(null, '', savedPath);
+if (redirect && window.location.pathname === '/') {
+  sessionStorage.removeItem('redirect');
+  window.history.replaceState(null, '', redirect);
 }
+
+initializeLocale();
 
 createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
