@@ -8,6 +8,12 @@ import './shared/i18n';
 import { initializeLocale } from './shared/lib/language';
 
 initializeLocale();
+const savedPath = sessionStorage.getItem('path');
+
+if (savedPath) {
+  sessionStorage.removeItem('path');
+  window.history.replaceState(null, '', savedPath);
+}
 
 createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
