@@ -7,21 +7,11 @@ import './index.css';
 import './shared/i18n';
 import { initializeLocale } from './shared/lib/language';
 
-const redirect = sessionStorage.getItem('redirect');
-
-if (redirect && location.pathname === '/agrofy/') {
-  sessionStorage.removeItem('redirect');
-
-  setTimeout(() => {
-    window.history.replaceState(null, '', redirect);
-  }, 0);
-}
-
 initializeLocale();
 
 createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
-    <BrowserRouter basename="/agrofy">
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </HelmetProvider>

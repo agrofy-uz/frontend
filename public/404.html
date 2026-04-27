@@ -3,11 +3,25 @@
   <head>
     <meta charset="utf-8" />
     <script>
-      sessionStorage.setItem(
-        'redirect',
-        window.location.pathname + window.location.search
+      var l = window.location;
+      var segmentCount = 0; // GitHub Pages root domain uchun 0
+      // Agar username.github.io/repo-name bo'lsa - 1 ga o'zgartiring
+
+      l.replace(
+        l.protocol +
+          '//' +
+          l.hostname +
+          (l.port ? ':' + l.port : '') +
+          l.pathname
+            .split('/')
+            .slice(0, 1 + segmentCount)
+            .join('/') +
+          '/?p=' +
+          l.pathname.slice(1).replace(/&/g, '~and~') +
+          (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
       );
-      window.location.replace('/agrofy/');
     </script>
   </head>
+  <body></body>
 </html>
