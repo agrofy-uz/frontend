@@ -165,9 +165,16 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
               <Stack gap={4} p="xs" px="sm" style={{ height: '100%' }}>
                 {navItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive =
-                    location.pathname === item.path ||
-                    location.pathname.startsWith(item.path + '/');
+                  const isActive = (path: string) => {
+                    if (path === '/dashboard') {
+                      return location.pathname === '/dashboard';
+                    }
+
+                    return (
+                      location.pathname === path ||
+                      location.pathname.startsWith(path + '/')
+                    );
+                  };
                   return (
                     <NavLink
                       key={item.path}
@@ -181,7 +188,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                       leftSection={
                         <Icon size={20} className={styles.sidebarIcon} />
                       }
-                      active={isActive}
+                      active={isActive(item.path)}
                       onClick={() => {
                         const keepOpenOnMobile =
                           item.path === '/dashboard/ai' ||
