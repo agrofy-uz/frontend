@@ -111,6 +111,38 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
     },
   ];
 
+  const normalizedPathname =
+    location.pathname.length > 1 && location.pathname.endsWith('/')
+      ? location.pathname.slice(0, -1)
+      : location.pathname;
+
+  const isActiveNavItem = (path: string): boolean => {
+    switch (path) {
+      case '/dashboard':
+        // "Boshqaruv paneli" faqat dashboard root'da active bo'ladi.
+        return normalizedPathname === '/dashboard';
+      case '/dashboard/ai':
+        return (
+          normalizedPathname === '/dashboard/ai' ||
+          normalizedPathname.startsWith('/dashboard/ai/')
+        );
+      case '/dashboard/services':
+        return (
+          normalizedPathname === '/dashboard/services' ||
+          normalizedPathname.startsWith('/dashboard/services/')
+        );
+      case '/dashboard/market':
+        return (
+          normalizedPathname === '/dashboard/market' ||
+          normalizedPathname.startsWith('/dashboard/market/')
+        );
+      default:
+        return (
+          normalizedPathname === path || normalizedPathname.startsWith(path + '/')
+        );
+    }
+  };
+
   return (
     <Stack gap={0} h="100%">
       <Box h={60}>
@@ -165,16 +197,6 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
               <Stack gap={4} p="xs" px="sm" style={{ height: '100%' }}>
                 {navItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = (path: string) => {
-                    if (path === '/dashboard') {
-                      return location.pathname === '/dashboard';
-                    }
-
-                    return (
-                      location.pathname === path ||
-                      location.pathname.startsWith(path + '/')
-                    );
-                  };
                   return (
                     <NavLink
                       key={item.path}
@@ -188,7 +210,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                       leftSection={
                         <Icon size={20} className={styles.sidebarIcon} />
                       }
-                      active={isActive(item.path)}
+                      active={isActiveNavItem(item.path)}
                       onClick={() => {
                         const keepOpenOnMobile =
                           item.path === '/dashboard/ai' ||
