@@ -8,7 +8,6 @@
     "skipLibCheck": true,
     "composite": true,
 
-    /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -20,7 +19,8 @@
       "@/*": ["src/*"]
     },
 
-    /* Linting */
+    "ignoreDeprecations": "6.0",
+
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -30,4 +30,3 @@
   },
   "include": ["src", "src/types"]
 }
-
