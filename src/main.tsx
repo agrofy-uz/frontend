@@ -9,19 +9,19 @@ import { initializeLocale } from './shared/lib/language';
 
 const redirect = sessionStorage.getItem('redirect');
 
-if (redirect && location.pathname === '/') {
+if (redirect && location.pathname === '/agrofy/') {
   sessionStorage.removeItem('redirect');
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     window.history.replaceState(null, '', redirect);
-  });
+  }, 0);
 }
 
 initializeLocale();
 
 createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
-    <BrowserRouter>
+    <BrowserRouter basename="/agrofy">
       <App />
     </BrowserRouter>
   </HelmetProvider>
