@@ -9,9 +9,12 @@ import { initializeLocale } from './shared/lib/language';
 
 const redirect = sessionStorage.getItem('redirect');
 
-if (redirect && window.location.pathname === '/') {
+if (redirect && location.pathname === '/') {
   sessionStorage.removeItem('redirect');
-  window.history.replaceState(null, '', redirect);
+
+  requestAnimationFrame(() => {
+    window.history.replaceState(null, '', redirect);
+  });
 }
 
 initializeLocale();
