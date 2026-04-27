@@ -6,7 +6,7 @@ import { Sidebar } from './ui/sidebar';
 import { DashboardHeader } from './ui/header';
 import { MobileDashboardDrawerContext } from './mobile-dashboard-drawer.context';
 import styles from './dashboard-layout.module.css';
-
+import { Helmet } from 'react-helmet-async';
 const DashboardLayout = () => {
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const [mobileOpened, { open: openMobile, close: closeMobile }] =
@@ -23,104 +23,109 @@ const DashboardLayout = () => {
   };
 
   return (
-    <MobileDashboardDrawerContext.Provider
-      value={{
-        closeMobileDrawer: closeMobile,
-        isMobile: Boolean(isMobile),
-      }}
-    >
-    <Flex
-      h="100vh"
-      className={styles.dashboardLayout}
-      style={{ overflow: 'hidden', position: 'relative' }}
-    >
-      {!isMobile && (
-        <Box
-          className={styles.sidebar}
-          style={{
-            position: 'fixed',
-            left: 0,
-            top: 0,
-            width: desktopOpened ? 280 : 80,
-            height: '100vh',
-            transition: 'width 0.2s ease',
-            borderRight: '0.5px solid var(--dashboard-border)',
-            zIndex: 100,
-          }}
-        >
-          <Sidebar collapsed={!desktopOpened} />
-        </Box>
-      )}
-
-      <Drawer
-        opened={mobileOpened}
-        onClose={closeMobile}
-        withCloseButton={false}
-        position="left"
-        size={280}
-        padding={0}
-        classNames={{
-          content: styles.mobileDrawerContent,
-          body: styles.mobileDrawerBody,
-        }}
-        overlayProps={{ backgroundOpacity: 0.45, blur: 2 }}
-      >
-        <Box className={styles.sidebar} h="100%">
-          <Sidebar collapsed={false} />
-        </Box>
-      </Drawer>
-
-      {/* O'ng qism - Header va Content */}
-      <Flex
-        direction="column"
-        className={styles.contentWrapper}
-        style={{
-          flex: 1,
-          overflow: 'hidden',
-          marginLeft: isMobile ? 0 : desktopOpened ? 280 : 80,
-          transition: 'margin-left 0.2s ease',
+    <>
+      <Helmet>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      <MobileDashboardDrawerContext.Provider
+        value={{
+          closeMobileDrawer: closeMobile,
+          isMobile: Boolean(isMobile),
         }}
       >
-        {/* Header */}
-        <Box
-          className={styles.header}
-          style={{
-            height: 60,
-            borderBottom: '0.5px solid var(--dashboard-border)',
-            display: 'flex',
-            alignItems: 'center',
-            paddingLeft: '10px',
-            paddingRight: '20px',
-          }}
+        <Flex
+          h="100vh"
+          className={styles.dashboardLayout}
+          style={{ overflow: 'hidden', position: 'relative' }}
         >
-          <ActionIcon
-            variant="subtle"
-            size="lg"
-            mr="md"
-            onClick={handleSidebarToggle}
+          {!isMobile && (
+            <Box
+              className={styles.sidebar}
+              style={{
+                position: 'fixed',
+                left: 0,
+                top: 0,
+                width: desktopOpened ? 280 : 80,
+                height: '100vh',
+                transition: 'width 0.2s ease',
+                borderRight: '0.5px solid var(--dashboard-border)',
+                zIndex: 100,
+              }}
+            >
+              <Sidebar collapsed={!desktopOpened} />
+            </Box>
+          )}
+
+          <Drawer
+            opened={mobileOpened}
+            onClose={closeMobile}
+            withCloseButton={false}
+            position="left"
+            size={280}
+            padding={0}
+            classNames={{
+              content: styles.mobileDrawerContent,
+              body: styles.mobileDrawerBody,
+            }}
+            overlayProps={{ backgroundOpacity: 0.45, blur: 2 }}
           >
-            <BsLayoutSidebar size={21} className="textPrimary" />
-          </ActionIcon>
-          <Box style={{ flex: 1 }}>
-            <DashboardHeader />
-          </Box>
-        </Box>
+            <Box className={styles.sidebar} h="100%">
+              <Sidebar collapsed={false} />
+            </Box>
+          </Drawer>
 
-        {/* Content */}
-        <Box
-          className={styles.content}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflow: 'auto',
-            padding: '1rem',
-          }}
-        >
-          <Outlet />
-        </Box>
-      </Flex>
-    </Flex>
-    </MobileDashboardDrawerContext.Provider>
+          {/* O'ng qism - Header va Content */}
+          <Flex
+            direction="column"
+            className={styles.contentWrapper}
+            style={{
+              flex: 1,
+              overflow: 'hidden',
+              marginLeft: isMobile ? 0 : desktopOpened ? 280 : 80,
+              transition: 'margin-left 0.2s ease',
+            }}
+          >
+            {/* Header */}
+            <Box
+              className={styles.header}
+              style={{
+                height: 60,
+                borderBottom: '0.5px solid var(--dashboard-border)',
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: '10px',
+                paddingRight: '20px',
+              }}
+            >
+              <ActionIcon
+                variant="subtle"
+                size="lg"
+                mr="md"
+                onClick={handleSidebarToggle}
+              >
+                <BsLayoutSidebar size={21} className="textPrimary" />
+              </ActionIcon>
+              <Box style={{ flex: 1 }}>
+                <DashboardHeader />
+              </Box>
+            </Box>
+
+            {/* Content */}
+            <Box
+              className={styles.content}
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflow: 'auto',
+                padding: '1rem',
+              }}
+            >
+              <Outlet />
+            </Box>
+          </Flex>
+        </Flex>
+      </MobileDashboardDrawerContext.Provider>
+    </>
   );
 };
 

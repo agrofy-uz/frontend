@@ -2,7 +2,6 @@ import { Box, Center, Stack, Text, Title } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/ui/button';
 import { useAuthStore } from '@/shared/store/authStore';
-
 function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuthStore();

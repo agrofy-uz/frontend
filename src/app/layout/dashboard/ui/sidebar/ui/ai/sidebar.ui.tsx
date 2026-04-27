@@ -393,7 +393,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
         {collapsed ? (
           <ActionIcon
             variant="subtle"
-            onClick={() => navigate('/dashboard/home')}
+            onClick={() => navigate('/dashboard')}
             aria-label="Orqaga"
             w="100%"
             h={36}
@@ -407,7 +407,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
             h={36}
             variant="subtle"
             leftSection={<BsArrowLeft size={16} />}
-            onClick={() => navigate('/dashboard/home')}
+            onClick={() => navigate('/dashboard')}
             bd="1.5px solid var(--mantine-color-green-3)"
           >
             Orqaga qaytish
@@ -555,7 +555,10 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleChatPopover(c.id, false);
-                                  setPendingDelete({ id: c.id, title: c.title });
+                                  setPendingDelete({
+                                    id: c.id,
+                                    title: c.title,
+                                  });
                                 }}
                               >
                                 <HiOutlineTrash size={16} />

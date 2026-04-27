@@ -68,7 +68,7 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
   );
 
   const goBack = useCallback(() => {
-    navigate('/dashboard/home');
+    navigate('/dashboard');
   }, [navigate]);
 
   const openCategory = useCallback(

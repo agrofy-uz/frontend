@@ -23,7 +23,7 @@ function Home() {
   }
 
   if (isAuthenticated && user?.id?.trim()) {
-    return <Navigate to="/dashboard/home" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

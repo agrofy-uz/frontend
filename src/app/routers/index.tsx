@@ -17,17 +17,15 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route path="/" element={<Home />} />
+        <Route index element={<Home />} />
       </Route>
-      {/* Private route misoli */}
+
       <Route element={<PrivateRoute />}>
         <Route element={<DashboardLayout />}>
-          <Route path="/dashboard/home" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/ai" element={<AiAssistant />} />
-          {/* <Route path="/dashboard/fields" element={<Fields />} /> */}
           <Route path="/dashboard/services" element={<Services />} />
           <Route path="/dashboard/market" element={<Market />} />
-          {/* <Route path="/dashboard/reports" element={<Reports />} /> */}
           <Route path="/dashboard/settings" element={<Settings />} />
           <Route path="/dashboard/profile" element={<Profile />} />
           <Route path="/dashboard/pricing" element={<Pricing />} />

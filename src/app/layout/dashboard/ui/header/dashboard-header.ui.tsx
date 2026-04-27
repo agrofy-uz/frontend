@@ -15,7 +15,7 @@ const DashboardHeader = () => {
   const isMobile = useMediaQuery('(max-width: 1000px)');
   const getPageName = () => {
     const pathname = location.pathname;
-    if (pathname === '/dashboard' || pathname === '/dashboard/home') {
+    if (pathname === '/dashboard' || pathname === '/dashboard') {
       return 'Boshqaruv paneli';
     }
     if (pathname === '/dashboard/ai') return 'AI yordamchi';

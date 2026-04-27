@@ -94,7 +94,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
   };
 
   const navItems = [
-    { label: 'Boshqaruv paneli', icon: FaHome, path: '/dashboard/home' },
+    { label: 'Boshqaruv paneli', icon: FaHome, path: '/dashboard' },
     { label: 'AI yordamchi', icon: IoChatbubbleOutline, path: '/dashboard/ai' },
     // { label: 'Dalar', icon: FaRegMap, path: '/dashboard/fields' },
     {
