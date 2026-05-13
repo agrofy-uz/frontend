@@ -2,9 +2,7 @@ import { useState } from 'react';
 import {
   ActionIcon,
   Badge,
-  Box,
   Group,
-  Loader,
   Stack,
   Text,
   Title,
@@ -30,6 +28,7 @@ import {
   likeService,
 } from '@/shared/api/services/services';
 import s from './card-detail.module.css';
+import { CardDetailSkeleton } from './ui';
 
 type CardDetailModalProps = {
   serviceId: string | null;
@@ -137,9 +136,7 @@ export function CardDetailModal({
       radius="20px"
     >
       {isLoading ? (
-        <Box py="xl" ta="center">
-          <Loader size="sm" />
-        </Box>
+        <CardDetailSkeleton />
       ) : !data ? (
         <Text c="dimmed">Xizmat tafsiloti topilmadi.</Text>
       ) : (
