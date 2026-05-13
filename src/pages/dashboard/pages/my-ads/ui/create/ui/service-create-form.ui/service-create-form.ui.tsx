@@ -23,10 +23,17 @@ import {
 } from 'react-icons/md';
 import { PhoneInput } from '@/shared/ui/phone-input';
 import {
+  createMyProduct,
   createMyService,
+  updateMyProduct,
   updateMyService,
 } from '@/shared/api/services/my-ads';
 import type { MyServiceDto } from '@/shared/api/services/my-ads';
+import {
+  getMarketById,
+  getMarketCategories,
+  type MarketDetailDto,
+} from '@/shared/api/services/market';
 import {
   getDistricts,
   getRegions,
@@ -44,12 +51,13 @@ import {
   renderCategoryIcon,
   type CategoryOption,
   validateServiceCreateDraft,
+  type ListingCreateKind,
 } from './service-create-form.const';
 import { ServiceCreateFormSkeleton } from './ui';
 
-function mergeMyServiceWithServiceDetail(
+function mergeMyListingWithDetail(
   list: MyServiceDto,
-  detail: ServiceDetailDto
+  detail: ServiceDetailDto | MarketDetailDto,
 ): MyServiceDto {
   return {
     ...list,
@@ -74,6 +82,8 @@ type ServiceCreateFormProps = {
   opened: boolean;
   mode?: 'create' | 'edit';
   initialService?: MyServiceDto | null;
+  /** Xizmatlar (`my-services` / `services`) yoki mahsulotlar (`my-products` / `market`) */
+  listingKind: ListingCreateKind;
 };
 
 export function ServiceCreateForm({
@@ -81,6 +91,7 @@ export function ServiceCreateForm({
   opened,
   mode = 'create',
   initialService = null,
+  listingKind,
 }: ServiceCreateFormProps) {
   const queryClient = useQueryClient();
   const userPremium = useAuthStore((state) => Boolean(state.user?.premium));
@@ -102,8 +113,11 @@ export function ServiceCreateForm({
   const locationTouchedRef = useRef(false);
 
   const { data: categories } = useQuery({
-    queryKey: ['services', 'categories'],
-    queryFn: getServicesCategories,
+    queryKey: ['my-ads', 'listing-categories', listingKind],
+    queryFn:
+      listingKind === 'products'
+        ? getMarketCategories
+        : getServicesCategories,
   });
 
   const { data: regions } = useQuery({
@@ -117,9 +131,15 @@ export function ServiceCreateForm({
     enabled: Boolean(regionId),
   });
 
-  const serviceDetailQuery = useQuery({
-    queryKey: ['service-detail', initialService?.id],
-    queryFn: () => getServiceById(initialService!.id),
+  const listingDetailQuery = useQuery({
+    queryKey:
+      listingKind === 'products'
+        ? ['market-detail', initialService?.id]
+        : ['service-detail', initialService?.id],
+    queryFn: () =>
+      listingKind === 'products'
+        ? getMarketById(initialService!.id)
+        : getServiceById(initialService!.id),
     enabled:
       opened &&
       mode === 'edit' &&
@@ -128,18 +148,18 @@ export function ServiceCreateForm({
 
   const editSeed = useMemo((): MyServiceDto | null => {
     if (mode !== 'edit' || !initialService) return null;
-    if (!serviceDetailQuery.isFetched) return null;
+    if (!listingDetailQuery.isFetched) return null;
 
-    const detail = serviceDetailQuery.data;
+    const detail = listingDetailQuery.data;
     if (detail) {
-      return mergeMyServiceWithServiceDetail(initialService, detail);
+      return mergeMyListingWithDetail(initialService, detail);
     }
     return initialService;
   }, [
     mode,
     initialService,
-    serviceDetailQuery.data,
-    serviceDetailQuery.isFetched,
+    listingDetailQuery.data,
+    listingDetailQuery.isFetched,
   ]);
 
   useEffect(() => {
@@ -270,36 +290,53 @@ export function ServiceCreateForm({
   );
 
   const saveMutation = useMutation({
-    mutationFn: async (payload: { formData: FormData; serviceId?: string }) => {
-      if (payload.serviceId) {
-        await updateMyService(payload.serviceId, payload.formData);
+    mutationFn: async (payload: { formData: FormData; listingId?: string }) => {
+      const isProduct = listingKind === 'products';
+      if (payload.listingId) {
+        if (isProduct) {
+          await updateMyProduct(payload.listingId, payload.formData);
+        } else {
+          await updateMyService(payload.listingId, payload.formData);
+        }
+      } else if (isProduct) {
+        await createMyProduct(payload.formData);
       } else {
         await createMyService(payload.formData);
       }
     },
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ['my-services'] });
-      await queryClient.invalidateQueries({ queryKey: ['services', 'regular'] });
-      await queryClient.invalidateQueries({ queryKey: ['services', 'premium'] });
-      if (variables.serviceId) {
+      const isProduct = listingKind === 'products';
+      if (isProduct) {
+        await queryClient.invalidateQueries({ queryKey: ['my-products'] });
+        await queryClient.invalidateQueries({ queryKey: ['market'] });
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ['my-services'] });
+        await queryClient.invalidateQueries({ queryKey: ['services', 'regular'] });
+        await queryClient.invalidateQueries({ queryKey: ['services', 'premium'] });
+      }
+      if (variables.listingId) {
         await queryClient.invalidateQueries({
-          queryKey: ['service-detail', variables.serviceId],
+          queryKey: isProduct
+            ? ['market-detail', variables.listingId]
+            : ['service-detail', variables.listingId],
         });
       }
-      const isEdit = Boolean(variables.serviceId);
+      const isEdit = Boolean(variables.listingId);
+      const createdTitle = isProduct ? "Mahsulot e'loni yaratildi" : "Xizmat e'loni yaratildi";
       openNotification({
-        title: isEdit ? "E'lon yangilandi" : "Xizmat e'loni yaratildi",
+        title: isEdit ? "E'lon yangilandi" : createdTitle,
         type: 'success',
         icon: <MdCheckCircle size={20} />,
       });
       onCancel();
     },
     onError: (_err, variables) => {
-      const isEdit = Boolean(variables?.serviceId);
+      const isEdit = Boolean(variables?.listingId);
+      const failCreate = listingKind === 'products'
+        ? "Mahsulot e'lonini yaratishda xatolik yuz berdi"
+        : "Xizmat e'lonini yaratishda xatolik yuz berdi";
       openNotification({
-        title: isEdit
-          ? "E'lonni yangilashda xatolik yuz berdi"
-          : "Xizmat e'lonini yaratishda xatolik yuz berdi",
+        title: isEdit ? "E'lonni yangilashda xatolik yuz berdi" : failCreate,
         type: 'error',
         icon: <MdDeleteOutline size={20} />,
       });
@@ -378,19 +415,22 @@ export function ServiceCreateForm({
   };
 
   const handleSave = () => {
-    const nextErrors = validateServiceCreateDraft({
-      categoryId,
-      title,
-      regionId,
-      districtId,
-      phone,
-      priceFrom,
-      priceUntil,
-      description,
-      telegram,
-      instagram,
-      imageSlots,
-    });
+    const nextErrors = validateServiceCreateDraft(
+      {
+        categoryId,
+        title,
+        regionId,
+        districtId,
+        phone,
+        priceFrom,
+        priceUntil,
+        description,
+        telegram,
+        instagram,
+        imageSlots,
+      },
+      listingKind,
+    );
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -411,7 +451,7 @@ export function ServiceCreateForm({
     });
     saveMutation.mutate({
       formData,
-      serviceId: mode === 'edit' ? initialService?.id : undefined,
+      listingId: mode === 'edit' ? initialService?.id : undefined,
     });
   };
 
@@ -419,17 +459,19 @@ export function ServiceCreateForm({
     opened &&
     mode === 'edit' &&
     Boolean(initialService?.id) &&
-    !serviceDetailQuery.isFetched;
+    !listingDetailQuery.isFetched;
 
   if (showEditDetailLoader) {
     return <ServiceCreateFormSkeleton />;
   }
 
+  const isProduct = listingKind === 'products';
+
   return (
     <Stack gap="sm">
       <Select
-        label="Xizmat turi"
-        placeholder="Xizmat turini tanlang"
+        label={isProduct ? 'Mahsulot turi' : 'Xizmat turi'}
+        placeholder={isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'}
         data={categoryOptions}
         leftSection={renderCategoryIcon(selectedCategory?.icon)}
         withCheckIcon={false}
@@ -457,8 +499,12 @@ export function ServiceCreateForm({
       />
 
       <TextInput
-        label="Xizmat nomi"
-        placeholder="Masalan, Traktor haydash xizmati"
+        label={isProduct ? 'Mahsulot nomi' : 'Xizmat nomi'}
+        placeholder={
+          isProduct
+            ? 'Masalan, Organik pomidor 20 kg'
+            : 'Masalan, Traktor haydash xizmati'
+        }
         value={title}
         onChange={(e) => setTitle(e.currentTarget.value)}
         required
@@ -550,7 +596,11 @@ export function ServiceCreateForm({
 
       <Textarea
         label="Qisqacha"
-        placeholder="Xizmat haqida qisqacha ma'lumot yozing..."
+        placeholder={
+          isProduct
+            ? "Mahsulot haqida qisqacha ma'lumot yozing..."
+            : "Xizmat haqida qisqacha ma'lumot yozing..."
+        }
         minRows={3}
         maxRows={6}
         autosize

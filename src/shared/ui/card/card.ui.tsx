@@ -53,6 +53,8 @@ export type CardProps = {
   actionMode?: 'contact' | 'manage';
   className?: string;
   imageAlt?: string;
+  /** Detail modal uchun qaysi API ishlatilishini belgilaydi */
+  detailType?: 'service' | 'market';
 };
 
 export function Card({
@@ -75,6 +77,7 @@ export function Card({
   actionMode = 'contact',
   className,
   imageAlt,
+  detailType = 'service',
 }: CardProps) {
   const validUrls = useMemo(
     () =>
@@ -307,6 +310,7 @@ export function Card({
         serviceId={id ?? null}
         opened={detailOpened}
         onClose={() => setDetailOpened(false)}
+        detailType={detailType}
       />
     </div>
   );

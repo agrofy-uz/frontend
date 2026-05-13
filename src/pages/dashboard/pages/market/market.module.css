@@ -1,0 +1,49 @@
+.marketGrid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--mantine-spacing-md);
+  align-items: stretch;
+}
+
+@media (min-width: 700px) {
+  .marketGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .marketGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .marketGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .marketGrid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2000px) {
+  .marketGrid {
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  }
+}
+
+@media (max-width: 36em) {
+  .marketGrid {
+    gap: var(--mantine-spacing-sm);
+  }
+}
+
+.marketGridItem {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}

@@ -1,37 +1,42 @@
 import { useEffect, useState } from 'react';
-import { Stack, Text } from '@mantine/core';
+import { Stack } from '@mantine/core';
 import { Segmented } from '@/shared/ui/segmented';
 import { ServiceCreateForm } from './ui/service-create-form.ui';
 import { Modal } from '@/shared/ui/modal';
 import type { MyServiceDto } from '@/shared/api/services/my-ads';
 
+export type MyAdsEditDraft = {
+  kind: 'services' | 'products';
+  item: MyServiceDto;
+};
+
 type CreateProps = {
   opened: boolean;
   onClose: () => void;
   initialType: 'services' | 'products';
-  editService?: MyServiceDto | null;
+  editDraft: MyAdsEditDraft | null;
 };
 
-function Create({ opened, onClose, initialType, editService }: CreateProps) {
+function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
   const [createType, setCreateType] = useState<'services' | 'products'>(
-    initialType
+    initialType,
   );
-  const isEditingService = Boolean(editService);
+  const isEditingListing = Boolean(editDraft);
 
   useEffect(() => {
     if (!opened) return;
-    setCreateType(isEditingService ? 'services' : initialType);
-  }, [opened, initialType, isEditingService]);
+    setCreateType(editDraft !== null ? editDraft.kind : initialType);
+  }, [opened, initialType, editDraft]);
 
   return (
     <Modal
       opened={opened}
       onClose={onClose}
-      title={isEditingService ? "E'lonni tahrirlash" : "Yangi e'lon yaratish"}
+      title={isEditingListing ? "E'lonni tahrirlash" : "Yangi e'lon yaratish"}
       radius="md"
     >
       <Stack gap="md">
-        {!isEditingService ? (
+        {!isEditingListing ? (
           <Segmented
             fullWidth
             value={createType}
@@ -43,18 +48,13 @@ function Create({ opened, onClose, initialType, editService }: CreateProps) {
           />
         ) : null}
 
-        {createType === 'services' ? (
-          <ServiceCreateForm
-            opened={opened}
-            mode={isEditingService ? 'edit' : 'create'}
-            initialService={editService ?? null}
-            onCancel={onClose}
-          />
-        ) : (
-          <Text c="dimmed">
-            Mahsulot yaratish formasi keyingi bosqichda qo‘shiladi.
-          </Text>
-        )}
+        <ServiceCreateForm
+          opened={opened}
+          mode={isEditingListing ? 'edit' : 'create'}
+          initialService={editDraft?.item ?? null}
+          listingKind={createType}
+          onCancel={onClose}
+        />
       </Stack>
     </Modal>
   );

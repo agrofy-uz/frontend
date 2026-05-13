@@ -51,12 +51,20 @@ export type ServiceCreateDraft = {
   imageSlots: ServiceImageSlot[];
 };
 
+export type ListingCreateKind = 'services' | 'products';
+
 export function validateServiceCreateDraft(
   draft: ServiceCreateDraft,
+  listingKind: ListingCreateKind = 'services',
 ): Record<string, string> {
+  const isProduct = listingKind === 'products';
   const nextErrors: Record<string, string> = {};
-  if (!draft.categoryId) nextErrors.categoryId = 'Xizmat turi majburiy';
-  if (!draft.title.trim()) nextErrors.title = 'Xizmat nomi majburiy';
+  if (!draft.categoryId) {
+    nextErrors.categoryId = isProduct ? 'Mahsulot turi majburiy' : 'Xizmat turi majburiy';
+  }
+  if (!draft.title.trim()) {
+    nextErrors.title = isProduct ? 'Mahsulot nomi majburiy' : 'Xizmat nomi majburiy';
+  }
   if (!draft.regionId) nextErrors.regionId = 'Viloyat majburiy';
   if (!draft.districtId) nextErrors.districtId = 'Tuman majburiy';
 
@@ -71,7 +79,11 @@ export function validateServiceCreateDraft(
   if (Number(draft.priceUntil) <= 0) {
     nextErrors.priceUntil = 'Oxirgi narx majburiy';
   }
-  if (!draft.description.trim()) nextErrors.description = 'Qisqacha majburiy';
+  if (!draft.description.trim()) {
+    nextErrors.description = isProduct
+      ? 'Mahsulot haqida qisqacha matn majburiy'
+      : 'Qisqacha majburiy';
+  }
   const hasImage = draft.imageSlots.some((s) => Boolean(s.file || s.remoteUrl));
   if (!hasImage) nextErrors.images = 'Kamida 1 ta rasm yuklang';
 

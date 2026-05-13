@@ -24,9 +24,10 @@ import { parseBackendInstantMs } from '@/shared/lib/dateHelper';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AiSidebar } from './ui/ai';
 import { ServicesSidebar } from './ui/services';
+import { MarketSidebar } from './ui/market';
 import { useEffect, useRef } from 'react';
 
-type SidebarShellMode = 'main' | 'ai' | 'services';
+type SidebarShellMode = 'main' | 'ai' | 'services' | 'market';
 
 const PREMIUM_UPGRADE_BADGE_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
@@ -61,7 +62,9 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
     ? 'ai'
     : isServicesMode
       ? 'services'
-      : 'main';
+      : isMarketMode
+        ? 'market'
+        : 'main';
 
   const prevShellModeRef = useRef<SidebarShellMode>(shellMode);
   const prevShellMode = prevShellModeRef.current;
@@ -165,7 +168,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
             <motion.div
               key="ai"
               initial={{
-                x: prevShellMode === 'services' ? -280 : 280,
+                x:
+                  prevShellMode === 'services' || prevShellMode === 'market'
+                    ? -280
+                    : 280,
                 opacity: 0,
               }}
               animate={{ x: 0, opacity: 1 }}
@@ -179,7 +185,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
             <motion.div
               key="services"
               initial={{
-                x: prevShellMode === 'ai' ? -280 : 280,
+                x:
+                  prevShellMode === 'ai' || prevShellMode === 'market'
+                    ? -280
+                    : 280,
                 opacity: 0,
               }}
               animate={{ x: 0, opacity: 1 }}
@@ -189,12 +198,31 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
             >
               <ServicesSidebar collapsed={collapsed} />
             </motion.div>
+          ) : shellMode === 'market' ? (
+            <motion.div
+              key="market"
+              initial={{
+                x:
+                  prevShellMode === 'ai' || prevShellMode === 'services'
+                    ? -280
+                    : 280,
+                opacity: 0,
+              }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 280, opacity: 0 }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              style={{ position: 'absolute', inset: 0, height: '100%' }}
+            >
+              <MarketSidebar collapsed={collapsed} />
+            </motion.div>
           ) : (
             <motion.div
               key="main"
               initial={{
                 x:
-                  prevShellMode === 'ai' || prevShellMode === 'services'
+                  prevShellMode === 'ai' ||
+                  prevShellMode === 'services' ||
+                  prevShellMode === 'market'
                     ? -280
                     : 280,
                 opacity: 0,
@@ -224,7 +252,8 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                       onClick={() => {
                         const keepOpenOnMobile =
                           item.path === '/dashboard/ai' ||
-                          item.path === '/dashboard/services';
+                          item.path === '/dashboard/services' ||
+                          item.path === '/dashboard/market';
                         if (mobileDrawer?.isMobile && !keepOpenOnMobile) {
                           mobileDrawer.closeMobileDrawer();
                         }

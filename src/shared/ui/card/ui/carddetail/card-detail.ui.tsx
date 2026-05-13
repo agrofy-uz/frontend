@@ -27,6 +27,12 @@ import {
   getServiceReactions,
   likeService,
 } from '@/shared/api/services/services';
+import {
+  dislikeMarket,
+  getMarketById,
+  getMarketReactions,
+  likeMarket,
+} from '@/shared/api/services/market';
 import s from './card-detail.module.css';
 import { CardDetailSkeleton } from './ui';
 
@@ -34,6 +40,7 @@ type CardDetailModalProps = {
   serviceId: string | null;
   opened: boolean;
   onClose: () => void;
+  detailType?: 'service' | 'market';
 };
 
 function getSocialLabel(value?: string): string {
@@ -75,7 +82,9 @@ export function CardDetailModal({
   serviceId,
   opened,
   onClose,
+  detailType = 'service',
 }: CardDetailModalProps) {
+  const isMarket = detailType === 'market';
   const [activeIndex, setActiveIndex] = useState(0);
   const [embla, setEmbla] = useState<EmblaCarouselType | null>(null);
   const queryClient = useQueryClient();
@@ -85,31 +94,41 @@ export function CardDetailModal({
     stopOnInteraction: false,
     stopOnMouseEnter: true,
   });
+  const detailQueryKey = isMarket
+    ? ['market-detail', serviceId]
+    : ['service-detail', serviceId];
+  const reactionsQueryKey = isMarket
+    ? ['market-reactions', serviceId]
+    : ['service-reactions', serviceId];
+
   const { data, isLoading } = useQuery({
-    queryKey: ['service-detail', serviceId],
-    queryFn: () => getServiceById(serviceId ?? ''),
+    queryKey: detailQueryKey,
+    queryFn: () =>
+      isMarket
+        ? getMarketById(serviceId ?? '')
+        : getServiceById(serviceId ?? ''),
     enabled: opened && Boolean(serviceId),
   });
   const { data: reactions } = useQuery({
-    queryKey: ['service-reactions', serviceId],
-    queryFn: () => getServiceReactions(serviceId ?? ''),
+    queryKey: reactionsQueryKey,
+    queryFn: () =>
+      isMarket
+        ? getMarketReactions(serviceId ?? '')
+        : getServiceReactions(serviceId ?? ''),
     enabled: opened && Boolean(serviceId),
     refetchInterval: 15000,
   });
   const likeMutation = useMutation({
-    mutationFn: (id: string) => likeService(id),
+    mutationFn: (id: string) => (isMarket ? likeMarket(id) : likeService(id)),
     onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ['service-reactions', serviceId],
-      });
+      void queryClient.invalidateQueries({ queryKey: reactionsQueryKey });
     },
   });
   const dislikeMutation = useMutation({
-    mutationFn: (id: string) => dislikeService(id),
+    mutationFn: (id: string) =>
+      isMarket ? dislikeMarket(id) : dislikeService(id),
     onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: ['service-reactions', serviceId],
-      });
+      void queryClient.invalidateQueries({ queryKey: reactionsQueryKey });
     },
   });
 

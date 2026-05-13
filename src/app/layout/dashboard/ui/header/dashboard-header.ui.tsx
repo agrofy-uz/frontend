@@ -3,15 +3,21 @@ import { IoIosNotifications } from 'react-icons/io';
 import { useLocation } from 'react-router-dom';
 import { ThemeToggle } from '@/app/layout/footer/ui/theme-toggle';
 import { SearchInput } from '@/pages/dashboard/pages/services/ui/search-input/search-input.ui';
+import { MarketSearchInput } from '@/pages/dashboard/pages/market/ui/search-input/search-input.ui';
 import { useMediaQuery } from '@mantine/hooks';
 
 const isServicesRoute = (pathname: string) =>
   pathname === '/dashboard/services' ||
   pathname.startsWith('/dashboard/services/');
 
+const isMarketRoute = (pathname: string) =>
+  pathname === '/dashboard/market' ||
+  pathname.startsWith('/dashboard/market/');
+
 const DashboardHeader = () => {
   const location = useLocation();
   const showServicesSearch = isServicesRoute(location.pathname);
+  const showMarketSearch = isMarketRoute(location.pathname);
   const isMobile = useMediaQuery('(max-width: 1000px)');
   const getPageName = () => {
     const pathname = location.pathname;
@@ -61,6 +67,21 @@ const DashboardHeader = () => {
           }}
         >
           <SearchInput />
+        </Box>
+      )}
+
+      {showMarketSearch && !isMobile && (
+        <Box
+          miw={0}
+          style={{
+            flex: '1 1 auto',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            maxWidth: 'min(100%, 28rem)',
+          }}
+        >
+          <MarketSearchInput />
         </Box>
       )}
 

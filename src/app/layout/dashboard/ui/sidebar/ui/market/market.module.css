@@ -1,0 +1,176 @@
+/* ──────────────────────────────────────────
+   Turkum qatori (kengaytirilgan sidebar)
+────────────────────────────────────────── */
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-height: 44px;
+  height: auto;
+  padding: 6px 10px;
+  border-radius: var(--mantine-radius-md);
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+  border: none;
+  text-align: left;
+}
+
+.categoryRow:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .categoryRow:hover {
+  background-color: hsl(150, 10%, 14%);
+}
+
+.categoryRowActive {
+  background-color: var(--mantine-color-green-light) !important;
+}
+
+html[data-mantine-color-scheme='dark'] .categoryRowActive {
+  background-color: rgba(74, 222, 128, 0.12) !important;
+}
+
+.categoryRowActive:hover {
+  background-color: var(--mantine-color-green-light) !important;
+}
+
+/* ──────────────────────────────────────────
+   Ikonka
+────────────────────────────────────────── */
+.categoryIcon {
+  flex-shrink: 0;
+  color: var(--mantine-color-gray-6);
+  transition: color 0.15s ease;
+}
+
+html[data-mantine-color-scheme='dark'] .categoryIcon {
+  color: var(--mantine-color-dark-2);
+}
+
+.categoryIconActive {
+  color: var(--mantine-color-green-6) !important;
+}
+
+html[data-mantine-color-scheme='dark'] .categoryIconActive {
+  color: var(--mantine-color-green-5) !important;
+}
+
+/* ──────────────────────────────────────────
+   Matn
+────────────────────────────────────────── */
+.categoryLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--mantine-color-gray-7);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html[data-mantine-color-scheme='dark'] .categoryLabel {
+  color: var(--mantine-color-dark-2);
+}
+
+.categoryLabelActive {
+  font-weight: 500;
+  color: var(--mantine-color-gray-9) !important;
+}
+
+html[data-mantine-color-scheme='dark'] .categoryLabelActive {
+  color: var(--mantine-color-dark-0) !important;
+}
+
+/* ──────────────────────────────────────────
+   Yig'ilgan (collapsed) turkum qatori
+────────────────────────────────────────── */
+.categoryRowCollapsed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 0;
+  border-radius: var(--mantine-radius-md);
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+  border: none;
+}
+
+.categoryRowCollapsed:hover {
+  background-color: var(--mantine-color-gray-2);
+}
+
+html[data-mantine-color-scheme='dark'] .categoryRowCollapsed:hover {
+  background-color: hsl(150, 10%, 14%);
+}
+
+/* ──────────────────────────────────────────
+   «Ko'proq / Kamroq» tugmasi
+────────────────────────────────────────── */
+.listToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 6px 0;
+  border-radius: var(--mantine-radius-md);
+  cursor: pointer;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+  border: none;
+  flex-shrink: 0;
+}
+
+.listToggleBtn:hover {
+  background-color: var(--mantine-color-green-light);
+}
+
+html[data-mantine-color-scheme='dark'] .listToggleBtn:hover {
+  background-color: rgba(74, 222, 128, 0.1);
+}
+
+.listToggleBtn:hover .listToggleLabel {
+  color: var(--mantine-color-green-7);
+}
+
+html[data-mantine-color-scheme='dark'] .listToggleBtn:hover .listToggleLabel {
+  color: var(--mantine-color-green-5);
+}
+
+.listToggleBtn:hover .listToggleIcon {
+  color: var(--mantine-color-green-7);
+}
+
+html[data-mantine-color-scheme='dark'] .listToggleBtn:hover .listToggleIcon {
+  color: var(--mantine-color-green-5);
+}
+
+.listToggleLabel {
+  font-size: 12px;
+  color: var(--mantine-color-gray-6);
+  transition: color 0.15s ease;
+}
+
+html[data-mantine-color-scheme='dark'] .listToggleLabel {
+  color: var(--mantine-color-dark-3);
+}
+
+.listToggleIcon {
+  color: var(--mantine-color-gray-6);
+  transition: color 0.15s ease;
+}
+
+html[data-mantine-color-scheme='dark'] .listToggleIcon {
+  color: var(--mantine-color-dark-3);
+}

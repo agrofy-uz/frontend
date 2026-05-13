@@ -7,7 +7,7 @@ export type MyServiceDto = {
   districts?: string;
   /** API qaytarsa, forma tanlovlarini to‘g‘ridan-to‘g‘ri bog‘lash uchun */
   categoryId?: string;
-  /** GET /services/:id `category` maydoni (tur nomi) */
+  /** GET /services/:id yoki GET /market/:id `category` maydoni (tur nomi) */
   category?: string;
   regionId?: string;
   districtId?: string;
@@ -20,6 +20,9 @@ export type MyServiceDto = {
   premium: boolean;
   phone: string;
 };
+
+/** GET /api/my-products — shakl xizmatlar ro‘yxati bilan bir xil */
+export type MyProductDto = MyServiceDto;
 
 export type CreateMyServicePayload = {
   categoryId: string;
@@ -35,3 +38,6 @@ export type CreateMyServicePayload = {
   premium?: boolean;
   images: File[];
 };
+
+/** POST/PUT my-products — maydonlar xizmatlar bilan bir xil */
+export type CreateMyProductPayload = CreateMyServicePayload;

@@ -7,15 +7,14 @@ import { ServicesTab } from './ui/services-tab';
 import { ProductsTab } from './ui/products-tab';
 import { Button } from '@/shared/ui/button';
 import { MdAdd } from 'react-icons/md';
-import { Create } from './ui/create';
-import type { MyServiceDto } from '@/shared/api/services/my-ads';
+import { Create, type MyAdsEditDraft } from './ui/create';
 
 function MyAds() {
   const [activeTab, setActiveTab] = useState<'services' | 'products'>(
-    'services'
+    'services',
   );
   const [createOpened, setCreateOpened] = useState(false);
-  const [editService, setEditService] = useState<MyServiceDto | null>(null);
+  const [editDraft, setEditDraft] = useState<MyAdsEditDraft | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useMediaQuery('(max-width: 1000px)');
 
@@ -24,7 +23,7 @@ function MyAds() {
     if (createType !== 'services' && createType !== 'products') return;
 
     setActiveTab(createType);
-    setEditService(null);
+    setEditDraft(null);
     setCreateOpened(true);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -58,7 +57,7 @@ function MyAds() {
           h={isMobile ? 34 : 36}
           leftSection={<MdAdd size={18} />}
           onClick={() => {
-            setEditService(null);
+            setEditDraft(null);
             setCreateOpened(true);
           }}
         >
@@ -68,18 +67,22 @@ function MyAds() {
       {activeTab === 'services' ? (
         <ServicesTab
           onCreate={() => {
-            setEditService(null);
+            setEditDraft(null);
             setCreateOpened(true);
           }}
           onEdit={(service) => {
-            setEditService(service);
+            setEditDraft({ kind: 'services', item: service });
             setCreateOpened(true);
           }}
         />
       ) : (
         <ProductsTab
           onCreate={() => {
-            setEditService(null);
+            setEditDraft(null);
+            setCreateOpened(true);
+          }}
+          onEdit={(product) => {
+            setEditDraft({ kind: 'products', item: product });
             setCreateOpened(true);
           }}
         />
@@ -88,10 +91,10 @@ function MyAds() {
         opened={createOpened}
         onClose={() => {
           setCreateOpened(false);
-          setEditService(null);
+          setEditDraft(null);
         }}
         initialType={activeTab}
-        editService={editService}
+        editDraft={editDraft}
       />
     </Box>
   );

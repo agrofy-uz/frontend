@@ -1,7 +1,16 @@
 export {
+  createMyProduct,
   createMyService,
+  deleteMyProduct,
   deleteMyService,
+  getMyProducts,
   getMyServices,
+  updateMyProduct,
   updateMyService,
 } from './my-ads.api';
-export type { CreateMyServicePayload, MyServiceDto } from './my-ads.types';
+export type {
+  CreateMyProductPayload,
+  CreateMyServicePayload,
+  MyProductDto,
+  MyServiceDto,
+} from './my-ads.types';
