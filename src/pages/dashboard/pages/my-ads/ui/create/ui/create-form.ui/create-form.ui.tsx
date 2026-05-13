@@ -52,7 +52,7 @@ import {
   type CategoryOption,
   validateServiceCreateDraft,
   type ListingCreateKind,
-} from './service-create-form.const';
+} from './create-form.const';
 import { CreateFormSkeleton } from './ui';
 
 function mergeMyServiceWithServiceDetail(
@@ -611,8 +611,8 @@ export function CreateForm({
         error={errors.phone}
       />
 
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-        {isProduct ? (
+      {isProduct ? (
+        <Box w="100%">
           <NumberInput
             label="Narx"
             placeholder="Masalan, 350000"
@@ -624,33 +624,33 @@ export function CreateForm({
             required
             error={errors.listingPrice}
           />
-        ) : (
-          <>
-            <NumberInput
-              label="Boshlang'ich narx"
-              placeholder="Masalan, 200000"
-              min={0}
-              thousandSeparator=" "
-              allowDecimal={false}
-              value={priceFrom}
-              onChange={setPriceFrom}
-              required
-              error={errors.priceFrom}
-            />
-            <NumberInput
-              label="Oxirgi narx"
-              placeholder="Masalan, 500000"
-              min={0}
-              thousandSeparator=" "
-              allowDecimal={false}
-              value={priceUntil}
-              onChange={setPriceUntil}
-              required
-              error={errors.priceUntil}
-            />
-          </>
-        )}
-      </SimpleGrid>
+        </Box>
+      ) : (
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+          <NumberInput
+            label="Boshlang'ich narx"
+            placeholder="Masalan, 200000"
+            min={0}
+            thousandSeparator=" "
+            allowDecimal={false}
+            value={priceFrom}
+            onChange={setPriceFrom}
+            required
+            error={errors.priceFrom}
+          />
+          <NumberInput
+            label="Oxirgi narx"
+            placeholder="Masalan, 500000"
+            min={0}
+            thousandSeparator=" "
+            allowDecimal={false}
+            value={priceUntil}
+            onChange={setPriceUntil}
+            required
+            error={errors.priceUntil}
+          />
+        </SimpleGrid>
+      )}
 
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
         <TextInput

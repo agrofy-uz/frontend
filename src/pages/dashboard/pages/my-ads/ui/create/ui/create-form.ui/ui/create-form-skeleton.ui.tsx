@@ -1,5 +1,5 @@
 import { Box, SimpleGrid, Skeleton, Stack } from '@mantine/core';
-import { MAX_IMAGES } from '../service-create-form.const';
+import { MAX_IMAGES } from '../create-form.const';
 
 function FieldSkeleton({ inputHeight = 36 }: { inputHeight?: number }) {
   return (
