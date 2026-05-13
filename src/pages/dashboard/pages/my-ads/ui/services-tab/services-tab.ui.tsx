@@ -13,9 +13,10 @@ import s from './services-tab.module.css';
 
 type ServicesTabProps = {
   onCreate: () => void;
+  onEdit: (service: MyServiceDto) => void;
 };
 
-function ServicesTab({ onCreate }: ServicesTabProps) {
+function ServicesTab({ onCreate, onEdit }: ServicesTabProps) {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['my-services'],
@@ -93,6 +94,11 @@ function ServicesTab({ onCreate }: ServicesTabProps) {
                       ? () => handleDeleteRequest(item as MyServiceDto)
                       : undefined
                   }
+                  onEdit={
+                    !isLoading && 'title' in item
+                      ? () => onEdit(item as MyServiceDto)
+                      : undefined
+                  }
                 />
               </Box>
             ))}
@@ -113,6 +119,11 @@ function ServicesTab({ onCreate }: ServicesTabProps) {
                   onDelete={
                     !isLoading && 'title' in item
                       ? () => handleDeleteRequest(item as MyServiceDto)
+                      : undefined
+                  }
+                  onEdit={
+                    !isLoading && 'title' in item
+                      ? () => onEdit(item as MyServiceDto)
                       : undefined
                   }
                 />

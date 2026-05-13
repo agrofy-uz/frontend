@@ -22,31 +22,71 @@ import {
   MdDeleteOutline,
 } from 'react-icons/md';
 import { PhoneInput } from '@/shared/ui/phone-input';
-import { createMyService } from '@/shared/api/services/my-ads';
+import {
+  createMyService,
+  updateMyService,
+} from '@/shared/api/services/my-ads';
+import type { MyServiceDto } from '@/shared/api/services/my-ads';
 import {
   getDistricts,
   getRegions,
+  getServiceById,
   getServicesCategories,
 } from '@/shared/api/services/services';
+import type { ServiceDetailDto } from '@/shared/api/services/services';
 import { openNotification } from '@/shared/lib/notification';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
   buildCreateServiceFormData,
+  createEmptyImageSlots,
+  imageSlotsFromRemoteUrls,
   MAX_IMAGES,
   renderCategoryIcon,
   type CategoryOption,
   validateServiceCreateDraft,
 } from './service-create-form.const';
+import { ServiceCreateFormSkeleton } from './ui';
+
+function mergeMyServiceWithServiceDetail(
+  list: MyServiceDto,
+  detail: ServiceDetailDto
+): MyServiceDto {
+  return {
+    ...list,
+    id: detail.id,
+    title: detail.title,
+    description: detail.description,
+    regions: detail.regions,
+    districts: detail.districts,
+    priceFrom: detail.priceFrom,
+    priceUntil: detail.priceUntil,
+    images: detail.images.length > 0 ? detail.images : list.images,
+    phone: detail.phone,
+    premium: detail.premium,
+    telegram: detail.telegram,
+    instagram: detail.instagram,
+    category: detail.category,
+  };
+}
+
 type ServiceCreateFormProps = {
   onCancel: () => void;
+  opened: boolean;
+  mode?: 'create' | 'edit';
+  initialService?: MyServiceDto | null;
 };
 
-export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
+export function ServiceCreateForm({
+  onCancel,
+  opened,
+  mode = 'create',
+  initialService = null,
+}: ServiceCreateFormProps) {
   const queryClient = useQueryClient();
   const userPremium = useAuthStore((state) => Boolean(state.user?.premium));
   const [regionId, setRegionId] = useState<string | null>(null);
   const [districtId, setDistrictId] = useState<string | null>(null);
-  const [images, setImages] = useState<File[]>([]);
+  const [imageSlots, setImageSlots] = useState(createEmptyImageSlots);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [phone, setPhone] = useState('');
@@ -58,6 +98,8 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputs = useRef<Array<HTMLInputElement | null>>([]);
+  /** true bo‘lsa, viloyat/tumanni avto-to‘ldirishdan voz kechamiz (foydalanuvchi o‘zgartirdi) */
+  const locationTouchedRef = useRef(false);
 
   const { data: categories } = useQuery({
     queryKey: ['services', 'categories'],
@@ -75,9 +117,115 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
     enabled: Boolean(regionId),
   });
 
+  const serviceDetailQuery = useQuery({
+    queryKey: ['service-detail', initialService?.id],
+    queryFn: () => getServiceById(initialService!.id),
+    enabled:
+      opened &&
+      mode === 'edit' &&
+      Boolean(initialService?.id?.trim()),
+  });
+
+  const editSeed = useMemo((): MyServiceDto | null => {
+    if (mode !== 'edit' || !initialService) return null;
+    if (!serviceDetailQuery.isFetched) return null;
+
+    const detail = serviceDetailQuery.data;
+    if (detail) {
+      return mergeMyServiceWithServiceDetail(initialService, detail);
+    }
+    return initialService;
+  }, [
+    mode,
+    initialService,
+    serviceDetailQuery.data,
+    serviceDetailQuery.isFetched,
+  ]);
+
   useEffect(() => {
-    setDistrictId(null);
-  }, [regionId]);
+    if (opened) locationTouchedRef.current = false;
+  }, [opened, initialService?.id]);
+
+  useEffect(() => {
+    if (!opened) return;
+    if (mode === 'edit' && initialService && !editSeed) {
+      setRegionId(null);
+      setDistrictId(null);
+    }
+  }, [opened, mode, initialService?.id, editSeed]);
+
+  useEffect(() => {
+    if (!opened) return;
+    if (!initialService || mode !== 'edit') {
+      setRegionId(null);
+      setDistrictId(null);
+      setImageSlots(createEmptyImageSlots());
+      setCategoryId(null);
+      setTitle('');
+      setPhone('');
+      setPriceFrom('');
+      setPriceUntil('');
+      setDescription('');
+      setTelegram('');
+      setInstagram('');
+      setErrors({});
+      return;
+    }
+    if (!editSeed) return;
+
+    const categoryFromDetail =
+      editSeed.categoryId ??
+      (categories && editSeed.category?.trim()
+        ? categories.find((c) => c.name === editSeed.category?.trim())?.id
+        : undefined) ??
+      null;
+
+    setTitle(editSeed.title ?? '');
+    setPhone(editSeed.phone ?? '');
+    setPriceFrom(editSeed.priceFrom);
+    setPriceUntil(editSeed.priceUntil);
+    setDescription(editSeed.description ?? '');
+    setTelegram(editSeed.telegram ?? '');
+    setInstagram(editSeed.instagram ?? '');
+    setCategoryId(categoryFromDetail);
+    setImageSlots(imageSlotsFromRemoteUrls(editSeed.images ?? []));
+  }, [opened, mode, initialService?.id, editSeed, categories]);
+
+  useEffect(() => {
+    if (!opened || mode !== 'edit' || !editSeed || !regions?.length) return;
+    if (locationTouchedRef.current) return;
+    const rId =
+      editSeed.regionId ??
+      regions.find((r) => r.name === editSeed.regions)?.id ??
+      null;
+    setRegionId(rId);
+  }, [
+    opened,
+    mode,
+    editSeed?.id,
+    editSeed?.regionId,
+    editSeed?.regions,
+    regions,
+  ]);
+
+  useEffect(() => {
+    if (!opened || mode !== 'edit' || !editSeed || !regionId) return;
+    if (locationTouchedRef.current) return;
+    if (!districts?.length) return;
+    const dId =
+      editSeed.districtId ??
+      districts.find((d) => d.name === editSeed.districts)?.id ??
+      null;
+    setDistrictId(dId);
+  }, [
+    opened,
+    mode,
+    editSeed?.id,
+    editSeed?.districtId,
+    editSeed?.districts,
+    districts,
+    regionId,
+  ]);
 
   const categoryOptions = useMemo(
     () =>
@@ -106,29 +254,52 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
 
   const previews = useMemo(
     () =>
-      images.map((file) => ({
-        key: `${file.name}-${file.lastModified}`,
-        url: URL.createObjectURL(file),
-      })),
-    [images]
+      imageSlots.map((slot) => {
+        if (slot.file) {
+          return {
+            url: URL.createObjectURL(slot.file),
+            revoke: true as const,
+          };
+        }
+        if (slot.remoteUrl) {
+          return { url: slot.remoteUrl, revoke: false as const };
+        }
+        return null;
+      }),
+    [imageSlots]
   );
 
-  const createMutation = useMutation({
-    mutationFn: createMyService,
-    onSuccess: async () => {
+  const saveMutation = useMutation({
+    mutationFn: async (payload: { formData: FormData; serviceId?: string }) => {
+      if (payload.serviceId) {
+        await updateMyService(payload.serviceId, payload.formData);
+      } else {
+        await createMyService(payload.formData);
+      }
+    },
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: ['my-services'] });
       await queryClient.invalidateQueries({ queryKey: ['services', 'regular'] });
       await queryClient.invalidateQueries({ queryKey: ['services', 'premium'] });
+      if (variables.serviceId) {
+        await queryClient.invalidateQueries({
+          queryKey: ['service-detail', variables.serviceId],
+        });
+      }
+      const isEdit = Boolean(variables.serviceId);
       openNotification({
-        title: "Xizmat e'loni yaratildi",
+        title: isEdit ? "E'lon yangilandi" : "Xizmat e'loni yaratildi",
         type: 'success',
         icon: <MdCheckCircle size={20} />,
       });
       onCancel();
     },
-    onError: () => {
+    onError: (_err, variables) => {
+      const isEdit = Boolean(variables?.serviceId);
       openNotification({
-        title: "Xizmat e'lonini yaratishda xatolik yuz berdi",
+        title: isEdit
+          ? "E'lonni yangilashda xatolik yuz berdi"
+          : "Xizmat e'lonini yaratishda xatolik yuz berdi",
         type: 'error',
         icon: <MdDeleteOutline size={20} />,
       });
@@ -137,24 +308,30 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
 
   useEffect(() => {
     return () => {
-      previews.forEach((item) => URL.revokeObjectURL(item.url));
+      previews.forEach((item) => {
+        if (item?.revoke) URL.revokeObjectURL(item.url);
+      });
     };
   }, [previews]);
 
   const setImageAt = (slotIndex: number, file: File | null) => {
-    setImages((prev) => {
+    setImageSlots((prev) => {
       const next = [...prev];
       if (file) {
-        next[slotIndex] = file;
+        next[slotIndex] = { file };
       } else {
-        delete next[slotIndex];
+        next[slotIndex] = {};
       }
-      return next.filter(Boolean) as File[];
+      return next;
     });
   };
 
   const handleRemoveImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImageSlots((prev) => {
+      const next = [...prev];
+      next[index] = {};
+      return next;
+    });
   };
 
   const getImageFromTransfer = async (
@@ -212,29 +389,41 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
       description,
       telegram,
       instagram,
-      images,
+      imageSlots,
     });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    const formData = buildCreateServiceFormData(
-      {
-        categoryId,
-        title,
-        regionId,
-        districtId,
-        phone,
-        priceFrom,
-        priceUntil,
-        description,
-        telegram,
-        instagram,
-        premium: userPremium,
-        images,
-      }
-    );
-    createMutation.mutate(formData);
+    const formData = buildCreateServiceFormData({
+      categoryId,
+      title,
+      regionId,
+      districtId,
+      phone,
+      priceFrom,
+      priceUntil,
+      description,
+      telegram,
+      instagram,
+      premium:
+        mode === 'edit' && editSeed ? editSeed.premium : userPremium,
+      imageSlots,
+    });
+    saveMutation.mutate({
+      formData,
+      serviceId: mode === 'edit' ? initialService?.id : undefined,
+    });
   };
+
+  const showEditDetailLoader =
+    opened &&
+    mode === 'edit' &&
+    Boolean(initialService?.id) &&
+    !serviceDetailQuery.isFetched;
+
+  if (showEditDetailLoader) {
+    return <ServiceCreateFormSkeleton />;
+  }
 
   return (
     <Stack gap="sm">
@@ -284,7 +473,11 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
           searchable
           nothingFoundMessage="Topilmadi"
           value={regionId}
-          onChange={setRegionId}
+          onChange={(value) => {
+            locationTouchedRef.current = true;
+            setRegionId(value);
+            setDistrictId(null);
+          }}
           required
           error={errors.regionId}
         />
@@ -295,7 +488,10 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
           searchable
           nothingFoundMessage="Topilmadi"
           value={districtId}
-          onChange={setDistrictId}
+          onChange={(value) => {
+            locationTouchedRef.current = true;
+            setDistrictId(value);
+          }}
           disabled={!regionId}
           rightSection={districtsLoading ? <Loader size="sm" /> : null}
           required
@@ -406,7 +602,7 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
               >
                 {preview ? (
                   <>
-                    <Image src={preview.url} h={110} fit="cover" />
+                    <Image src={preview.url} alt="" h={110} fit="cover" />
                     <ActionIcon
                       color="red"
                       variant="filled"
@@ -455,14 +651,14 @@ export function ServiceCreateForm({ onCancel }: ServiceCreateFormProps) {
         <Button
           variant="default"
           onClick={onCancel}
-          disabled={createMutation.isPending}
+          disabled={saveMutation.isPending}
         >
           Bekor qilish
         </Button>
         <Button
           color="green"
           onClick={handleSave}
-          loading={createMutation.isPending}
+          loading={saveMutation.isPending}
         >
           Saqlash
         </Button>

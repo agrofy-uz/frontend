@@ -5,6 +5,14 @@ export type MyServiceDto = {
   description?: string;
   regions?: string;
   districts?: string;
+  /** API qaytarsa, forma tanlovlarini to‘g‘ridan-to‘g‘ri bog‘lash uchun */
+  categoryId?: string;
+  /** GET /services/:id `category` maydoni (tur nomi) */
+  category?: string;
+  regionId?: string;
+  districtId?: string;
+  telegram?: string;
+  instagram?: string;
   priceFrom: number;
   priceUntil: number;
   images: string[];

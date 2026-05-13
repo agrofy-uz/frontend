@@ -8,12 +8,14 @@ import { ProductsTab } from './ui/products-tab';
 import { Button } from '@/shared/ui/button';
 import { MdAdd } from 'react-icons/md';
 import { Create } from './ui/create';
+import type { MyServiceDto } from '@/shared/api/services/my-ads';
 
 function MyAds() {
   const [activeTab, setActiveTab] = useState<'services' | 'products'>(
     'services'
   );
   const [createOpened, setCreateOpened] = useState(false);
+  const [editService, setEditService] = useState<MyServiceDto | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useMediaQuery('(max-width: 1000px)');
 
@@ -22,6 +24,7 @@ function MyAds() {
     if (createType !== 'services' && createType !== 'products') return;
 
     setActiveTab(createType);
+    setEditService(null);
     setCreateOpened(true);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -55,6 +58,7 @@ function MyAds() {
           h={isMobile ? 34 : 36}
           leftSection={<MdAdd size={18} />}
           onClick={() => {
+            setEditService(null);
             setCreateOpened(true);
           }}
         >
@@ -62,14 +66,32 @@ function MyAds() {
         </Button>
       </Flex>
       {activeTab === 'services' ? (
-        <ServicesTab onCreate={() => setCreateOpened(true)} />
+        <ServicesTab
+          onCreate={() => {
+            setEditService(null);
+            setCreateOpened(true);
+          }}
+          onEdit={(service) => {
+            setEditService(service);
+            setCreateOpened(true);
+          }}
+        />
       ) : (
-        <ProductsTab onCreate={() => setCreateOpened(true)} />
+        <ProductsTab
+          onCreate={() => {
+            setEditService(null);
+            setCreateOpened(true);
+          }}
+        />
       )}
       <Create
         opened={createOpened}
-        onClose={() => setCreateOpened(false)}
+        onClose={() => {
+          setCreateOpened(false);
+          setEditService(null);
+        }}
         initialType={activeTab}
+        editService={editService}
       />
     </Box>
   );

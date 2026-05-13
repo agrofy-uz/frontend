@@ -4,6 +4,25 @@ import type { IconType } from 'react-icons';
 
 export const MAX_IMAGES = 3;
 
+/** Bir slot: yangi fayl yoki serverdan qolgan URL */
+export type ServiceImageSlot = {
+  remoteUrl?: string;
+  file?: File;
+};
+
+export function createEmptyImageSlots(): ServiceImageSlot[] {
+  return Array.from({ length: MAX_IMAGES }, () => ({}));
+}
+
+export function imageSlotsFromRemoteUrls(urls: string[]): ServiceImageSlot[] {
+  const slots = createEmptyImageSlots();
+  urls.slice(0, MAX_IMAGES).forEach((url, i) => {
+    const trimmed = url?.trim();
+    if (trimmed) slots[i] = { remoteUrl: trimmed };
+  });
+  return slots;
+}
+
 export type SelectOption = { value: string; label: string };
 export type CategoryOption = SelectOption & { icon?: string };
 
@@ -29,7 +48,7 @@ export type ServiceCreateDraft = {
   telegram: string;
   instagram: string;
   premium?: boolean;
-  images: File[];
+  imageSlots: ServiceImageSlot[];
 };
 
 export function validateServiceCreateDraft(
@@ -53,7 +72,8 @@ export function validateServiceCreateDraft(
     nextErrors.priceUntil = 'Oxirgi narx majburiy';
   }
   if (!draft.description.trim()) nextErrors.description = 'Qisqacha majburiy';
-  if (draft.images.length < 1) nextErrors.images = 'Kamida 1 ta rasm yuklang';
+  const hasImage = draft.imageSlots.some((s) => Boolean(s.file || s.remoteUrl));
+  if (!hasImage) nextErrors.images = 'Kamida 1 ta rasm yuklang';
 
   return nextErrors;
 }
@@ -75,7 +95,14 @@ export function buildCreateServiceFormData(
   formData.append('premium', String(Boolean(draft.premium)));
   if (draft.telegram.trim()) formData.append('telegram', draft.telegram.trim());
   if (draft.instagram.trim()) formData.append('instagram', draft.instagram.trim());
-  draft.images.forEach((file) => formData.append('images', file));
+  /** Tartib saqlanadi: eski rasm — `images` ga URL qatori, yangi — `images` ga fayl */
+  draft.imageSlots.forEach((slot) => {
+    if (slot.file) {
+      formData.append('images', slot.file);
+    } else if (slot.remoteUrl?.trim()) {
+      formData.append('images', slot.remoteUrl.trim());
+    }
+  });
 
   return formData;
 }
