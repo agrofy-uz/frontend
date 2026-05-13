@@ -33,6 +33,7 @@ function CategoriesBlock({
     queryKey: ['services', 'categories'],
     queryFn: () => getServicesCategories(),
     staleTime: 60_000,
+    refetchOnMount: 'always',
   });
 
   const categories = categoriesQuery.data ?? [];

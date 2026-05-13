@@ -93,7 +93,7 @@ export function SearchInput() {
     enabled: canFetchSuggest,
     staleTime: 0,
     gcTime: 60_000,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

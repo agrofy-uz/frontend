@@ -33,6 +33,7 @@ function CategoriesBlock({
     queryKey: ['market', 'sidebar', 'categories'],
     queryFn: () => getMarketCategories(),
     staleTime: 60_000,
+    refetchOnMount: 'always',
   });
 
   const categories = categoriesQuery.data ?? [];

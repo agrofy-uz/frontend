@@ -51,7 +51,8 @@ function Market() {
     queryKey: ['market', 'list', listParams],
     queryFn: () => getMarkets(listParams),
     staleTime: 30_000,
-    refetchOnMount: false,
+    /** Sidebar orqali bo‘limga qaytganda ro‘yxatni yangilash */
+    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });

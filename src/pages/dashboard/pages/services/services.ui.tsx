@@ -52,7 +52,7 @@ function Services() {
     queryKey: ['services', 'list', listParams],
     queryFn: () => getServices(listParams),
     staleTime: 30_000,
-    refetchOnMount: false,
+    refetchOnMount: 'always',
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
