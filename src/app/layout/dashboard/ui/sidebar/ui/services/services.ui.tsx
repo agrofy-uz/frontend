@@ -18,7 +18,11 @@ import {
   DEFAULT_SERVICES_FILTER_VALUES,
   mergeServicesFilterIntoSearchParams,
   parseServicesFilterFromSearchParams,
+  SERVICES_CATEGORY_QUERY_KEY,
   SERVICES_FILTER_QUERY_KEYS,
+  SERVICES_LIST_META_QUERY_KEYS,
+  SERVICES_SEARCH_ENTER_CHIP_QUERY_KEY,
+  SERVICES_SEARCH_QUERY_KEY,
   type ServicesFilterValues,
 } from './services.const';
 import { CategoriesBlock } from './ui/category';
@@ -54,16 +58,16 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
   const handleApplyFilter = useCallback(
     (next: ServicesFilterValues) => {
       setAppliedFilter(next);
-      setSearchParams((prev) =>
-        mergeServicesFilterIntoSearchParams(prev, next)
-      );
+      setSearchParams((prev) => {
+        return mergeServicesFilterIntoSearchParams(prev, next);
+      });
       if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();
     },
     [mobileDrawer, setSearchParams]
   );
 
   const activeCategoryId = useMemo(
-    () => searchParams.get('turkum'),
+    () => searchParams.get(SERVICES_CATEGORY_QUERY_KEY),
     [searchParams]
   );
 
@@ -75,7 +79,9 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
     (id: string) => {
       setSearchParams((prev) => {
         const next = mergeServicesFilterIntoSearchParams(prev, appliedFilter);
-        next.set('turkum', id);
+        next.set(SERVICES_CATEGORY_QUERY_KEY, id);
+        next.delete(SERVICES_SEARCH_QUERY_KEY);
+        next.delete(SERVICES_SEARCH_ENTER_CHIP_QUERY_KEY);
         return next;
       });
     },
@@ -87,8 +93,11 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
     setCategoriesListResetKey((k) => k + 1);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
-      next.delete('turkum');
+      next.delete(SERVICES_CATEGORY_QUERY_KEY);
+      next.delete(SERVICES_SEARCH_QUERY_KEY);
+      next.delete(SERVICES_SEARCH_ENTER_CHIP_QUERY_KEY);
       for (const k of SERVICES_FILTER_QUERY_KEYS) next.delete(k);
+      for (const k of SERVICES_LIST_META_QUERY_KEYS) next.delete(k);
       return next;
     });
     if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();

@@ -111,10 +111,12 @@ function Drower({ opened, onClose, target }: DrowerProps) {
               </Avatar>
               <Box style={{ flex: 1 }}>
                 <Text fw={600} size="md" className={styles.username}>
-                  @{user.username}
+                  {user.username.trim() ? `@${user.username}` : user.name}
                 </Text>
                 <Text size="sm" className={styles.phoneText}>
-                  {formatPhoneNumber(user.phone)}
+                  {user.phone.trim()
+                    ? formatPhoneNumber(user.phone)
+                    : "Telefon raqam yo'q"}
                 </Text>
               </Box>
             </Flex>

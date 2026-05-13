@@ -35,6 +35,43 @@ export type RegularServiceDto = {
   phone: string;
 };
 
+/** GET /api/services — bitta ro‘yxat (premium / oddiy) */
+export type ServiceListItemDto = RegularServiceDto & {
+  categoryId?: string;
+  category?: string;
+};
+
+/** GET /api/services — tartiblash qiymatlari */
+export type ServicesListSort = 'newest' | 'priceAsc' | 'priceDesc' | 'ratingDesc';
+
+/** GET /api/services — query (barcha parametrlar ixtiyoriy) */
+export type ServicesListQueryParams = {
+  search?: string;
+  categoryId?: string;
+  regionId?: string;
+  districtId?: string;
+  priceFrom?: number;
+  priceTo?: number;
+  minRating?: number;
+  sort?: ServicesListSort;
+  page?: number;
+  pageSize?: number;
+};
+
+/** GET /api/services — sahifalangan javob */
+export type ServicesListPageDto = {
+  items: ServiceListItemDto[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+/** GET /api/services/suggest */
+export type ServiceSuggestItemDto = {
+  name: string;
+};
+
 /** GET /api/regions */
 export type RegionDto = {
   id: string;

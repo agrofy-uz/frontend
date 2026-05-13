@@ -1,11 +1,11 @@
-import type { ServiceMockItem } from '@/shared/data/services-mock.data';
+type SearchableService = { title: string; description?: string };
 
 /** Sarlavha va tavsifda qidiruv; sarlavha mosligi ustun. */
-export function filterServicesSearch(
-  items: ServiceMockItem[],
+export function filterServicesSearch<T extends SearchableService>(
+  items: T[],
   query: string,
   limit = 8,
-): ServiceMockItem[] {
+): T[] {
   const raw = query.trim().toLowerCase();
   if (!raw) return [];
 
@@ -14,7 +14,7 @@ export function filterServicesSearch(
   return items
     .map((item) => {
       const title = item.title.toLowerCase();
-      const desc = item.description.toLowerCase();
+      const desc = (item.description ?? '').toLowerCase();
       const hitTitle = tokens.every((t) => title.includes(t));
       const hitDesc = tokens.every((t) => desc.includes(t));
       const partialTitle = tokens.some((t) => title.includes(t));

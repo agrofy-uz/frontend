@@ -3,6 +3,8 @@ export {
   getDistricts,
   getPremiumServices,
   getRegularServices,
+  getServices,
+  getServicesSuggest,
   getRegions,
   getServiceById,
   getServiceReactions,
@@ -17,4 +19,9 @@ export type {
   ServiceDetailDto,
   ServiceReactionsDto,
   ServiceCategoryDto,
+  ServiceListItemDto,
+  ServiceSuggestItemDto,
+  ServicesListPageDto,
+  ServicesListQueryParams,
+  ServicesListSort,
 } from './services.types';

@@ -1,4 +1,4 @@
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   CloseButton,
@@ -13,12 +13,11 @@ import { IoSearchOutline } from 'react-icons/io5';
 import {
   mergeServicesSearchParams,
   SERVICES_SEARCH_QUERY_KEY,
+  SERVICES_SUGGEST_MIN_QUERY_LENGTH,
 } from '@/app/layout/dashboard/ui/sidebar/ui/services/services.const';
-import { getRegularServices } from '@/shared/api/services/services';
-import { filterServicesSearch } from '@/shared/lib/filter-services-search';
+import { getServicesSuggest } from '@/shared/api/services/services';
 import s from './search-input.module.css';
 import { useQuery } from '@tanstack/react-query';
-import type { RegularServiceDto } from '@/shared/api/services/services/services.types';
 
 type SearchFieldProps = Omit<
   TextInputProps,
@@ -27,10 +26,12 @@ type SearchFieldProps = Omit<
   | 'radius'
   | 'rightSection'
   | 'rightSectionPointerEvents'
->;
+> & {
+  onClearCommitted?: () => void;
+};
 
 const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
-  function SearchField({ value, onChange, ...rest }, ref) {
+  function SearchField({ value, onChange, onClearCommitted, ...rest }, ref) {
     const str = typeof value === 'string' ? value : '';
     const showClear = str.length > 0;
 
@@ -39,6 +40,7 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
         target: { value: '' },
         currentTarget: { value: '' },
       } as React.ChangeEvent<HTMLInputElement>);
+      onClearCommitted?.();
     };
 
     return (
@@ -73,35 +75,48 @@ const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
 
 export function SearchInput() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const q = searchParams.get(SERVICES_SEARCH_QUERY_KEY) ?? '';
-  const { data: regularServices } = useQuery({
-    queryKey: ['services', 'regular'],
-    queryFn: getRegularServices,
+  const committedQ = searchParams.get(SERVICES_SEARCH_QUERY_KEY) ?? '';
+  const [draft, setDraft] = useState(committedQ);
+
+  useEffect(() => {
+    setDraft(committedQ);
+  }, [committedQ]);
+
+  const draftTrim = draft.trim();
+  const hasDraft = draftTrim.length >= 0;
+  const canFetchSuggest = draftTrim.length >= SERVICES_SUGGEST_MIN_QUERY_LENGTH;
+  /** Suggest faqat inputdagi matn bilan; URL filtrlari (turkum va h.k.) aralashmaydi */
+  const suggestParams = useMemo(() => ({ q: draftTrim }), [draftTrim]);
+  const { data: suggestPage } = useQuery({
+    queryKey: ['services', 'suggest', suggestParams],
+    queryFn: () => getServicesSuggest(suggestParams),
+    enabled: canFetchSuggest,
+    staleTime: 0,
+    gcTime: 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
-  const setQ = (next: string) => {
+  const suggestions = suggestPage ?? [];
+
+  const commitSearchToUrl = (next: string, fromEnter: boolean) => {
+    const t = next.trim();
     setSearchParams(
-      (prev) => mergeServicesSearchParams(new URLSearchParams(prev), next),
+      (prev) =>
+        mergeServicesSearchParams(new URLSearchParams(prev), next, {
+          searchChipFromEnter: fromEnter && t.length > 0,
+        }),
       { replace: true }
     );
+    setDraft(t);
   };
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
-  const hasQuery = q.trim().length > 0;
-
-  const suggestions = useMemo(() => {
-    if (!hasQuery) return regularServices?.slice(0, 8) ?? [];
-    return filterServicesSearch(
-      regularServices ?? [],
-      q
-    ) as RegularServiceDto[];
-  }, [hasQuery, q]);
-
-  const handleSelect = (id: string) => {
-    const item = regularServices?.find((x: RegularServiceDto) => x.id === id);
-    if (item) setQ(item.title ?? '');
+  const handleSelect = (name: string) => {
+    commitSearchToUrl(name, false);
     combobox.closeDropdown();
   };
 
@@ -116,10 +131,24 @@ export function SearchInput() {
       >
         <Combobox.Target>
           <SearchField
-            value={q}
+            value={draft}
             onChange={(e) => {
-              setQ(e.currentTarget.value);
+              setDraft(e.currentTarget.value);
               combobox.openDropdown();
+            }}
+            onClearCommitted={() => {
+              setSearchParams(
+                (prev) =>
+                  mergeServicesSearchParams(new URLSearchParams(prev), ''),
+                { replace: true }
+              );
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitSearchToUrl(e.currentTarget.value, true);
+                combobox.closeDropdown();
+              }
             }}
             onFocus={() => combobox.openDropdown()}
             autoComplete="off"
@@ -129,22 +158,23 @@ export function SearchInput() {
 
         <Combobox.Dropdown className={s.dropdown}>
           <Combobox.Options className={s.dropdownOptions}>
-            {hasQuery && suggestions.length === 0 ? (
+            {hasDraft && !canFetchSuggest ? (
+              <Combobox.Empty className={s.dropdownEmpty}>
+                Kamida {SERVICES_SUGGEST_MIN_QUERY_LENGTH} ta belgi yozing
+              </Combobox.Empty>
+            ) : canFetchSuggest && suggestions.length === 0 ? (
               <Combobox.Empty className={s.dropdownEmpty}>
                 Mos keladigan xizmat topilmadi
               </Combobox.Empty>
             ) : (
               suggestions.map((item) => (
                 <Combobox.Option
-                  key={item.id}
-                  value={item.id}
+                  key={item.name}
+                  value={item.name}
                   className={s.dropdownOption}
                 >
                   <Text size="sm" fw={600} lh={1.35}>
-                    {item.title}
-                  </Text>
-                  <Text size="xs" c="dimmed" lineClamp={2} mt={4}>
-                    {item.description}
+                    {item.name}
                   </Text>
                 </Combobox.Option>
               ))

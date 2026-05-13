@@ -1,7 +1,16 @@
-import { NavLink, Stack, Box, Avatar, Badge, Text, Flex } from '@mantine/core';
+import {
+  NavLink,
+  Stack,
+  Box,
+  Avatar,
+  Badge,
+  Text,
+  Flex,
+  ActionIcon,
+} from '@mantine/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDisclosure } from '@mantine/hooks';
-import { TbClipboardList } from 'react-icons/tb';
+import { TbClipboardList, TbDotsVertical } from 'react-icons/tb';
 import { FaHome } from 'react-icons/fa';
 import { Logo } from '../logo';
 import styles from './sidebar.module.css';
@@ -138,7 +147,8 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
         );
       default:
         return (
-          normalizedPathname === path || normalizedPathname.startsWith(path + '/')
+          normalizedPathname === path ||
+          normalizedPathname.startsWith(path + '/')
         );
     }
   };
@@ -317,19 +327,29 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                     </Text>
                   </Flex>
                 </Flex>
-                {shouldShowUpgradeBadge && (
-                  <Badge
+                <Flex gap="xs" align="center" style={{ flexShrink: 0 }}>
+                  {shouldShowUpgradeBadge && (
+                    <Badge
+                      size="sm"
+                      className={styles.profileBadge}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/dashboard/pricing');
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      Yangilash
+                    </Badge>
+                  )}
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
                     size="sm"
-                    className={styles.profileBadge}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate('/dashboard/pricing');
-                    }}
-                    style={{ cursor: 'pointer' }}
+                    aria-label="Profil menyusi"
                   >
-                    Tarifni yangilash
-                  </Badge>
-                )}
+                    <TbDotsVertical size={18} />
+                  </ActionIcon>
+                </Flex>
               </Flex>
             )
           }

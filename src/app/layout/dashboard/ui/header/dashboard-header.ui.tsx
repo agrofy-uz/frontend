@@ -49,9 +49,8 @@ const DashboardHeader = () => {
         </Text>
       </Box>
 
-      {showServicesSearch && (
+      {showServicesSearch && !isMobile && (
         <Box
-          visibleFrom="md"
           miw={0}
           style={{
             flex: '1 1 auto',
