@@ -32,8 +32,10 @@ export type CardProps = {
   districts?: string;
   /** Minimal narx */
   priceFrom?: number;
-  /** Maksimal / «gacha» narx */
+  /** Maksimal / «gacha» narx (xizmatlar) */
   priceUntil?: number;
+  /** Mahsulot (market) — bitta narx */
+  price?: number;
   /** Rasm URLlari (ketma-ket karusel) */
   images?: (string | null)[];
   /** Rasm ustidagi ixtiyoriy yorliq (masalan «Chegirma») */
@@ -64,6 +66,7 @@ export function Card({
   districts = '',
   priceFrom = 0,
   priceUntil = 0,
+  price,
   images: imagesProp,
   badge,
   premium = false,
@@ -154,6 +157,13 @@ export function Card({
   const regionText = regions.trim();
   const districtText = districts.trim();
   const canOpenDetail = Boolean(id?.trim());
+  const isMarketCard = detailType === 'market';
+  const singlePrice =
+    typeof price === 'number' && Number.isFinite(price) && price > 0
+      ? price
+      : isMarketCard && priceFrom > 0
+        ? priceFrom
+        : null;
 
   return (
     <div
@@ -244,15 +254,24 @@ export function Card({
         <div className={s.priceRow}>
           <Text component="span" className={s.priceLine}>
             <span className={s.priceLabel}>Narx:</span>{' '}
-            <span className={s.priceFrom}>
-              {formatServicePriceAmount(priceFrom)}{' '}
-              <span className={s.priceTail}>so‘m</span>
-            </span>
-            <span className={s.priceMid}> dan - </span>
-            <span className={s.priceUntil}>
-              {formatServicePriceAmount(priceUntil)}{' '}
-              <span className={s.priceTail}>so‘m gacha</span>
-            </span>
+            {isMarketCard && singlePrice !== null ? (
+              <span className={s.priceFrom}>
+                {formatServicePriceAmount(singlePrice)}{' '}
+                <span className={s.priceTail}>so‘m</span>
+              </span>
+            ) : (
+              <>
+                <span className={s.priceFrom}>
+                  {formatServicePriceAmount(priceFrom)}{' '}
+                  <span className={s.priceTail}>so‘m</span>
+                </span>
+                <span className={s.priceMid}> dan - </span>
+                <span className={s.priceUntil}>
+                  {formatServicePriceAmount(priceUntil)}{' '}
+                  <span className={s.priceTail}>so‘m gacha</span>
+                </span>
+              </>
+            )}
           </Text>
         </div>
 

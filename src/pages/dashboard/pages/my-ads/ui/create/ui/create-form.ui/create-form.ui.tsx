@@ -28,7 +28,7 @@ import {
   updateMyProduct,
   updateMyService,
 } from '@/shared/api/services/my-ads';
-import type { MyServiceDto } from '@/shared/api/services/my-ads';
+import type { MyProductDto, MyServiceDto } from '@/shared/api/services/my-ads';
 import {
   getMarketById,
   getMarketCategories,
@@ -44,7 +44,7 @@ import type { ServiceDetailDto } from '@/shared/api/services/services';
 import { openNotification } from '@/shared/lib/notification';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
-  buildCreateServiceFormData,
+  buildListingFormData,
   createEmptyImageSlots,
   imageSlotsFromRemoteUrls,
   MAX_IMAGES,
@@ -53,11 +53,11 @@ import {
   validateServiceCreateDraft,
   type ListingCreateKind,
 } from './service-create-form.const';
-import { ServiceCreateFormSkeleton } from './ui';
+import { CreateFormSkeleton } from './ui';
 
-function mergeMyListingWithDetail(
+function mergeMyServiceWithServiceDetail(
   list: MyServiceDto,
-  detail: ServiceDetailDto | MarketDetailDto,
+  detail: ServiceDetailDto
 ): MyServiceDto {
   return {
     ...list,
@@ -77,16 +77,37 @@ function mergeMyListingWithDetail(
   };
 }
 
+function mergeMyProductWithMarketDetail(
+  list: MyProductDto,
+  detail: MarketDetailDto
+): MyProductDto {
+  return {
+    ...list,
+    id: detail.id,
+    title: detail.title,
+    description: detail.description,
+    regions: detail.regions,
+    districts: detail.districts,
+    price: detail.price,
+    images: detail.images.length > 0 ? detail.images : list.images,
+    phone: detail.phone,
+    premium: detail.premium,
+    telegram: detail.telegram,
+    instagram: detail.instagram,
+    category: detail.category,
+  };
+}
+
 type ServiceCreateFormProps = {
   onCancel: () => void;
   opened: boolean;
   mode?: 'create' | 'edit';
-  initialService?: MyServiceDto | null;
+  initialService?: MyServiceDto | MyProductDto | null;
   /** Xizmatlar (`my-services` / `services`) yoki mahsulotlar (`my-products` / `market`) */
   listingKind: ListingCreateKind;
 };
 
-export function ServiceCreateForm({
+export function CreateForm({
   onCancel,
   opened,
   mode = 'create',
@@ -103,6 +124,7 @@ export function ServiceCreateForm({
   const [phone, setPhone] = useState('');
   const [priceFrom, setPriceFrom] = useState<string | number>('');
   const [priceUntil, setPriceUntil] = useState<string | number>('');
+  const [listingPrice, setListingPrice] = useState<string | number>('');
   const [description, setDescription] = useState('');
   const [telegram, setTelegram] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -115,9 +137,7 @@ export function ServiceCreateForm({
   const { data: categories } = useQuery({
     queryKey: ['my-ads', 'listing-categories', listingKind],
     queryFn:
-      listingKind === 'products'
-        ? getMarketCategories
-        : getServicesCategories,
+      listingKind === 'products' ? getMarketCategories : getServicesCategories,
   });
 
   const { data: regions } = useQuery({
@@ -136,28 +156,33 @@ export function ServiceCreateForm({
       listingKind === 'products'
         ? ['market-detail', initialService?.id]
         : ['service-detail', initialService?.id],
-    queryFn: () =>
+    queryFn: (): Promise<MarketDetailDto | ServiceDetailDto | null> =>
       listingKind === 'products'
         ? getMarketById(initialService!.id)
         : getServiceById(initialService!.id),
-    enabled:
-      opened &&
-      mode === 'edit' &&
-      Boolean(initialService?.id?.trim()),
+    enabled: opened && mode === 'edit' && Boolean(initialService?.id?.trim()),
   });
 
-  const editSeed = useMemo((): MyServiceDto | null => {
+  const editSeed = useMemo((): MyServiceDto | MyProductDto | null => {
     if (mode !== 'edit' || !initialService) return null;
     if (!listingDetailQuery.isFetched) return null;
 
     const detail = listingDetailQuery.data;
-    if (detail) {
-      return mergeMyListingWithDetail(initialService, detail);
+    if (!detail) return initialService;
+    if (listingKind === 'products') {
+      return mergeMyProductWithMarketDetail(
+        initialService as MyProductDto,
+        detail as MarketDetailDto
+      );
     }
-    return initialService;
+    return mergeMyServiceWithServiceDetail(
+      initialService as MyServiceDto,
+      detail as ServiceDetailDto
+    );
   }, [
     mode,
     initialService,
+    listingKind,
     listingDetailQuery.data,
     listingDetailQuery.isFetched,
   ]);
@@ -185,6 +210,7 @@ export function ServiceCreateForm({
       setPhone('');
       setPriceFrom('');
       setPriceUntil('');
+      setListingPrice('');
       setDescription('');
       setTelegram('');
       setInstagram('');
@@ -202,14 +228,32 @@ export function ServiceCreateForm({
 
     setTitle(editSeed.title ?? '');
     setPhone(editSeed.phone ?? '');
-    setPriceFrom(editSeed.priceFrom);
-    setPriceUntil(editSeed.priceUntil);
+    if (listingKind === 'products' && 'price' in editSeed) {
+      setListingPrice(editSeed.price);
+      setPriceFrom('');
+      setPriceUntil('');
+    } else {
+      const s = editSeed as MyServiceDto;
+      setPriceFrom(s.priceFrom);
+      setPriceUntil(s.priceUntil);
+      setListingPrice('');
+    }
     setDescription(editSeed.description ?? '');
     setTelegram(editSeed.telegram ?? '');
     setInstagram(editSeed.instagram ?? '');
     setCategoryId(categoryFromDetail);
     setImageSlots(imageSlotsFromRemoteUrls(editSeed.images ?? []));
-  }, [opened, mode, initialService?.id, editSeed, categories]);
+  }, [opened, mode, initialService?.id, editSeed, categories, listingKind]);
+
+  useEffect(() => {
+    if (!opened || mode !== 'create') return;
+    if (listingKind === 'products') {
+      setPriceFrom('');
+      setPriceUntil('');
+    } else {
+      setListingPrice('');
+    }
+  }, [opened, mode, listingKind]);
 
   useEffect(() => {
     if (!opened || mode !== 'edit' || !editSeed || !regions?.length) return;
@@ -311,8 +355,12 @@ export function ServiceCreateForm({
         await queryClient.invalidateQueries({ queryKey: ['market'] });
       } else {
         await queryClient.invalidateQueries({ queryKey: ['my-services'] });
-        await queryClient.invalidateQueries({ queryKey: ['services', 'regular'] });
-        await queryClient.invalidateQueries({ queryKey: ['services', 'premium'] });
+        await queryClient.invalidateQueries({
+          queryKey: ['services', 'regular'],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ['services', 'premium'],
+        });
       }
       if (variables.listingId) {
         await queryClient.invalidateQueries({
@@ -322,7 +370,9 @@ export function ServiceCreateForm({
         });
       }
       const isEdit = Boolean(variables.listingId);
-      const createdTitle = isProduct ? "Mahsulot e'loni yaratildi" : "Xizmat e'loni yaratildi";
+      const createdTitle = isProduct
+        ? "Mahsulot e'loni yaratildi"
+        : "Xizmat e'loni yaratildi";
       openNotification({
         title: isEdit ? "E'lon yangilandi" : createdTitle,
         type: 'success',
@@ -332,9 +382,10 @@ export function ServiceCreateForm({
     },
     onError: (_err, variables) => {
       const isEdit = Boolean(variables?.listingId);
-      const failCreate = listingKind === 'products'
-        ? "Mahsulot e'lonini yaratishda xatolik yuz berdi"
-        : "Xizmat e'lonini yaratishda xatolik yuz berdi";
+      const failCreate =
+        listingKind === 'products'
+          ? "Mahsulot e'lonini yaratishda xatolik yuz berdi"
+          : "Xizmat e'lonini yaratishda xatolik yuz berdi";
       openNotification({
         title: isEdit ? "E'lonni yangilashda xatolik yuz berdi" : failCreate,
         type: 'error',
@@ -424,31 +475,35 @@ export function ServiceCreateForm({
         phone,
         priceFrom,
         priceUntil,
+        listingPrice,
         description,
         telegram,
         instagram,
         imageSlots,
       },
-      listingKind,
+      listingKind
     );
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    const formData = buildCreateServiceFormData({
-      categoryId,
-      title,
-      regionId,
-      districtId,
-      phone,
-      priceFrom,
-      priceUntil,
-      description,
-      telegram,
-      instagram,
-      premium:
-        mode === 'edit' && editSeed ? editSeed.premium : userPremium,
-      imageSlots,
-    });
+    const formData = buildListingFormData(
+      {
+        categoryId,
+        title,
+        regionId,
+        districtId,
+        phone,
+        priceFrom,
+        priceUntil,
+        listingPrice,
+        description,
+        telegram,
+        instagram,
+        premium: mode === 'edit' && editSeed ? editSeed.premium : userPremium,
+        imageSlots,
+      },
+      listingKind
+    );
     saveMutation.mutate({
       formData,
       listingId: mode === 'edit' ? initialService?.id : undefined,
@@ -462,7 +517,7 @@ export function ServiceCreateForm({
     !listingDetailQuery.isFetched;
 
   if (showEditDetailLoader) {
-    return <ServiceCreateFormSkeleton />;
+    return <CreateFormSkeleton />;
   }
 
   const isProduct = listingKind === 'products';
@@ -471,7 +526,9 @@ export function ServiceCreateForm({
     <Stack gap="sm">
       <Select
         label={isProduct ? 'Mahsulot turi' : 'Xizmat turi'}
-        placeholder={isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'}
+        placeholder={
+          isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'
+        }
         data={categoryOptions}
         leftSection={renderCategoryIcon(selectedCategory?.icon)}
         withCheckIcon={false}
@@ -555,28 +612,44 @@ export function ServiceCreateForm({
       />
 
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-        <NumberInput
-          label="Boshlang'ich narx"
-          placeholder="Masalan, 200000"
-          min={0}
-          thousandSeparator=" "
-          allowDecimal={false}
-          value={priceFrom}
-          onChange={setPriceFrom}
-          required
-          error={errors.priceFrom}
-        />
-        <NumberInput
-          label="Oxirgi narx"
-          placeholder="Masalan, 500000"
-          min={0}
-          thousandSeparator=" "
-          allowDecimal={false}
-          value={priceUntil}
-          onChange={setPriceUntil}
-          required
-          error={errors.priceUntil}
-        />
+        {isProduct ? (
+          <NumberInput
+            label="Narx"
+            placeholder="Masalan, 350000"
+            min={0}
+            thousandSeparator=" "
+            allowDecimal={false}
+            value={listingPrice}
+            onChange={setListingPrice}
+            required
+            error={errors.listingPrice}
+          />
+        ) : (
+          <>
+            <NumberInput
+              label="Boshlang'ich narx"
+              placeholder="Masalan, 200000"
+              min={0}
+              thousandSeparator=" "
+              allowDecimal={false}
+              value={priceFrom}
+              onChange={setPriceFrom}
+              required
+              error={errors.priceFrom}
+            />
+            <NumberInput
+              label="Oxirgi narx"
+              placeholder="Masalan, 500000"
+              min={0}
+              thousandSeparator=" "
+              allowDecimal={false}
+              value={priceUntil}
+              onChange={setPriceUntil}
+              required
+              error={errors.priceUntil}
+            />
+          </>
+        )}
       </SimpleGrid>
 
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
@@ -716,3 +789,5 @@ export function ServiceCreateForm({
     </Stack>
   );
 }
+
+export default CreateForm;

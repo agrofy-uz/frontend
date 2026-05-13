@@ -44,6 +44,8 @@ export type ServiceCreateDraft = {
   phone: string;
   priceFrom: string | number;
   priceUntil: string | number;
+  /** Mahsulot — bitta narx (`listingKind === 'products'`) */
+  listingPrice?: string | number;
   description: string;
   telegram: string;
   instagram: string;
@@ -73,12 +75,20 @@ export function validateServiceCreateDraft(
     nextErrors.phone = "To'liq telefon raqam kiriting";
   }
 
-  if (Number(draft.priceFrom) <= 0) {
-    nextErrors.priceFrom = "Boshlang'ich narx majburiy";
+  if (isProduct) {
+    const p = Number(draft.listingPrice ?? 0);
+    if (!Number.isFinite(p) || p <= 0) {
+      nextErrors.listingPrice = 'Narx majburiy';
+    }
+  } else {
+    if (Number(draft.priceFrom) <= 0) {
+      nextErrors.priceFrom = "Boshlang'ich narx majburiy";
+    }
+    if (Number(draft.priceUntil) <= 0) {
+      nextErrors.priceUntil = 'Oxirgi narx majburiy';
+    }
   }
-  if (Number(draft.priceUntil) <= 0) {
-    nextErrors.priceUntil = 'Oxirgi narx majburiy';
-  }
+
   if (!draft.description.trim()) {
     nextErrors.description = isProduct
       ? 'Mahsulot haqida qisqacha matn majburiy'
@@ -90,24 +100,38 @@ export function validateServiceCreateDraft(
   return nextErrors;
 }
 
-export function buildCreateServiceFormData(
+/**
+ * Xizmatlar: `priceFrom` / `priceUntil`, `region` / `district`.
+ * Mahsulotlar: `price`, `regionId` / `districtId`.
+ */
+export function buildListingFormData(
   draft: ServiceCreateDraft,
+  listingKind: ListingCreateKind,
 ): FormData {
   const phoneDigits = draft.phone.replace(/\D/g, '');
+  const isProduct = listingKind === 'products';
 
   const formData = new FormData();
   formData.append('categoryId', draft.categoryId ?? '');
   formData.append('title', draft.title.trim());
   formData.append('description', draft.description.trim());
-  formData.append('priceFrom', String(Number(draft.priceFrom)));
-  formData.append('priceUntil', String(Number(draft.priceUntil)));
+  if (isProduct) {
+    formData.append('price', String(Number(draft.listingPrice ?? 0)));
+  } else {
+    formData.append('priceFrom', String(Number(draft.priceFrom)));
+    formData.append('priceUntil', String(Number(draft.priceUntil)));
+  }
   formData.append('phone', `+${phoneDigits}`);
-  formData.append('region', draft.regionId ?? '');
-  formData.append('district', draft.districtId ?? '');
+  if (isProduct) {
+    formData.append('regionId', draft.regionId ?? '');
+    formData.append('districtId', draft.districtId ?? '');
+  } else {
+    formData.append('region', draft.regionId ?? '');
+    formData.append('district', draft.districtId ?? '');
+  }
   formData.append('premium', String(Boolean(draft.premium)));
   if (draft.telegram.trim()) formData.append('telegram', draft.telegram.trim());
   if (draft.instagram.trim()) formData.append('instagram', draft.instagram.trim());
-  /** Tartib saqlanadi: eski rasm — `images` ga URL qatori, yangi — `images` ga fayl */
   draft.imageSlots.forEach((slot) => {
     if (slot.file) {
       formData.append('images', slot.file);
@@ -117,4 +141,8 @@ export function buildCreateServiceFormData(
   });
 
   return formData;
+}
+
+export function buildCreateServiceFormData(draft: ServiceCreateDraft): FormData {
+  return buildListingFormData(draft, 'services');
 }

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Stack } from '@mantine/core';
 import { Segmented } from '@/shared/ui/segmented';
-import { ServiceCreateForm } from './ui/service-create-form.ui';
+import { CreateForm } from './ui/create-form.ui';
 import { Modal } from '@/shared/ui/modal';
-import type { MyServiceDto } from '@/shared/api/services/my-ads';
+import type { MyProductDto, MyServiceDto } from '@/shared/api/services/my-ads';
 
 export type MyAdsEditDraft = {
   kind: 'services' | 'products';
-  item: MyServiceDto;
+  item: MyServiceDto | MyProductDto;
 };
 
 type CreateProps = {
@@ -19,7 +19,7 @@ type CreateProps = {
 
 function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
   const [createType, setCreateType] = useState<'services' | 'products'>(
-    initialType,
+    initialType
   );
   const isEditingListing = Boolean(editDraft);
 
@@ -40,7 +40,9 @@ function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
           <Segmented
             fullWidth
             value={createType}
-            onChange={(value) => setCreateType(value as 'services' | 'products')}
+            onChange={(value) =>
+              setCreateType(value as 'services' | 'products')
+            }
             data={[
               { label: 'Xizmat yaratish', value: 'services' },
               { label: 'Mahsulot yaratish', value: 'products' },
@@ -48,7 +50,7 @@ function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
           />
         ) : null}
 
-        <ServiceCreateForm
+        <CreateForm
           opened={opened}
           mode={isEditingListing ? 'edit' : 'create'}
           initialService={editDraft?.item ?? null}

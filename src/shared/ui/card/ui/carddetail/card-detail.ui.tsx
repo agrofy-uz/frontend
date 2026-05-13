@@ -26,12 +26,16 @@ import {
   getServiceById,
   getServiceReactions,
   likeService,
+  type ServiceDetailDto,
+  type ServiceReactionsDto,
 } from '@/shared/api/services/services';
 import {
   dislikeMarket,
   getMarketById,
   getMarketReactions,
   likeMarket,
+  type MarketDetailDto,
+  type MarketReactionsDto,
 } from '@/shared/api/services/market';
 import s from './card-detail.module.css';
 import { CardDetailSkeleton } from './ui';
@@ -78,6 +82,9 @@ function formatRating(value?: number): string {
   return value.toFixed(1);
 }
 
+type ListingDetailDto = ServiceDetailDto | MarketDetailDto;
+type ListingReactionsDto = ServiceReactionsDto | MarketReactionsDto;
+
 export function CardDetailModal({
   serviceId,
   opened,
@@ -101,17 +108,17 @@ export function CardDetailModal({
     ? ['market-reactions', serviceId]
     : ['service-reactions', serviceId];
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<ListingDetailDto | null, Error>({
     queryKey: detailQueryKey,
-    queryFn: () =>
+    queryFn: (): Promise<ListingDetailDto | null> =>
       isMarket
         ? getMarketById(serviceId ?? '')
         : getServiceById(serviceId ?? ''),
     enabled: opened && Boolean(serviceId),
   });
-  const { data: reactions } = useQuery({
+  const { data: reactions } = useQuery<ListingReactionsDto | null, Error>({
     queryKey: reactionsQueryKey,
-    queryFn: () =>
+    queryFn: (): Promise<ListingReactionsDto | null> =>
       isMarket
         ? getMarketReactions(serviceId ?? '')
         : getServiceReactions(serviceId ?? ''),
@@ -150,14 +157,16 @@ export function CardDetailModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title="Xizmat tafsiloti"
+      title={isMarket ? 'Mahsulot tafsiloti' : 'Xizmat tafsiloti'}
       size="min(96vw, 980px)"
       radius="20px"
     >
       {isLoading ? (
         <CardDetailSkeleton />
       ) : !data ? (
-        <Text c="dimmed">Xizmat tafsiloti topilmadi.</Text>
+        <Text c="dimmed">
+          {isMarket ? 'Mahsulot tafsiloti topilmadi.' : 'Xizmat tafsiloti topilmadi.'}
+        </Text>
       ) : (
         <div className={s.layout}>
           <div>
@@ -231,8 +240,9 @@ export function CardDetailModal({
               <Text component="span" fw={700}>
                 Narx:
               </Text>{' '}
-              {formatSom(data.priceFrom)} dan - {formatSom(data.priceUntil)}{' '}
-              gacha
+              {isMarket
+                ? formatSom((data as MarketDetailDto).price)
+                : `${formatSom((data as ServiceDetailDto).priceFrom)} dan - ${formatSom((data as ServiceDetailDto).priceUntil)} gacha`}
             </Text>
 
             {telegramHref ? (

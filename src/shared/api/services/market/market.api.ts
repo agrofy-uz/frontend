@@ -47,13 +47,45 @@ function normalizeMarketImages(row: MarketImagesApiRow): string[] {
   return [];
 }
 
+/** API `price` yoki (legacy) `priceFrom` / `priceUntil` */
+function coerceMarketPriceFromRow(row: Record<string, unknown>): number {
+  for (const key of ['price', 'Price'] as const) {
+    const raw = row[key];
+    if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
+      return Math.trunc(raw);
+    }
+    if (typeof raw === 'string' && raw.trim()) {
+      const n = Number(raw.replace(/\s/g, ''));
+      if (Number.isFinite(n) && n > 0) return Math.trunc(n);
+    }
+  }
+  const from = Number(row.priceFrom ?? row.PriceFrom ?? 0);
+  if (Number.isFinite(from) && from > 0) return Math.trunc(from);
+  const until = Number(row.priceUntil ?? row.PriceUntil ?? 0);
+  if (Number.isFinite(until) && until > 0) return Math.trunc(until);
+  return 0;
+}
+
+function stripLegacyPriceFields(rest: Record<string, unknown>): void {
+  delete rest.price;
+  delete rest.Price;
+  delete rest.priceFrom;
+  delete rest.priceUntil;
+  delete rest.PriceFrom;
+  delete rest.PriceUntil;
+}
+
 function normalizeMarketListItem(
-  row: Omit<MarketListItemDto, 'images'> & MarketImagesApiRow,
+  row: MarketImagesApiRow & Record<string, unknown>,
 ): MarketListItemDto {
-  const { imageUrl, images, ...rest } = row;
+  const { imageUrl, images, ...raw } = row;
+  const price = coerceMarketPriceFromRow(raw);
+  const rest = { ...raw };
+  stripLegacyPriceFields(rest);
   return {
-    ...rest,
+    ...(rest as Omit<MarketListItemDto, 'images' | 'price'>),
     images: normalizeMarketImages({ images, imageUrl }),
+    price,
   };
 }
 
@@ -68,9 +100,7 @@ function normalizeMarketsListPageDto(data: unknown): MarketListPageDto {
 
   if (Array.isArray(data)) {
     const items = data.map((row) =>
-      normalizeMarketListItem(
-        row as Omit<MarketListItemDto, 'images'> & MarketImagesApiRow,
-      ),
+      normalizeMarketListItem(row as MarketImagesApiRow & Record<string, unknown>),
     );
     const n = items.length;
     return {
@@ -88,9 +118,7 @@ function normalizeMarketsListPageDto(data: unknown): MarketListPageDto {
   const rawItems = o.items ?? o.data;
   const arr = Array.isArray(rawItems) ? rawItems : [];
   const items = arr.map((row) =>
-    normalizeMarketListItem(
-      row as Omit<MarketListItemDto, 'images'> & MarketImagesApiRow,
-    ),
+    normalizeMarketListItem(row as MarketImagesApiRow & Record<string, unknown>),
   );
 
   const totalCount = Number(o.totalCount ?? o.total ?? items.length);
@@ -116,15 +144,19 @@ export const getMarketById = async (
   id: string,
 ): Promise<MarketDetailDto | null> => {
   if (!id.trim()) return null;
-  const response = await API.get<
-    Omit<MarketDetailDto, 'images'> & MarketImagesApiRow
-  >(`/market/${id}`);
+  const response = await API.get<MarketImagesApiRow & Record<string, unknown>>(
+    `/market/${id}`,
+  );
   const data = response.data;
   if (!data || typeof data !== 'object') return null;
-  const { imageUrl, images, ...rest } = data;
+  const { imageUrl, images, ...raw } = data;
+  const price = coerceMarketPriceFromRow(raw);
+  const rest = { ...raw };
+  stripLegacyPriceFields(rest);
   return {
-    ...rest,
+    ...(rest as Omit<MarketDetailDto, 'images' | 'price'>),
     images: normalizeMarketImages({ images, imageUrl }),
+    price,
   };
 };
 
@@ -170,29 +202,43 @@ export const getMarketSuggest = async (params: {
 /** GET /api/market/premium */
 export const getPremiumMarkets = async (): Promise<PremiumMarketDto[]> => {
   const response =
-    await API.get<(Omit<PremiumMarketDto, 'images'> & MarketImagesApiRow)[]>(
+    await API.get<(MarketImagesApiRow & Record<string, unknown>)[]>(
       '/market/premium',
     );
   const { data } = response;
   if (!Array.isArray(data)) return [];
-  return data.map(({ imageUrl, images, ...rest }) => ({
-    ...rest,
-    images: normalizeMarketImages({ images, imageUrl }),
-  }));
+  return data.map((row) => {
+    const { imageUrl, images, ...raw } = row;
+    const price = coerceMarketPriceFromRow(raw);
+    const rest = { ...raw };
+    stripLegacyPriceFields(rest);
+    return {
+      ...(rest as Omit<PremiumMarketDto, 'images' | 'price'>),
+      images: normalizeMarketImages({ images, imageUrl }),
+      price,
+    };
+  });
 };
 
 /** GET /api/market/regular */
 export const getRegularMarkets = async (): Promise<RegularMarketDto[]> => {
   const response =
-    await API.get<(Omit<RegularMarketDto, 'images'> & MarketImagesApiRow)[]>(
+    await API.get<(MarketImagesApiRow & Record<string, unknown>)[]>(
       '/market/regular',
     );
   const { data } = response;
   if (!Array.isArray(data)) return [];
-  return data.map(({ imageUrl, images, ...rest }) => ({
-    ...rest,
-    images: normalizeMarketImages({ images, imageUrl }),
-  }));
+  return data.map((row) => {
+    const { imageUrl, images, ...raw } = row;
+    const price = coerceMarketPriceFromRow(raw);
+    const rest = { ...raw };
+    stripLegacyPriceFields(rest);
+    return {
+      ...(rest as Omit<RegularMarketDto, 'images' | 'price'>),
+      images: normalizeMarketImages({ images, imageUrl }),
+      price,
+    };
+  });
 };
 
 /** GET /api/reactions/:itemId (mahsulot ham shu endpointdan foydalanishi mumkin) */

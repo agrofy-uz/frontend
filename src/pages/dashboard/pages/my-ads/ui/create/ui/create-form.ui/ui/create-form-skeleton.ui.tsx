@@ -11,9 +11,13 @@ function FieldSkeleton({ inputHeight = 36 }: { inputHeight?: number }) {
 }
 
 /** Tahrirlashda e'lon tafsiloti yuklanayotganda forma o‘rniga */
-export function ServiceCreateFormSkeleton() {
+export function CreateFormSkeleton() {
   return (
-    <Stack gap="sm" aria-busy="true" aria-label="E'lon ma'lumotlari yuklanmoqda">
+    <Stack
+      gap="sm"
+      aria-busy="true"
+      aria-label="E'lon ma'lumotlari yuklanmoqda"
+    >
       <FieldSkeleton />
 
       <FieldSkeleton />
@@ -58,3 +62,5 @@ export function ServiceCreateFormSkeleton() {
     </Stack>
   );
 }
+
+export default CreateFormSkeleton;

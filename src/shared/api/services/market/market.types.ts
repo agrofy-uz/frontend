@@ -13,8 +13,8 @@ export type PremiumMarketDto = {
   description?: string;
   regions?: string;
   districts?: string;
-  priceFrom: number;
-  priceUntil: number;
+  /** Bitta narx (so‘m) */
+  price: number;
   images: string[];
   premium: boolean;
   phone: string;
@@ -28,8 +28,7 @@ export type RegularMarketDto = {
   description?: string;
   regions?: string;
   districts?: string;
-  priceFrom: number;
-  priceUntil: number;
+  price: number;
   images: string[];
   rating?: string;
   premium: boolean;
@@ -91,8 +90,7 @@ export type MarketDetailDto = {
   title: string;
   regions: string;
   districts: string;
-  priceFrom: number;
-  priceUntil: number;
+  price: number;
   images: string[];
   premium: boolean;
   phone: string;
