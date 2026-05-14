@@ -56,7 +56,7 @@ function Profile() {
   const meQuery = useQuery({
     queryKey: ['auth', 'me', accessToken],
     queryFn: async () => {
-      const me = await getAuthMe(accessToken!);
+      const me = await getAuthMe();
       return mapAuthMeToUser(me);
     },
     enabled: hydrated && isAuthenticated && Boolean(accessToken),

@@ -10,7 +10,12 @@ import {
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
 import { FaArrowLeft, FaCheckCircle, FaTelegram } from 'react-icons/fa';
-import { getAuthMe, mapAuthMeToUser, startTelegramAuth, verifyOtp } from '@/shared/api';
+import {
+  getAuthMeWithBearer,
+  mapAuthMeToUser,
+  startTelegramAuth,
+  verifyOtp,
+} from '@/shared/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { OtpInput } from './components/otp-input';
@@ -69,7 +74,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
 
     try {
       const verifyResponse = await verifyOtp(loginSessionId, otp);
-      const me = await getAuthMe(verifyResponse.accessToken);
+      const me = await getAuthMeWithBearer(verifyResponse.accessToken);
       const userData = mapAuthMeToUser(me);
 
       login(userData, verifyResponse.accessToken, verifyResponse.refreshToken, {

@@ -1,4 +1,4 @@
-import API from '../../api.interface';
+import API, { refreshApi } from '../../api.interface';
 import type {
   AuthMeResponse,
   AuthTokensResponse,
@@ -35,11 +35,18 @@ export const verifyOtp = async (
   return response.data;
 };
 
-export const getAuthMe = async (accessToken: string): Promise<AuthMeResponse> => {
-  const response = await API.get<AuthMeResponse>('/auth/me', {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+/** Store + interceptor orqali (access yangilash, 401 qayta urinish) */
+export const getAuthMe = async (): Promise<AuthMeResponse> => {
+  const response = await API.get<AuthMeResponse>('/auth/me');
+  return response.data;
+};
+
+/** Verify javobidagi token bilan — `login()` dan oldin store hali bo‘sh */
+export const getAuthMeWithBearer = async (
+  accessToken: string,
+): Promise<AuthMeResponse> => {
+  const response = await refreshApi.get<AuthMeResponse>('/auth/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
   return response.data;
 };

@@ -79,13 +79,10 @@ function applyAuthTokens(next: AuthTokensPayload) {
 /** Bir marta refresh (parallel so'rovlar bitta promise kutadi) */
 async function performTokenRefresh(): Promise<void> {
   const state = useAuthStore.getState();
-  const { refreshToken, refreshExpiresAt, forcedLogoutAt } = state;
+  const { refreshToken, forcedLogoutAt } = state;
 
-  if (
-    !refreshToken ||
-    isInstantPassed(refreshExpiresAt) ||
-    isInstantPassed(forcedLogoutAt)
-  ) {
+  /** `forcedLogoutAt` — server siyosati; `refreshExpiresAt`ni bu yerda bloklamaymiz (noto‘g‘ri parse/saat farqi). */
+  if (!refreshToken || isInstantPassed(forcedLogoutAt)) {
     state.logout();
     throw new Error('Session expired');
   }
@@ -182,3 +179,6 @@ export default api;
 
 /** Axios instance — `API.get<T>(...)` / `API.post<T>(...)` */
 export const API = api;
+
+/** Interceptorlarsiz — verify dan keyin `/me` kabi bir martalik token so‘rovlari */
+export { refreshApi };

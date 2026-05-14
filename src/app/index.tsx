@@ -1,8 +1,15 @@
 import { useEffect } from 'react';
+import axios from 'axios';
 import { getAuthMe, mapAuthMeToUser } from '@/shared/api';
 import { useAuthStore } from '@/shared/store/authStore';
 import Providers from './providers';
 import AppRoutes from './routers';
+
+function shouldLogoutAfterMeFailure(err: unknown): boolean {
+  if (!axios.isAxiosError(err)) return false;
+  const status = err.response?.status;
+  return status === 401 || status === 403;
+}
 
 function AuthBootstrap() {
   const { isAuthenticated, accessToken, updateUser, logout } = useAuthStore();
@@ -14,11 +21,11 @@ function AuthBootstrap() {
 
     const syncMe = async () => {
       try {
-        const me = await getAuthMe(accessToken);
+        const me = await getAuthMe();
         if (cancelled) return;
         updateUser(mapAuthMeToUser(me));
-      } catch {
-        if (!cancelled) {
+      } catch (err) {
+        if (!cancelled && shouldLogoutAfterMeFailure(err)) {
           logout();
         }
       }

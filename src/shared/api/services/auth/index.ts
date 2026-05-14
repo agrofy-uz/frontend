@@ -4,6 +4,7 @@ export {
   startTelegramAuth,
   verifyOtp,
   getAuthMe,
+  getAuthMeWithBearer,
   refreshAuthToken,
   logoutAuth,
 } from './auth.api';

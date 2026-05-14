@@ -150,7 +150,7 @@ export function ProfileEditModal({ opened, onClose }: ProfileEditModalProps) {
       if (isAuthMeResponse(data)) {
         updateUser(mapAuthMeToUser(data));
       } else if (token) {
-        const me = await getAuthMe(token);
+        const me = await getAuthMe();
         updateUser(mapAuthMeToUser(me));
       }
       await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
