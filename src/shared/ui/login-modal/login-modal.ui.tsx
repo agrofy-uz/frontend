@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
 import { FaArrowLeft, FaCheckCircle, FaTelegram } from 'react-icons/fa';
-import { getAuthMe, startTelegramAuth, verifyOtp } from '@/shared/api';
+import { getAuthMe, mapAuthMeToUser, startTelegramAuth, verifyOtp } from '@/shared/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/authStore';
 import { OtpInput } from './components/otp-input';
@@ -70,26 +70,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
     try {
       const verifyResponse = await verifyOtp(loginSessionId, otp);
       const me = await getAuthMe(verifyResponse.accessToken);
-
-      const userData = {
-        id: String(me.id),
-        phone_number: me.phoneNumber || '',
-        telegram_id: me.telegramUserId || 0,
-        first_name: me.firstName || null,
-        last_name: me.lastName || null,
-        username: me.telegramUsername || null,
-        created_at: me.createdAt || null,
-        is_active: true,
-        photo_url:
-          typeof me.imageUrl === 'string' && me.imageUrl.trim()
-            ? me.imageUrl.trim()
-            : null,
-        premium: Boolean(me.premium),
-        premium_expires_at: me.premiumExpiresAt ?? null,
-        premium_plan_tier: me.premiumPlanTier ?? null,
-        premium_plan_tier_label_uz: me.premiumPlanTierLabelUz ?? null,
-        premium_plan_months: me.premiumPlanMonths ?? null,
-      };
+      const userData = mapAuthMeToUser(me);
 
       login(userData, verifyResponse.accessToken, verifyResponse.refreshToken, {
         accessExpiresAt: verifyResponse.accessExpiresAt ?? null,
