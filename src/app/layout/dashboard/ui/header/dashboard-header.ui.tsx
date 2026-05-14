@@ -1,7 +1,5 @@
-import { Box, Flex, Group, Text, ActionIcon, Badge } from '@mantine/core';
-import { IoIosNotifications } from 'react-icons/io';
+import { Box, Flex, Text } from '@mantine/core';
 import { useLocation } from 'react-router-dom';
-import { ThemeToggle } from '@/app/layout/footer/ui/theme-toggle';
 import { SearchInput } from '@/pages/dashboard/pages/services/ui/search-input/search-input.ui';
 import { MarketSearchInput } from '@/pages/dashboard/pages/market/ui/search-input/search-input.ui';
 import { useMediaQuery } from '@mantine/hooks';
@@ -84,6 +82,7 @@ const DashboardHeader = () => {
         </Box>
       )}
 
+      {/* Bildirishnomalar — keyinroq qo‘shiladi
       <Group gap="md" wrap="nowrap" style={{ flexShrink: 0 }}>
         <ActionIcon variant="subtle" size="lg" style={{ position: 'relative' }}>
           <IoIosNotifications size={24} className="textPrimary" />
@@ -108,8 +107,8 @@ const DashboardHeader = () => {
             3
           </Badge>
         </ActionIcon>
-        <ThemeToggle />
       </Group>
+      */}
     </Flex>
   );
 };

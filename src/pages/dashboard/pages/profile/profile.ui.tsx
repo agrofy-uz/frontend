@@ -1,23 +1,24 @@
 import { useEffect } from 'react';
 import {
-  Alert,
+  ActionIcon,
   Avatar,
   Badge,
   Box,
-  Button,
   Group,
   Paper,
   Skeleton,
   Stack,
   Text,
-  Title,
+  Tooltip,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
+import { MdOutlineEdit } from 'react-icons/md';
 import { getAuthMe, mapAuthMeToUser } from '@/shared/api';
 import { formatDate } from '@/shared/lib/dateHelper';
-import { getErrorMessage } from '@/shared/ui/login-modal/login-modal.const';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import { formatPhoneNumber } from '@/shared/lib/formatNumber';
+import { ProfileEditModal } from './ui';
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -49,6 +50,8 @@ function ProfileField({
 function Profile() {
   const hydrated = useAuthStoreHydrated();
   const { user, accessToken, isAuthenticated, updateUser } = useAuthStore();
+  const [editOpened, { open: openEdit, close: closeEdit }] =
+    useDisclosure(false);
 
   const meQuery = useQuery({
     queryKey: ['auth', 'me', accessToken],
@@ -85,26 +88,28 @@ function Profile() {
 
   if (showSkeleton) {
     return (
-      <Box>
-        <Stack gap="md" mt="lg">
-          <Group align="flex-start" wrap="wrap">
-            <Skeleton height={96} width={96} radius="md" />
-            <Stack gap="xs" flex={1} maw={360}>
-              <Skeleton height={22} width="60%" />
-              <Skeleton height={16} width="40%" />
-              <Skeleton height={16} width="70%" />
-            </Stack>
-          </Group>
-          <Skeleton height={120} radius="md" />
-        </Stack>
-      </Box>
+      <>
+        <Box>
+          <Stack gap="md" mt="lg">
+            <Group align="flex-start" wrap="wrap">
+              <Skeleton height={96} width={96} radius="md" />
+              <Stack gap="xs" flex={1} maw={360}>
+                <Skeleton height={22} width="60%" />
+                <Skeleton height={16} width="40%" />
+                <Skeleton height={16} width="70%" />
+              </Stack>
+            </Group>
+            <Skeleton height={120} radius="md" />
+          </Stack>
+        </Box>
+        <ProfileEditModal opened={editOpened} onClose={closeEdit} />
+      </>
     );
   }
 
   if (!isAuthenticated || !accessToken) {
     return (
       <Box>
-        <Title order={2}>Profil</Title>
         <Text c="dimmed" mt="md">
           Profilni ko‘rish uchun tizimga kiring.
         </Text>
@@ -113,111 +118,126 @@ function Profile() {
   }
 
   return (
-    <Box>
-      {meQuery.isError ? (
-        <Alert color="red" title="Ma’lumotni yuklashda xato" mt="md">
-          <Stack gap="sm">
-            <Text size="sm">{getErrorMessage(meQuery.error)}</Text>
-            <Button
-              size="xs"
-              variant="light"
-              onClick={() => void meQuery.refetch()}
-            >
-              Qayta urinish
-            </Button>
-          </Stack>
-        </Alert>
-      ) : null}
-
-      {!profile && meQuery.isError ? null : (
-        <Stack gap="lg" mt="lg" align="stretch" maw={520}>
-          <Paper withBorder p="lg" radius="md">
-            <Group align="flex-start" wrap="wrap" gap="lg">
-              <Avatar src={photo ?? undefined} size={96} radius="md">
-                {getInitials(displayName)}
-              </Avatar>
-              <Stack gap={4} flex={1} miw={200}>
-                <Text fw={600} size="lg">
-                  {displayName}
-                </Text>
-                {profile?.username ? (
-                  <Text c="dimmed" size="sm">
-                    @{profile.username}
-                  </Text>
+    <>
+      <Box>
+        {!profile && meQuery.isError ? null : (
+          <Stack gap="lg" mt="lg" align="stretch" maw={520}>
+            <Paper withBorder p="lg" radius="md" shadow="xs">
+              <Group
+                justify="space-between"
+                align="flex-start"
+                wrap="nowrap"
+                gap="md"
+              >
+                <Group
+                  align="flex-start"
+                  wrap="wrap"
+                  gap="lg"
+                  style={{ flex: 1, minWidth: 0 }}
+                >
+                  <Avatar src={photo ?? undefined} size={96} radius="md">
+                    {getInitials(displayName)}
+                  </Avatar>
+                  <Stack gap={4} flex={1} miw={200}>
+                    <Text fw={600} size="lg">
+                      {displayName}
+                    </Text>
+                    {profile?.username ? (
+                      <Text c="dimmed" size="sm">
+                        @{profile.username}
+                      </Text>
+                    ) : null}
+                    {profile?.phone_number ? (
+                      <Text c="dimmed" size="sm">
+                        {formatPhoneNumber(profile.phone_number)}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                </Group>
+                {user ? (
+                  <Tooltip label="Profilni tahrirlash" position="left">
+                    <ActionIcon
+                      variant="light"
+                      color="gray"
+                      size="lg"
+                      radius="md"
+                      aria-label="Profilni tahrirlash"
+                      onClick={openEdit}
+                    >
+                      <MdOutlineEdit size={20} />
+                    </ActionIcon>
+                  </Tooltip>
                 ) : null}
-                {profile?.phone_number ? (
-                  <Text c="dimmed" size="sm">
-                    {formatPhoneNumber(profile.phone_number)}
-                  </Text>
-                ) : null}
-              </Stack>
-            </Group>
-          </Paper>
+              </Group>
+            </Paper>
 
-          <Paper withBorder p="lg" radius="md">
-            <Text fw={600} size="sm" mb="sm" tt="uppercase" c="dimmed">
-              Hisob
-            </Text>
-            <Stack gap="sm">
-              <ProfileField
-                label="Telegram ID"
-                value={
-                  profile?.telegram_id ? String(profile.telegram_id) : null
-                }
-              />
-              <ProfileField
-                label="Ro‘yxatdan o‘tgan"
-                value={
-                  profile?.created_at ? formatDate(profile.created_at) : null
-                }
-              />
-            </Stack>
-          </Paper>
-
-          <Paper withBorder p="lg" radius="md">
-            <Group justify="space-between" mb="sm" wrap="wrap">
-              <Text fw={600} size="sm" tt="uppercase" c="dimmed">
-                Premium
+            <Paper withBorder p="lg" radius="md">
+              <Text fw={600} size="sm" mb="sm" tt="uppercase" c="dimmed">
+                Hisob
               </Text>
-              {profile?.premium ? (
-                <Badge color="yellow" variant="light">
-                  Faol
-                </Badge>
-              ) : (
-                <Badge variant="light" color="gray">
-                  Yo‘q
-                </Badge>
-              )}
-            </Group>
-            <Stack gap="sm">
-              {profile?.premium ? (
-                <>
-                  <ProfileField label="Tarif" value={premiumLabel} />
-                  <ProfileField
-                    label="Muddati"
-                    value={
-                      profile.premium_expires_at
-                        ? formatDate(profile.premium_expires_at)
-                        : null
-                    }
-                  />
-                  {profile.premium_plan_months != null ? (
-                    <ProfileField
-                      label="Oy"
-                      value={String(profile.premium_plan_months)}
-                    />
-                  ) : null}
-                </>
-              ) : (
-                <Text size="sm" c="dimmed">
-                  Premium imkoniyatlarini Pricing bo‘limidan ulashingiz mumkin.
+              <Stack gap="sm">
+                <ProfileField
+                  label="Telegram ID"
+                  value={
+                    profile?.telegram_id ? String(profile.telegram_id) : null
+                  }
+                />
+                <ProfileField
+                  label="Ro‘yxatdan o‘tgan"
+                  value={
+                    profile?.created_at ? formatDate(profile.created_at) : null
+                  }
+                />
+              </Stack>
+            </Paper>
+
+            <Paper withBorder p="lg" radius="md">
+              <Group justify="space-between" mb="sm" wrap="wrap">
+                <Text fw={600} size="sm" tt="uppercase" c="dimmed">
+                  Premium
                 </Text>
-              )}
-            </Stack>
-          </Paper>
-        </Stack>
-      )}
-    </Box>
+                {profile?.premium ? (
+                  <Badge color="yellow" variant="light">
+                    Faol
+                  </Badge>
+                ) : (
+                  <Badge variant="light" color="gray">
+                    Yo‘q
+                  </Badge>
+                )}
+              </Group>
+              <Stack gap="sm">
+                {profile?.premium ? (
+                  <>
+                    <ProfileField label="Tarif" value={premiumLabel} />
+                    <ProfileField
+                      label="Muddati"
+                      value={
+                        profile.premium_expires_at
+                          ? formatDate(profile.premium_expires_at)
+                          : null
+                      }
+                    />
+                    {profile.premium_plan_months != null ? (
+                      <ProfileField
+                        label="Oy"
+                        value={String(profile.premium_plan_months)}
+                      />
+                    ) : null}
+                  </>
+                ) : (
+                  <Text size="sm" c="dimmed">
+                    Premium imkoniyatlarini Pricing bo‘limidan ulashingiz
+                    mumkin.
+                  </Text>
+                )}
+              </Stack>
+            </Paper>
+          </Stack>
+        )}
+      </Box>
+      <ProfileEditModal opened={editOpened} onClose={closeEdit} />
+    </>
   );
 }
 

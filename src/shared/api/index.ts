@@ -4,5 +4,6 @@ export const API_BASE_URL =
 export { default as api, API } from './api.interface';
 export * from './api.types';
 export * from './services/auth';
+export * from './services/profile';
 export * from './services/ai';
 export * from './services/services';
