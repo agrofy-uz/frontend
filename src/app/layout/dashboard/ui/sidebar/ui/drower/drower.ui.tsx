@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { logoutAuth } from '@/shared/api';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useSettingsModalStore } from '@/shared/store/settingsModalStore';
+import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import { formatPhoneNumber } from '@/shared/lib/formatNumber';
 import { localStorageHelper } from '@/shared/lib/localStorage';
 import styles from './drower.module.css';
@@ -26,6 +27,7 @@ interface DrowerProps {
 function Drower({ opened, onClose, target }: DrowerProps) {
   const navigate = useNavigate();
   const openSettingsModal = useSettingsModalStore((s) => s.open);
+  const openPricingModal = usePricingModalStore((s) => s.open);
   const { user: authUser, logout, refreshToken } = useAuthStore();
 
   // User ma'lumotlari
@@ -50,7 +52,7 @@ function Drower({ opened, onClose, target }: DrowerProps) {
   };
 
   const handleUpgrade = () => {
-    navigate('/dashboard/pricing');
+    openPricingModal();
     onClose();
   };
 

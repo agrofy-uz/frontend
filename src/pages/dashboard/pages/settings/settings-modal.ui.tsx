@@ -18,6 +18,7 @@ import { changeLocale, type TLocale } from '@/shared/lib/language';
 import { localStorageHelper } from '@/shared/lib/localStorage';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useSettingsModalStore } from '@/shared/store/settingsModalStore';
+import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import {
   ColorScheme,
   type ColorSchemeType,
@@ -56,6 +57,7 @@ export function SettingsModal({ opened, onClose }: SettingsModalProps) {
   const { colorScheme, setColorScheme } = useThemeStore();
   const { logout, refreshToken } = useAuthStore();
   const closeSettingsModal = useSettingsModalStore((s) => s.close);
+  const openPricingModal = usePricingModalStore((s) => s.open);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const isMobileBottomSheet = useMediaQuery(MOBILE_BOTTOM_SHEET_MQ, false, {
     getInitialValueInEffect: true,
@@ -152,7 +154,10 @@ export function SettingsModal({ opened, onClose }: SettingsModalProps) {
             fullWidth
             rightSection={<FaExternalLinkAlt size={12} />}
             leftSection={<HiLightningBolt size={18} />}
-            onClick={() => go('/dashboard/pricing')}
+            onClick={() => {
+              openPricingModal();
+              closeSettingsModal();
+            }}
           >
             Tarif va premium
           </Button>

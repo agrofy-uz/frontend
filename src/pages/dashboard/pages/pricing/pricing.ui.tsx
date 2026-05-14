@@ -1,6 +1,6 @@
 import { Box, Text, Title } from '@mantine/core';
 
-function Pricing() {
+export function PricingView() {
   return (
     <Box>
       <Title order={2}>Tariflar</Title>
@@ -10,5 +10,3 @@ function Pricing() {
     </Box>
   );
 }
-
-export default Pricing;

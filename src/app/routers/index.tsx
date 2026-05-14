@@ -9,7 +9,6 @@ import { AiAssistant } from '@/pages/dashboard/pages/ai-assistant';
 // import { Reports } from '@/pages/dashboard/pages/reports';
 // import { Settings } from '@/pages/dashboard/pages/settings';
 import { Profile } from '@/pages/dashboard/pages/profile';
-import { Pricing } from '@/pages/dashboard/pages/pricing';
 import { Services } from '@/pages/dashboard/pages/services';
 import { Market } from '@/pages/dashboard/pages/market';
 import { MyAds } from '@/pages/dashboard/pages/my-ads';
@@ -28,7 +27,6 @@ const AppRoutes = () => {
           <Route path="/dashboard/market" element={<Market />} />
           {/* <Route path="/dashboard/settings" element={<Settings />} /> */}
           <Route path="/dashboard/profile" element={<Profile />} />
-          <Route path="/dashboard/pricing" element={<Pricing />} />
           <Route path="/dashboard/my-ads" element={<MyAds />} />
         </Route>
       </Route>

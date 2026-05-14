@@ -20,6 +20,7 @@ import { FaStore } from 'react-icons/fa6';
 import { Drower } from './ui/drower';
 import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import { useAuthStore } from '@/shared/store/authStore';
+import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import { parseBackendInstantMs } from '@/shared/lib/dateHelper';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AiSidebar } from './ui/ai';
@@ -38,6 +39,7 @@ interface SidebarProps {
 const Sidebar = ({ collapsed }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const openPricingModal = usePricingModalStore((s) => s.open);
   const mobileDrawer = useMobileDashboardDrawer();
   const { user: authUser } = useAuthStore();
   const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
@@ -363,7 +365,7 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                       className={styles.profileBadge}
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate('/dashboard/pricing');
+                        openPricingModal();
                       }}
                       style={{ cursor: 'pointer' }}
                     >
