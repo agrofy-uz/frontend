@@ -1,1 +1,1 @@
-export { default as Settings } from './settings.ui';
+export { SettingsModal, type SettingsModalProps } from './settings-modal.ui';

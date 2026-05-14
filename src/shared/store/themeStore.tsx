@@ -5,7 +5,7 @@ export const ColorScheme = {
   light: 'light',
   dark: 'dark',
 } as const;
-type ColorSchemeType = (typeof ColorScheme)[keyof typeof ColorScheme];
+export type ColorSchemeType = (typeof ColorScheme)[keyof typeof ColorScheme];
 interface ThemeState {
   colorScheme: ColorSchemeType;
   toggleColorScheme: () => void;

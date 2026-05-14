@@ -2,6 +2,8 @@ import { Box, Flex, ActionIcon, Drawer } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { Outlet } from 'react-router-dom';
 import { BsLayoutSidebar } from 'react-icons/bs';
+import { SettingsModal } from '@/pages/dashboard/pages/settings';
+import { useSettingsModalStore } from '@/shared/store/settingsModalStore';
 import { Sidebar } from './ui/sidebar';
 import { DashboardHeader } from './ui/header';
 import { MobileDashboardDrawerContext } from './mobile-dashboard-drawer.context';
@@ -12,6 +14,8 @@ const DashboardLayout = () => {
   const [mobileOpened, { open: openMobile, close: closeMobile }] =
     useDisclosure(false);
   const isMobile = useMediaQuery('(max-width: 48em)');
+  const settingsModalOpened = useSettingsModalStore((s) => s.opened);
+  const closeSettingsModal = useSettingsModalStore((s) => s.close);
 
   const handleSidebarToggle = () => {
     if (isMobile) {
@@ -125,6 +129,7 @@ const DashboardLayout = () => {
           </Flex>
         </Flex>
       </MobileDashboardDrawerContext.Provider>
+      <SettingsModal opened={settingsModalOpened} onClose={closeSettingsModal} />
     </>
   );
 };

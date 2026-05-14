@@ -29,7 +29,6 @@ const DashboardHeader = () => {
     if (pathname === '/dashboard/market') return 'Mahsulotlar';
     if (pathname === '/dashboard/reports') return 'Hisobotlar';
     if (pathname === '/dashboard/my-ads') return "Mening e'lonlarim";
-    if (pathname === '/dashboard/settings') return 'Sozlamalar';
     if (pathname === '/dashboard/profile') return 'Profil';
     if (pathname === '/dashboard/pricing') return 'Tariflar';
     return 'Boshqaruv paneli';

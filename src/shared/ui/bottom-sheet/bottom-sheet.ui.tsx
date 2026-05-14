@@ -1,28 +1,54 @@
-import { Box, Drawer, Stack } from '@mantine/core';
-import type { ReactNode } from 'react';
+import { Box, Drawer, Stack, VisuallyHidden } from '@mantine/core';
+import { useRef, type ReactNode } from 'react';
 
 export type BottomSheetProps = {
   opened: boolean;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
-  /** Mantine `size` (asosan token); balandlik asosan kontent bo‘yicha */
+  /** Mantine `Drawer` `size` (pastdan ochilganda balandlik) */
   size?: string | number;
   withCloseButton?: boolean;
+  /** Overlay va boshqa drawerlar ustida */
+  zIndex?: number;
+  /** Ekran o‘qituvchilari uchun yashirin sarlavha */
+  hiddenTitle?: string;
+  /** Tutqich zonasidan pastga surilganda yopish */
+  closeOnSwipeDown?: boolean;
 };
 
 const HANDLE_H = 4;
 const HANDLE_PAD_TOP = 10;
 const HANDLE_PAD_BOTTOM = 8;
+const SWIPE_DOWN_CLOSE_PX = 64;
 
 export function BottomSheet({
   opened,
   onClose,
   children,
   footer,
-  size = 'md',
+  size = '96%',
   withCloseButton = false,
+  zIndex,
+  hiddenTitle,
+  closeOnSwipeDown = true,
 }: BottomSheetProps) {
+  const swipeY0 = useRef<number | null>(null);
+
+  const onHandleTouchStart = (e: React.TouchEvent) => {
+    if (!closeOnSwipeDown) return;
+    swipeY0.current = e.touches[0].clientY;
+  };
+
+  const onHandleTouchEnd = (e: React.TouchEvent) => {
+    if (!closeOnSwipeDown || swipeY0.current == null) return;
+    const dy = e.changedTouches[0].clientY - swipeY0.current;
+    swipeY0.current = null;
+    if (dy > SWIPE_DOWN_CLOSE_PX) {
+      onClose();
+    }
+  };
+
   return (
     <Drawer
       opened={opened}
@@ -35,7 +61,12 @@ export function BottomSheet({
       withOverlay
       overlayProps={{ backgroundOpacity: 0.5, blur: 6 }}
       withCloseButton={withCloseButton}
-      closeButtonProps={{ 'aria-label': 'Yopish' }}
+      {...(withCloseButton
+        ? { closeButtonProps: { 'aria-label': 'Yopish' } as const }
+        : {})}
+      closeOnClickOutside
+      zIndex={zIndex}
+      transitionProps={{ transition: 'slide-up', duration: 240 }}
       styles={{
         inner: {
           padding: 0,
@@ -57,6 +88,7 @@ export function BottomSheet({
         },
         header: {
           padding: 0,
+          ...(withCloseButton ? {} : { display: 'none' }),
         },
         body: {
           flex: 1,
@@ -71,11 +103,15 @@ export function BottomSheet({
         gap={0}
         style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
       >
-        {/* Yuqori markazda chiziqcha (bottom sheet affordance) */}
+        {hiddenTitle ? <VisuallyHidden>{hiddenTitle}</VisuallyHidden> : null}
+
         <Box
+          role="presentation"
           pt={HANDLE_PAD_TOP}
           pb={HANDLE_PAD_BOTTOM}
           style={{ flexShrink: 0 }}
+          onTouchStart={onHandleTouchStart}
+          onTouchEnd={onHandleTouchEnd}
         >
           <Box
             mx="auto"
@@ -94,6 +130,9 @@ export function BottomSheet({
             minHeight: 0,
             overflowY: 'auto',
             WebkitOverflowScrolling: 'touch',
+            paddingBottom: footer
+              ? undefined
+              : 'calc(var(--mantine-spacing-lg) + env(safe-area-inset-bottom, 0px))',
           }}
         >
           {children}
