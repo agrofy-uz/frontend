@@ -1,4 +1,5 @@
-import API, { refreshApi } from '../../api.interface';
+import API from '../../api.interface';
+import { refreshApi } from '../../refreshClient';
 import type {
   AuthMeResponse,
   AuthTokensResponse,

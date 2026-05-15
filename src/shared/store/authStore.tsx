@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { resetSessionBootstrap } from '@/shared/lib/authSession';
 
 export interface IUser {
   id: string;
@@ -64,6 +65,7 @@ export const useAuthStore = create<AuthState>()(
         });
       },
       logout: () => {
+        resetSessionBootstrap();
         set({
           isAuthenticated: false,
           user: null,

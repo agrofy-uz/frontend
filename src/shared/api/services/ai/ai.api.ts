@@ -1,4 +1,9 @@
 import API, { API_BASE_URL } from '../../api.interface';
+import {
+  ensureFreshAccessToken,
+  isAuthErrorRequiringLogout,
+  refreshAccessToken,
+} from '@/shared/lib/authSession';
 import { useAuthStore } from '../../../store/authStore';
 import type {
   ChatHistoryItem,
@@ -73,23 +78,47 @@ export const createChat = async (
 /**
  * POST — javob odatda text/event-stream (SSE). Har bir data: qatorida JSON yoki matn bo'lishi mumkin.
  */
+async function fetchWithAuth(
+  url: string,
+  init: RequestInit,
+  retried = false,
+): Promise<Response> {
+  await ensureFreshAccessToken();
+  const { accessToken } = useAuthStore.getState();
+  const headers = new Headers(init.headers);
+  if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
+
+  const res = await fetch(url, { ...init, headers });
+
+  if (res.status === 401 && !retried) {
+    try {
+      await refreshAccessToken();
+      return fetchWithAuth(url, init, true);
+    } catch (err) {
+      if (isAuthErrorRequiringLogout(err)) {
+        useAuthStore.getState().logout();
+      }
+      throw new Error('Unauthorized');
+    }
+  }
+
+  return res;
+}
+
 export const sendChatMessage = async (
   chatId: string,
   data: SendChatMessageRequest,
   onDelta?: (accumulatedText: string) => void,
 ): Promise<SendChatMessageResponse> => {
-  const { accessToken } = useAuthStore.getState();
   const url = normalizeApiPath(`/ai/chats/${chatId}/messages`);
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Accept: 'text/event-stream, application/json',
-  };
-  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
-  const res = await fetch(url, {
+  const res = await fetchWithAuth(url, {
     method: 'POST',
     credentials: 'include',
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream, application/json',
+    },
     body: JSON.stringify(data),
   });
 
