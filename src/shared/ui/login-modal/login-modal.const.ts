@@ -63,3 +63,9 @@ export function getTelegramBotLink(sessionId: string | null): string {
   const baseUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}`;
   return sessionId ? `${baseUrl}?start=${sessionId}` : baseUrl;
 }
+
+/** Deep link: Start bosilganda botga `/start premium` keladi (inputga yozilmaydi). */
+export function getTelegramPremiumBotLink(): string {
+  const baseUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}`;
+  return `${baseUrl}?start=premium`;
+}

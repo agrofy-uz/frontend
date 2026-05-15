@@ -1,0 +1,158 @@
+.planCard {
+  position: relative;
+  overflow: hidden;
+  transition:
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease;
+}
+
+.planCard:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 6px -1px rgba(15, 23, 42, 0.06),
+    0 16px 36px -8px rgba(15, 23, 42, 0.1);
+}
+
+:global([data-mantine-color-scheme="dark"]) .planCard:hover {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.35),
+    0 18px 40px -10px rgba(0, 0, 0, 0.55);
+}
+
+.planCardHighlight {
+  box-shadow:
+    0 4px 6px -1px rgba(37, 99, 235, 0.08),
+    0 12px 28px -6px rgba(37, 99, 235, 0.15);
+}
+
+.planCardHighlight:hover {
+  box-shadow:
+    0 8px 12px -2px rgba(37, 99, 235, 0.12),
+    0 20px 44px -10px rgba(37, 99, 235, 0.22);
+}
+
+:global([data-mantine-color-scheme="dark"]) .planCardHighlight {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 12px 32px -8px rgba(59, 130, 246, 0.18);
+}
+
+.planCardCurrent {
+  outline: 2px solid var(--mantine-color-green-filled);
+  outline-offset: 2px;
+}
+
+.accentBar {
+  flex-shrink: 0;
+}
+
+.featuresBox {
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--mantine-color-default-border);
+  background: light-dark(
+    rgba(255, 255, 255, 0.72),
+    rgba(255, 255, 255, 0.04)
+  );
+}
+
+/* ——— Tarif CTA tugmalari (global Button hover dan mustaqil) ——— */
+.planCta {
+  min-height: 44px !important;
+  height: 44px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  border: none !important;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease !important;
+  transform: none !important;
+}
+
+.planCta:not([data-disabled]):hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(0.96);
+  box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.18) !important;
+}
+
+.planCta[data-disabled] {
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.planCta[data-disabled]:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+.planCtaGreen[data-disabled] {
+  background-color: light-dark(
+    var(--mantine-color-green-0),
+    rgba(34, 197, 94, 0.12)
+  ) !important;
+  color: var(--mantine-color-green-7) !important;
+  border-color: light-dark(
+    var(--mantine-color-green-3),
+    rgba(34, 197, 94, 0.25)
+  ) !important;
+}
+
+.planCtaBlue[data-disabled] {
+  background-color: light-dark(
+    var(--mantine-color-blue-0),
+    rgba(59, 130, 246, 0.12)
+  ) !important;
+  color: var(--mantine-color-blue-7) !important;
+  border-color: light-dark(
+    var(--mantine-color-blue-3),
+    rgba(59, 130, 246, 0.25)
+  ) !important;
+}
+
+.planCtaViolet[data-disabled] {
+  background-color: light-dark(
+    var(--mantine-color-violet-0),
+    rgba(139, 92, 246, 0.12)
+  ) !important;
+  color: var(--mantine-color-violet-7) !important;
+  border-color: light-dark(
+    var(--mantine-color-violet-3),
+    rgba(139, 92, 246, 0.25)
+  ) !important;
+}
+
+/* ——— Bepul tarif qutisi ——— */
+.freeCta {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-lg);
+  border: 1px solid var(--mantine-color-default-border);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.freeCtaCurrent {
+  background: light-dark(#dcfce7, rgba(34, 197, 94, 0.14)) !important;
+  border-color: light-dark(#86efac, rgba(34, 197, 94, 0.35)) !important;
+  cursor: default;
+}
+
+.freeCtaCurrent:hover {
+  background: light-dark(#dcfce7, rgba(34, 197, 94, 0.14)) !important;
+}
+
+.freeCtaInactive {
+  background: light-dark(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.04));
+  cursor: default;
+}
+
+.freeCtaInactive:hover {
+  background: light-dark(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.04));
+}

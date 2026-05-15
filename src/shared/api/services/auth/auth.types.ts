@@ -37,11 +37,12 @@ export interface AuthMeResponse {
   imageUrl: string | null;
   premium: boolean;
   premiumExpiresAt: string | null;
-  /** Masalan `"free"`, `"pro"` */
-  premiumPlanTier?: string | null;
+  /** Masalan `"free"`, `"pro"` yoki ba'zan raqamli enum */
+  premiumPlanTier?: string | number | null;
   /** UI uchun o‘zbekcha yorliq, masalan «Bepul» */
   premiumPlanTierLabelUz?: string | null;
   premiumPlanMonths?: number | null;
+  premiumPlanMonthsUnlimited?: boolean;
 
   /** JWT access token */
   // NOTE: me javobida tokenlar bo'lmaydi, ular verify javobidan olinadi
