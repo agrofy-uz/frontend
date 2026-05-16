@@ -23,7 +23,11 @@ import {
 import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import { resolveActivePricingPlanId } from '@/shared/lib/premiumTier';
-import { openTelegramBot } from '@/shared/lib/telegramNavigation';
+import {
+  guardTelegramAnchorClick,
+  TELEGRAM_LINK_REL,
+  TELEGRAM_LINK_TARGET,
+} from '@/shared/lib/telegramNavigation';
 import {
   getTelegramHelpBotLink,
   getTelegramPremiumBotLink,
@@ -206,7 +210,10 @@ function PlanCard({
           </Box>
         ) : (
           <MantineButton
-            type="button"
+            component="a"
+            href={current ? undefined : getTelegramPremiumBotLink()}
+            target={current ? undefined : TELEGRAM_LINK_TARGET}
+            rel={current ? undefined : TELEGRAM_LINK_REL}
             fullWidth
             radius="lg"
             disabled={current}
@@ -228,9 +235,11 @@ function PlanCard({
                 .filter(Boolean)
                 .join(' '),
             }}
-            onClick={() => {
-              if (!current) openTelegramBot(getTelegramPremiumBotLink());
-            }}
+            onClick={
+              current
+                ? (e) => e.preventDefault()
+                : guardTelegramAnchorClick
+            }
             styles={
               current
                 ? undefined
@@ -398,11 +407,14 @@ export function PricingView() {
         <Text size="xs" c="dimmed" ta="center" maw={520}>
           To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
           <Text
-            component="span"
+            component="a"
+            href={getTelegramHelpBotLink()}
+            target={TELEGRAM_LINK_TARGET}
+            rel={TELEGRAM_LINK_REL}
             size="xs"
             c="green"
             style={{ cursor: 'pointer', textDecoration: 'underline' }}
-            onClick={() => openTelegramBot(getTelegramHelpBotLink())}
+            onClick={guardTelegramAnchorClick}
           >
             biz bilan bog'laning
           </Text>
