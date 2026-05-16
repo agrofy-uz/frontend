@@ -39,6 +39,8 @@ import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_TRUST_DISCLAIMER,
+  AI_TRUST_DISCLAIMER_MOBILE,
+  MOBILE_SCROLL_PAD_TRIM_PX,
   MAX_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
   TYPING_DOT_ANIMATION,
@@ -177,9 +179,14 @@ function AiAssistant() {
 
   const keyboardOpen = isMobile && keyboardInset > 0;
 
+  const mobileScrollPadHeight = Math.max(
+    0,
+    composerDockHeight - MOBILE_SCROLL_PAD_TRIM_PX
+  );
+
   const dockHeightStyle = isMobile
     ? ({
-        '--ai-input-dock-height': `${composerDockHeight}px`,
+        '--ai-input-dock-height': `${mobileScrollPadHeight}px`,
         '--ai-keyboard-inset': `${keyboardInset}px`,
       } as React.CSSProperties)
     : undefined;
@@ -223,10 +230,7 @@ function AiAssistant() {
           if (!user?.id?.trim()) {
             setMessages([]);
           } else {
-            const envelope = await getChatMessages(
-              urlSessionId,
-              user.id
-            );
+            const envelope = await getChatMessages(urlSessionId, user.id);
             if (cancelled) return;
             const formattedMessages: Message[] = envelope.messages.map(
               (msg) => {
@@ -545,11 +549,11 @@ function AiAssistant() {
             </AnimatePresence>
 
             <div ref={messagesEndRef} />
-            {isMobile && composerDockHeight > 0 ? (
+            {isMobile && mobileScrollPadHeight > 0 ? (
               <div
                 aria-hidden
                 className={styles.scrollPad}
-                style={{ height: composerDockHeight }}
+                style={{ height: mobileScrollPadHeight }}
               />
             ) : null}
           </Stack>
@@ -601,102 +605,102 @@ function AiAssistant() {
           ref={composerDockRef}
           className={`${styles.composerDock} ${keyboardOpen ? styles.composerDockKeyboard : ''}`}
         >
-        <div
-          className={styles.composer}
-          onPointerDown={handleComposerPointerDown}
-        >
-          {attachments.length > 0 && (
-            <Group
-              gap={8}
-              wrap="wrap"
-              mb="xs"
-              className={styles.attachmentsRow}
-            >
-              {attachments.map((file, index) => {
-                const isImage = file.type.startsWith('image/');
-                const thumbUrl = isImage ? imageUrls[index] : null;
-                return isImage && thumbUrl ? (
-                  <Box
-                    key={`${file.name}-${index}`}
-                    className={styles.attachmentImageWrap}
-                    onClick={() => setPreviewImageUrl(thumbUrl)}
-                  >
-                    <img
-                      src={thumbUrl}
-                      alt={file.name}
-                      className={styles.attachmentImage}
-                    />
-                    <ActionIcon
-                      size={12}
-                      variant="filled"
-                      color="gray"
-                      aria-label="O'chirish"
-                      className={styles.attachmentImageRemove}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAttachments((prev) =>
-                          prev.filter((_, i) => i !== index)
-                        );
-                      }}
+          <div
+            className={styles.composer}
+            onPointerDown={handleComposerPointerDown}
+          >
+            {attachments.length > 0 && (
+              <Group
+                gap={8}
+                wrap="wrap"
+                mb="xs"
+                className={styles.attachmentsRow}
+              >
+                {attachments.map((file, index) => {
+                  const isImage = file.type.startsWith('image/');
+                  const thumbUrl = isImage ? imageUrls[index] : null;
+                  return isImage && thumbUrl ? (
+                    <Box
+                      key={`${file.name}-${index}`}
+                      className={styles.attachmentImageWrap}
+                      onClick={() => setPreviewImageUrl(thumbUrl)}
                     >
-                      <MdClose size={16} />
-                    </ActionIcon>
-                  </Box>
-                ) : (
-                  <Box
-                    key={`${file.name}-${index}`}
-                    className={styles.attachmentChip}
-                    component="span"
-                  >
-                    <Text size="xs" truncate style={{ maxWidth: 120 }}>
-                      {file.name}
-                    </Text>
-                    <ActionIcon
-                      size={12}
-                      variant="subtle"
-                      color="gray"
-                      aria-label="O'chirish"
-                      onClick={() =>
-                        setAttachments((prev) =>
-                          prev.filter((_, i) => i !== index)
-                        )
-                      }
+                      <img
+                        src={thumbUrl}
+                        alt={file.name}
+                        className={styles.attachmentImage}
+                      />
+                      <ActionIcon
+                        size={12}
+                        variant="filled"
+                        color="gray"
+                        aria-label="O'chirish"
+                        className={styles.attachmentImageRemove}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAttachments((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          );
+                        }}
+                      >
+                        <MdClose size={16} />
+                      </ActionIcon>
+                    </Box>
+                  ) : (
+                    <Box
+                      key={`${file.name}-${index}`}
+                      className={styles.attachmentChip}
+                      component="span"
                     >
-                      <MdClose size={14} />
-                    </ActionIcon>
-                  </Box>
-                );
-              })}
-            </Group>
-          )}
-          <Box className={styles.textareaWrap}>
-            <textarea
-              ref={textareaRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={handleTextareaBlur}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  if (isMobile) {
+                      <Text size="xs" truncate style={{ maxWidth: 120 }}>
+                        {file.name}
+                      </Text>
+                      <ActionIcon
+                        size={12}
+                        variant="subtle"
+                        color="gray"
+                        aria-label="O'chirish"
+                        onClick={() =>
+                          setAttachments((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          )
+                        }
+                      >
+                        <MdClose size={14} />
+                      </ActionIcon>
+                    </Box>
+                  );
+                })}
+              </Group>
+            )}
+            <Box className={styles.textareaWrap}>
+              <textarea
+                ref={textareaRef}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={handleTextareaBlur}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    if (isMobile) {
+                      e.preventDefault();
+                      textareaRef.current?.blur();
+                      return;
+                    }
                     e.preventDefault();
-                    textareaRef.current?.blur();
-                    return;
+                    handleSend();
                   }
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              rows={1}
-              placeholder="Xabar yozing..."
-              className={styles.textareaInput}
-              enterKeyHint={isMobile ? 'done' : 'send'}
-              autoComplete="off"
-              autoCorrect="on"
-            />
-          </Box>
+                }}
+                rows={1}
+                placeholder="Xabar yozing..."
+                className={styles.textareaInput}
+                enterKeyHint={isMobile ? 'done' : 'send'}
+                autoComplete="off"
+                autoCorrect="on"
+              />
+            </Box>
 
-          <Box className={styles.actionsContainer}>
-            {/* <AttachMenu
+            <Box className={styles.actionsContainer}>
+              {/* <AttachMenu
               opened={attachMenuOpened}
               onOpenChange={setAttachMenuOpened}
               onFilesSelected={(files) =>
@@ -715,39 +719,39 @@ function AiAssistant() {
               </ActionIcon>
             </AttachMenu> */}
 
-            <Box className={styles.actions}>
-              <ActionIcon
-                className={styles.micBtn}
-                size="lg"
-                radius="xl"
-                variant="subtle"
-                aria-label="Ovoz"
-                onClick={() => setVoiceModalOpened(true)}
-              >
-                <BsMicMuteFill size={18} />
-              </ActionIcon>
+              <Box className={styles.actions}>
+                <ActionIcon
+                  className={styles.micBtn}
+                  size="lg"
+                  radius="xl"
+                  variant="subtle"
+                  aria-label="Ovoz"
+                  onClick={() => setVoiceModalOpened(true)}
+                >
+                  <BsMicMuteFill size={18} />
+                </ActionIcon>
 
-              <ActionIcon
-                className={styles.sendBtn}
-                size="lg"
-                radius="xl"
-                variant="filled"
-                aria-label="Yuborish"
-                disabled={!draft.trim() || isLoading}
-                onClick={handleSend}
-              >
-                <IoArrowUp size={18} />
-              </ActionIcon>
+                <ActionIcon
+                  className={styles.sendBtn}
+                  size="lg"
+                  radius="xl"
+                  variant="filled"
+                  aria-label="Yuborish"
+                  disabled={!draft.trim() || isLoading}
+                  onClick={handleSend}
+                >
+                  <IoArrowUp size={18} />
+                </ActionIcon>
+              </Box>
             </Box>
-          </Box>
-        </div>
+          </div>
         </Box>
 
         <Text
-          className={`${styles.disclaimer} ${keyboardOpen ? styles.disclaimerHidden : ''}`}
+          className={`${styles.disclaimer} ${isMobile ? styles.disclaimerMobile : ''} ${keyboardOpen ? styles.disclaimerHidden : ''}`}
           component="p"
         >
-          {AI_TRUST_DISCLAIMER}
+          {isMobile ? AI_TRUST_DISCLAIMER_MOBILE : AI_TRUST_DISCLAIMER}
         </Text>
       </Box>
 

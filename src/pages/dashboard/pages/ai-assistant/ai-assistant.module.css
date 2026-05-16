@@ -122,7 +122,6 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
     padding-bottom: 0;
     min-height: auto;
   }
-
 }
 
 /* Input balandligi — faqat scroll oralig‘i, fon yo‘q */
@@ -590,7 +589,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
 /* Scroll-to-bottom tugmasi — inputArea tepasiga absolute */
 .scrollToBottomDock {
   position: absolute;
-  top: -52px;
+  top: -32px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -608,9 +607,9 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
   border: 1px solid
     color-mix(in srgb, var(--mantine-color-gray-4) 70%, transparent) !important;
   background-color: transparent !important;
-  background: transparent !important;
+  background: var(--mantine-color-body) !important;
   color: var(--mantine-color-gray-7);
-  box-shadow: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1) !important;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -620,7 +619,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
 html[data-mantine-color-scheme='dark'] .scrollToBottomBtn {
   border-color: color-mix(
     in srgb,
-    var(--mantine-color-dark-3) 75%,
+    var(--mantine-color-dark-3) 75%, 
     transparent
   ) !important;
   background-color: transparent !important;

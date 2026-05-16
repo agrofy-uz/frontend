@@ -8,10 +8,14 @@ export const DEFAULT_MODEL = 'gpt-3.5-turbo';
 /** Mobil layout — CSS (48em) bilan bir xil */
 export const AI_ASSISTANT_MOBILE_MQ = '(max-width: 48em)';
 
+/** Pastga scroll — oxirgi xabar inputdan ~8px yuqoriroqda to‘xtaydi */
+export const MOBILE_SCROLL_PAD_TRIM_PX = 20;
+
 /** Input ostida doim ko‘rinadigan ogohlantirish */
 export const AI_TRUST_DISCLAIMER =
   "AI javoblariga to'liq ishonmang — muhim ma'lumotlarni mustaqil tekshiring.";
-
+export const AI_TRUST_DISCLAIMER_MOBILE =
+  'AI javoblarini tekshirib foydalaning.';
 /**
  * Generates a short title for a chat based on the first AI response
  * @param content The assistant's reply content
