@@ -40,6 +40,8 @@ import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
+  KEYBOARD_INSET_STABLE_PX,
+  MOBILE_SCROLL_DISMISS_PX,
   MOBILE_SCROLL_PAD_TRIM_PX,
   MAX_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
@@ -86,6 +88,8 @@ function AiAssistant() {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
   const [keyboardInset, setKeyboardInset] = useState(0);
+  const [composerFocused, setComposerFocused] = useState(false);
+  const scrollAtFocusRef = useRef(0);
   const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
@@ -130,15 +134,15 @@ function AiAssistant() {
 
     const sync = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      setKeyboardInset(inset);
+      setKeyboardInset((prev) =>
+        Math.abs(inset - prev) < KEYBOARD_INSET_STABLE_PX ? prev : inset
+      );
     };
 
     sync();
     vv.addEventListener('resize', sync);
-    vv.addEventListener('scroll', sync);
     return () => {
       vv.removeEventListener('resize', sync);
-      vv.removeEventListener('scroll', sync);
     };
   }, [isMobile]);
 
@@ -177,7 +181,11 @@ function AiAssistant() {
     return () => ro.disconnect();
   }, [isMobile, draft, messages.length, showScrollBtn]);
 
+  const hasMessages = messages.length > 0;
+
   const keyboardOpen = isMobile && keyboardInset > 0;
+  const welcomeLifted =
+    isMobile && !hasMessages && (keyboardOpen || composerFocused);
 
   const mobileScrollPadHeight = Math.max(
     0,
@@ -187,6 +195,7 @@ function AiAssistant() {
   const dockHeightStyle = isMobile
     ? ({
         '--ai-input-dock-height': `${mobileScrollPadHeight}px`,
+        '--ai-composer-height': `${composerDockHeight}px`,
         '--ai-keyboard-inset': `${keyboardInset}px`,
       } as React.CSSProperties)
     : undefined;
@@ -207,7 +216,14 @@ function AiAssistant() {
     [focusComposerInput]
   );
 
+  const handleTextareaFocus = useCallback(() => {
+    setComposerFocused(true);
+    const vp = scrollViewportRef.current;
+    scrollAtFocusRef.current = vp?.scrollTop ?? 0;
+  }, []);
+
   const handleTextareaBlur = useCallback(() => {
+    setComposerFocused(false);
     if (!isMobile) return;
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
@@ -301,8 +317,6 @@ function AiAssistant() {
     };
   }, [authHydrated, urlSessionId, user?.id, navigate]);
 
-  const hasMessages = messages.length > 0;
-
   const syncScrollBtn = useCallback(() => {
     const vp = scrollViewportRef.current;
     if (!vp) {
@@ -314,6 +328,19 @@ function AiAssistant() {
       vp.scrollHeight > vp.clientHeight + 1 && dist > SCROLL_THRESHOLD_PX
     );
   }, []);
+
+  const handleMessagesScroll = useCallback(() => {
+    syncScrollBtn();
+    if (!isMobile) return;
+    const el = textareaRef.current;
+    if (!el || document.activeElement !== el) return;
+    const vp = scrollViewportRef.current;
+    if (!vp) return;
+    const delta = Math.abs(vp.scrollTop - scrollAtFocusRef.current);
+    if (delta >= MOBILE_SCROLL_DISMISS_PX) {
+      el.blur();
+    }
+  }, [isMobile, syncScrollBtn]);
 
   const scrollToBottom = useCallback(() => {
     const vp = scrollViewportRef.current;
@@ -463,7 +490,7 @@ function AiAssistant() {
           className={styles.messagesArea}
           scrollbarSize={12}
           viewportRef={scrollViewportRef}
-          viewportProps={{ onScroll: syncScrollBtn }}
+          viewportProps={{ onScroll: handleMessagesScroll }}
         >
           <Stack gap="md" className={styles.messagesList}>
             <AnimatePresence mode="popLayout">
@@ -559,7 +586,9 @@ function AiAssistant() {
           </Stack>
         </ScrollArea>
       ) : (
-        <Box className={styles.welcomeState}>
+        <Box
+          className={`${styles.welcomeState} ${welcomeLifted ? styles.welcomeStateKeyboard : ''}`}
+        >
           <Text className={styles.welcomeTitle}>
             Nima bilan yordam bera olaman?
           </Text>
@@ -603,7 +632,7 @@ function AiAssistant() {
         </AnimatePresence>
         <Box
           ref={composerDockRef}
-          className={`${styles.composerDock} ${keyboardOpen ? styles.composerDockKeyboard : ''}`}
+          className={styles.composerDock}
         >
           <div
             className={styles.composer}
@@ -678,6 +707,7 @@ function AiAssistant() {
                 ref={textareaRef}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
+                onFocus={handleTextareaFocus}
                 onBlur={handleTextareaBlur}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && !isMobile) {

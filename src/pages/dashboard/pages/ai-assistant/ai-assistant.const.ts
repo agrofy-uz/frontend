@@ -8,8 +8,14 @@ export const DEFAULT_MODEL = 'gpt-3.5-turbo';
 /** Mobil layout — CSS (48em) bilan bir xil */
 export const AI_ASSISTANT_MOBILE_MQ = '(max-width: 48em)';
 
-/** Pastga scroll — oxirgi xabar inputdan ~8px yuqoriroqda to‘xtaydi */
+/** Pastga scroll — oxirgi xabar inputdan ~20px yuqoriroqda to‘xtaydi */
 export const MOBILE_SCROLL_PAD_TRIM_PX = 20;
+
+/** Xabarlar scroll qilinsa — input fokusdan chiqadi, klaviatura yopiladi */
+export const MOBILE_SCROLL_DISMISS_PX = 48;
+
+/** Klaviatura inset — kichik o‘zgarishlarni e’tiborsiz qoldirish (scroll jitter) */
+export const KEYBOARD_INSET_STABLE_PX = 12;
 
 /** Input ostida doim ko‘rinadigan ogohlantirish */
 export const AI_TRUST_DISCLAIMER =

@@ -77,6 +77,16 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
     flex: 1;
     padding: 16px 16px 0;
     justify-content: center;
+    transition: padding-bottom 0.2s ease;
+  }
+
+  .container[data-mobile] .welcomeStateKeyboard {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: calc(
+      var(--ai-composer-height, 72px) + var(--ai-keyboard-inset, 0px) + 16px
+    );
   }
 }
 
@@ -104,6 +114,13 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+
+@media (max-width: 48em) {
+  .container[data-mobile] .messagesArea {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .messagesList {
@@ -547,21 +564,11 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
 }
 
 @media (max-width: 48em) {
-  .container[data-mobile] .composerDock {
-    transition: transform 0.2s ease;
-  }
-
-  .container[data-mobile] .composerDockKeyboard {
-    transform: translateY(calc(-1 * var(--ai-keyboard-inset, 0px)));
-  }
-}
-
-@media (max-width: 48em) {
   .container[data-mobile] .inputArea {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: var(--ai-keyboard-inset, 0px);
     z-index: 40;
     margin: 0;
     padding: 8px 12px 0;
@@ -572,6 +579,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     pointer-events: none;
     flex-direction: column;
     align-items: stretch;
+    will-change: bottom;
   }
 
   .container[data-mobile] .inputArea > * {
