@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   Badge,
   Box,
@@ -23,7 +23,7 @@ import {
 import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import { resolveActivePricingPlanId } from '@/shared/lib/premiumTier';
-import { createTelegramLinkClickHandler } from '@/shared/lib/telegramNavigation';
+import { openTelegramBot } from '@/shared/lib/telegramNavigation';
 import {
   getTelegramHelpBotLink,
   getTelegramPremiumBotLink,
@@ -67,9 +67,6 @@ function FeatureRow({ text, included }: Feature) {
 /* ------------------------------------------------------------------ */
 /*  Plan card                                                            */
 /* ------------------------------------------------------------------ */
-const TELEGRAM_PREMIUM_LINK = getTelegramPremiumBotLink();
-const onTelegramPremiumClick = createTelegramLinkClickHandler();
-
 function PlanCard({
   plan,
   current,
@@ -209,8 +206,7 @@ function PlanCard({
           </Box>
         ) : (
           <MantineButton
-            component="a"
-            href={current ? undefined : TELEGRAM_PREMIUM_LINK}
+            type="button"
             fullWidth
             radius="lg"
             disabled={current}
@@ -232,7 +228,9 @@ function PlanCard({
                 .filter(Boolean)
                 .join(' '),
             }}
-            onClick={current ? undefined : onTelegramPremiumClick}
+            onClick={() => {
+              if (!current) openTelegramBot(getTelegramPremiumBotLink());
+            }}
             styles={
               current
                 ? undefined
@@ -331,9 +329,6 @@ export function PricingView() {
     [isMobile],
   );
 
-  const helpBotLink = useMemo(() => getTelegramHelpBotLink(), []);
-  const onHelpLinkClick = useCallback(createTelegramLinkClickHandler(), []);
-
   return (
     <Box
       maw={1200}
@@ -403,12 +398,11 @@ export function PricingView() {
         <Text size="xs" c="dimmed" ta="center" maw={520}>
           To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
           <Text
-            component="a"
-            href={helpBotLink}
+            component="span"
             size="xs"
             c="green"
             style={{ cursor: 'pointer', textDecoration: 'underline' }}
-            onClick={onHelpLinkClick}
+            onClick={() => openTelegramBot(getTelegramHelpBotLink())}
           >
             biz bilan bog'laning
           </Text>
