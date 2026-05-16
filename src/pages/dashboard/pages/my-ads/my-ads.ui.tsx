@@ -11,6 +11,7 @@ import { ServicesTab } from './ui/services-tab';
 import { ProductsTab } from './ui/products-tab';
 import { Create, type MyAdsEditDraft } from './ui/create';
 import styles from './my-ads.module.css';
+import { MY_ADS_MOBILE_MQ } from './my-ads.const';
 
 function MyAds() {
   const [activeTab, setActiveTab] = useState<'services' | 'products'>(
@@ -19,7 +20,7 @@ function MyAds() {
   const [createOpened, setCreateOpened] = useState(false);
   const [editDraft, setEditDraft] = useState<MyAdsEditDraft | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const isMobile = useMediaQuery('(max-width: 1000px)', false, {
+  const isMobile = useMediaQuery(MY_ADS_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
 

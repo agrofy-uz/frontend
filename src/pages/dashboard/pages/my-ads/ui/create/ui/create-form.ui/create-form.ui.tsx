@@ -47,13 +47,21 @@ import {
   buildListingFormData,
   createEmptyImageSlots,
   imageSlotsFromRemoteUrls,
+  LISTING_CREATE_COMBOBOX_PROPS,
+  LISTING_CREATE_MOBILE_FIELD_SIZE,
+  LISTING_CREATE_MOBILE_INPUT_STYLES,
+  LISTING_CREATE_MOBILE_TEXTAREA_STYLES,
+  LISTING_CREATE_STEP_COUNT,
   MAX_IMAGES,
   renderCategoryIcon,
   type CategoryOption,
+  validateListingCreateStep,
   validateServiceCreateDraft,
   type ListingCreateKind,
+  type ServiceCreateDraft,
 } from './create-form.const';
 import { CreateFormSkeleton } from './ui';
+import shellStyles from '../../create.module.css';
 
 function mergeMyServiceWithServiceDetail(
   list: MyServiceDto,
@@ -105,7 +113,16 @@ type ServiceCreateFormProps = {
   initialService?: MyServiceDto | MyProductDto | null;
   /** Xizmatlar (`my-services` / `services`) yoki mahsulotlar (`my-products` / `market`) */
   listingKind: ListingCreateKind;
+  presentation?: 'modal' | 'fullscreen';
 };
+
+const STEP_TITLES = [
+  'Asosiy ma’lumot',
+  'Narx',
+  'Joylashuv',
+  'Kontakt',
+  'Rasmlar',
+] as const;
 
 export function CreateForm({
   onCancel,
@@ -113,6 +130,7 @@ export function CreateForm({
   mode = 'create',
   initialService = null,
   listingKind,
+  presentation = 'modal',
 }: ServiceCreateFormProps) {
   const queryClient = useQueryClient();
   const userPremium = useAuthStore((state) => Boolean(state.user?.premium));
@@ -129,8 +147,10 @@ export function CreateForm({
   const [telegram, setTelegram] = useState('');
   const [instagram, setInstagram] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [step, setStep] = useState(1);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputs = useRef<Array<HTMLInputElement | null>>([]);
+  const bodyScrollRef = useRef<HTMLDivElement | null>(null);
   /** true bo‘lsa, viloyat/tumanni avto-to‘ldirishdan voz kechamiz (foydalanuvchi o‘zgartirdi) */
   const locationTouchedRef = useRef(false);
 
@@ -188,8 +208,31 @@ export function CreateForm({
   ]);
 
   useEffect(() => {
-    if (opened) locationTouchedRef.current = false;
+    if (opened) {
+      locationTouchedRef.current = false;
+      setStep(1);
+      setErrors({});
+    }
   }, [opened, initialService?.id]);
+
+  useEffect(() => {
+    if (!opened || presentation !== 'fullscreen') return undefined;
+    const root = bodyScrollRef.current;
+    if (!root) return undefined;
+
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement) || !root.contains(target)) return;
+      if (!target.matches('input, textarea, select')) return;
+
+      window.setTimeout(() => {
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }, 280);
+    };
+
+    root.addEventListener('focusin', onFocusIn);
+    return () => root.removeEventListener('focusin', onFocusIn);
+  }, [opened, presentation]);
 
   useEffect(() => {
     if (!opened) return;
@@ -465,42 +508,47 @@ export function CreateForm({
     });
   };
 
+  const buildDraft = (): ServiceCreateDraft => ({
+    categoryId,
+    title,
+    regionId,
+    districtId,
+    phone,
+    priceFrom,
+    priceUntil,
+    listingPrice,
+    description,
+    telegram,
+    instagram,
+    imageSlots,
+  });
+
+  const goNextStep = () => {
+    const nextErrors = validateListingCreateStep(step, buildDraft(), listingKind);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+    setStep((s) => Math.min(LISTING_CREATE_STEP_COUNT, s + 1));
+    setErrors({});
+  };
+
+  const goBackStep = () => {
+    if (step <= 1) {
+      onCancel();
+      return;
+    }
+    setStep((s) => s - 1);
+    setErrors({});
+  };
+
   const handleSave = () => {
-    const nextErrors = validateServiceCreateDraft(
-      {
-        categoryId,
-        title,
-        regionId,
-        districtId,
-        phone,
-        priceFrom,
-        priceUntil,
-        listingPrice,
-        description,
-        telegram,
-        instagram,
-        imageSlots,
-      },
-      listingKind
-    );
+    const nextErrors = validateServiceCreateDraft(buildDraft(), listingKind);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
     const formData = buildListingFormData(
       {
-        categoryId,
-        title,
-        regionId,
-        districtId,
-        phone,
-        priceFrom,
-        priceUntil,
-        listingPrice,
-        description,
-        telegram,
-        instagram,
+        ...buildDraft(),
         premium: mode === 'edit' && editSeed ? editSeed.premium : userPremium,
-        imageSlots,
       },
       listingKind
     );
@@ -521,11 +569,27 @@ export function CreateForm({
   }
 
   const isProduct = listingKind === 'products';
+  const isFullscreen = presentation === 'fullscreen';
 
-  return (
-    <Stack gap="sm">
+  const selectComboboxProps = isFullscreen
+    ? LISTING_CREATE_COMBOBOX_PROPS
+    : { withinPortal: true, zIndex: 400 };
+
+  const fieldSize = isFullscreen ? LISTING_CREATE_MOBILE_FIELD_SIZE : 'sm';
+  const fieldInputStyles = isFullscreen
+    ? LISTING_CREATE_MOBILE_INPUT_STYLES
+    : undefined;
+  const fieldTextareaStyles = isFullscreen
+    ? LISTING_CREATE_MOBILE_TEXTAREA_STYLES
+    : undefined;
+  const fieldStackClass = isFullscreen ? shellStyles.fieldStack : undefined;
+
+  const step1Fields = (
+    <Stack gap="sm" className={fieldStackClass}>
       <Select
-        label={isProduct ? 'Mahsulot turi' : 'Xizmat turi'}
+        label="Kategoriya"
+        size={fieldSize}
+        styles={fieldInputStyles}
         placeholder={
           isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'
         }
@@ -553,8 +617,8 @@ export function CreateForm({
         onChange={setCategoryId}
         required
         error={errors.categoryId}
+        comboboxProps={selectComboboxProps}
       />
-
       <TextInput
         label={isProduct ? 'Mahsulot nomi' : 'Xizmat nomi'}
         placeholder={
@@ -562,128 +626,158 @@ export function CreateForm({
             ? 'Masalan, Organik pomidor 20 kg'
             : 'Masalan, Traktor haydash xizmati'
         }
+        size={fieldSize}
+        styles={fieldInputStyles}
         value={title}
         onChange={(e) => setTitle(e.currentTarget.value)}
         required
         error={errors.title}
       />
-
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-        <Select
-          label="Viloyat"
-          placeholder="Viloyatni tanlang"
-          data={regionOptions}
-          searchable
-          nothingFoundMessage="Topilmadi"
-          value={regionId}
-          onChange={(value) => {
-            locationTouchedRef.current = true;
-            setRegionId(value);
-            setDistrictId(null);
-          }}
-          required
-          error={errors.regionId}
-        />
-        <Select
-          label="Tuman"
-          placeholder={regionId ? 'Tumanni tanlang' : 'Avval viloyatni tanlang'}
-          data={districtOptions}
-          searchable
-          nothingFoundMessage="Topilmadi"
-          value={districtId}
-          onChange={(value) => {
-            locationTouchedRef.current = true;
-            setDistrictId(value);
-          }}
-          disabled={!regionId}
-          rightSection={districtsLoading ? <Loader size="sm" /> : null}
-          required
-          error={errors.districtId}
-        />
-      </SimpleGrid>
-
-      <PhoneInput
-        label="Telefon raqam"
-        placeholder="+998 (__) ___-__-__"
-        value={phone}
-        onChange={setPhone}
-        required
-        error={errors.phone}
-      />
-
-      {isProduct ? (
-        <Box w="100%">
-          <NumberInput
-            label="Narx"
-            placeholder="Masalan, 350000"
-            min={0}
-            thousandSeparator=" "
-            allowDecimal={false}
-            value={listingPrice}
-            onChange={setListingPrice}
-            required
-            error={errors.listingPrice}
-          />
-        </Box>
-      ) : (
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-          <NumberInput
-            label="Boshlang'ich narx"
-            placeholder="Masalan, 200000"
-            min={0}
-            thousandSeparator=" "
-            allowDecimal={false}
-            value={priceFrom}
-            onChange={setPriceFrom}
-            required
-            error={errors.priceFrom}
-          />
-          <NumberInput
-            label="Oxirgi narx"
-            placeholder="Masalan, 500000"
-            min={0}
-            thousandSeparator=" "
-            allowDecimal={false}
-            value={priceUntil}
-            onChange={setPriceUntil}
-            required
-            error={errors.priceUntil}
-          />
-        </SimpleGrid>
-      )}
-
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-        <TextInput
-          label="Telegram"
-          placeholder="Masalan, @username"
-          value={telegram}
-          onChange={(e) => setTelegram(e.currentTarget.value)}
-        />
-        <TextInput
-          label="Instagram"
-          placeholder="Masalan, @username"
-          value={instagram}
-          onChange={(e) => setInstagram(e.currentTarget.value)}
-        />
-      </SimpleGrid>
-
       <Textarea
-        label="Qisqacha"
+        label="Qisqacha tavsif"
+        size={fieldSize}
+        styles={fieldTextareaStyles}
         placeholder={
           isProduct
             ? "Mahsulot haqida qisqacha ma'lumot yozing..."
             : "Xizmat haqida qisqacha ma'lumot yozing..."
         }
-        minRows={3}
-        maxRows={6}
+        minRows={4}
+        maxRows={8}
         autosize
         value={description}
         onChange={(e) => setDescription(e.currentTarget.value)}
         required
         error={errors.description}
       />
+    </Stack>
+  );
 
-      <Input.Wrapper
+  const step2Fields = isProduct ? (
+    <Stack gap="sm" className={fieldStackClass}>
+      <NumberInput
+        label="Narx"
+        placeholder="Masalan, 350000"
+        min={0}
+        thousandSeparator=" "
+        allowDecimal={false}
+        size={fieldSize}
+        styles={fieldInputStyles}
+        inputMode="numeric"
+        value={listingPrice}
+        onChange={setListingPrice}
+        required
+        error={errors.listingPrice}
+      />
+    </Stack>
+  ) : (
+    <Stack gap="sm" className={fieldStackClass}>
+      <NumberInput
+        label="Boshlang'ich narx"
+        placeholder="Masalan, 200000"
+        min={0}
+        thousandSeparator=" "
+        allowDecimal={false}
+        size={fieldSize}
+        styles={fieldInputStyles}
+        inputMode="numeric"
+        value={priceFrom}
+        onChange={setPriceFrom}
+        required
+        error={errors.priceFrom}
+      />
+      <NumberInput
+        label="Oxirgi narx"
+        placeholder="Masalan, 500000"
+        min={0}
+        thousandSeparator=" "
+        allowDecimal={false}
+        size={fieldSize}
+        styles={fieldInputStyles}
+        inputMode="numeric"
+        value={priceUntil}
+        onChange={setPriceUntil}
+        required
+        error={errors.priceUntil}
+      />
+    </Stack>
+  );
+
+  const step3Fields = (
+    <Stack gap="sm" className={fieldStackClass}>
+      <Select
+        label="Viloyat"
+        size={fieldSize}
+        styles={fieldInputStyles}
+        placeholder="Viloyatni tanlang"
+        data={regionOptions}
+        searchable
+        nothingFoundMessage="Topilmadi"
+        value={regionId}
+        onChange={(value) => {
+          locationTouchedRef.current = true;
+          setRegionId(value);
+          setDistrictId(null);
+        }}
+        required
+        error={errors.regionId}
+        comboboxProps={selectComboboxProps}
+      />
+      <Select
+        label="Tuman"
+        size={fieldSize}
+        styles={fieldInputStyles}
+        placeholder={regionId ? 'Tumanni tanlang' : 'Avval viloyatni tanlang'}
+        data={districtOptions}
+        searchable
+        nothingFoundMessage="Topilmadi"
+        value={districtId}
+        onChange={(value) => {
+          locationTouchedRef.current = true;
+          setDistrictId(value);
+        }}
+        disabled={!regionId}
+        rightSection={districtsLoading ? <Loader size="sm" /> : null}
+        required
+        error={errors.districtId}
+        comboboxProps={selectComboboxProps}
+      />
+    </Stack>
+  );
+
+  const step4Fields = (
+    <Stack gap="sm" className={fieldStackClass}>
+      <PhoneInput
+        label="Telefon"
+        placeholder="+998 (__) ___-__-__"
+        size={fieldSize}
+        styles={fieldInputStyles}
+        value={phone}
+        onChange={setPhone}
+        required
+        error={errors.phone}
+      />
+      <TextInput
+        label="Telegram"
+        placeholder="Masalan, @username (ixtiyoriy)"
+        size={fieldSize}
+        styles={fieldInputStyles}
+        value={telegram}
+        onChange={(e) => setTelegram(e.currentTarget.value)}
+      />
+      <TextInput
+        label="Instagram"
+        placeholder="Masalan, @username (ixtiyoriy)"
+        size={fieldSize}
+        styles={fieldInputStyles}
+        value={instagram}
+        onChange={(e) => setInstagram(e.currentTarget.value)}
+      />
+    </Stack>
+  );
+
+  const imagesField = (
+    <Input.Wrapper
         label="Rasmlar"
         description="Min 1 ta, max 3 ta rasm"
         required
@@ -768,8 +862,88 @@ export function CreateForm({
             );
           })}
         </SimpleGrid>
-      </Input.Wrapper>
+    </Input.Wrapper>
+  );
 
+  const renderWizardStep = () => {
+    switch (step) {
+      case 1:
+        return step1Fields;
+      case 2:
+        return step2Fields;
+      case 3:
+        return step3Fields;
+      case 4:
+        return step4Fields;
+      case 5:
+        return imagesField;
+      default:
+        return null;
+    }
+  };
+
+  const onPrimaryWizard = () => {
+    if (step >= LISTING_CREATE_STEP_COUNT) {
+      const stepErrors = validateListingCreateStep(step, buildDraft(), listingKind);
+      setErrors(stepErrors);
+      if (Object.keys(stepErrors).length > 0) return;
+      handleSave();
+      return;
+    }
+    goNextStep();
+  };
+
+  if (isFullscreen) {
+    return (
+      <>
+        <Box className={shellStyles.body}>
+          <Box ref={bodyScrollRef} className={shellStyles.bodyScroll}>
+            <Group justify="space-between" mb="md">
+              <Text fw={700} size="lg">
+                {STEP_TITLES[step - 1]}
+              </Text>
+              <Text size="sm" c="dimmed" fw={600}>
+                {step}/{LISTING_CREATE_STEP_COUNT}
+              </Text>
+            </Group>
+            {renderWizardStep()}
+          </Box>
+        </Box>
+        <Box className={shellStyles.footer}>
+          <Button
+            type="button"
+            variant="default"
+            className={shellStyles.footerBtn}
+            onClick={goBackStep}
+            disabled={saveMutation.isPending}
+          >
+            {step === 1 ? 'Bekor qilish' : 'Orqaga'}
+          </Button>
+          <Button
+            type="button"
+            color="green"
+            className={shellStyles.footerBtn}
+            onClick={onPrimaryWizard}
+            loading={saveMutation.isPending}
+          >
+            {step >= LISTING_CREATE_STEP_COUNT
+              ? mode === 'edit'
+                ? 'Saqlash'
+                : 'Yaratish'
+              : 'Keyingisi'}
+          </Button>
+        </Box>
+      </>
+    );
+  }
+
+  return (
+    <Stack gap="sm">
+      {step1Fields}
+      {step2Fields}
+      {step3Fields}
+      {step4Fields}
+      {imagesField}
       <Group justify="flex-end" mt="sm" gap="xs">
         <Button
           variant="default"

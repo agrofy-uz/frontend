@@ -100,6 +100,55 @@ export function validateServiceCreateDraft(
   return nextErrors;
 }
 
+const STEP_FIELDS: Record<
+  number,
+  (listingKind: ListingCreateKind) => string[]
+> = {
+  1: () => ['categoryId', 'title', 'description'],
+  2: (kind) =>
+    kind === 'products' ? ['listingPrice'] : ['priceFrom', 'priceUntil'],
+  3: () => ['regionId', 'districtId'],
+  4: () => ['phone'],
+  5: () => ['images'],
+};
+
+export const LISTING_CREATE_STEP_COUNT = 5;
+
+/** Fullscreen create shell (1100) ustida Select dropdown */
+export const LISTING_CREATE_COMBOBOX_PROPS = {
+  withinPortal: true,
+  zIndex: 1200,
+} as const;
+
+/** Mobil fullscreen — input focus va iOS zoom */
+export const LISTING_CREATE_MOBILE_FIELD_SIZE = 'md' as const;
+
+export const LISTING_CREATE_MOBILE_INPUT_STYLES = {
+  input: {
+    fontSize: 16,
+    minHeight: 44,
+  },
+} as const;
+
+/** TextareaAutosize `minHeight` qabul qilmaydi — faqat fontSize */
+export const LISTING_CREATE_MOBILE_TEXTAREA_STYLES = {
+  input: {
+    fontSize: 16,
+  },
+} as const;
+
+export function validateListingCreateStep(
+  step: number,
+  draft: ServiceCreateDraft,
+  listingKind: ListingCreateKind,
+): Record<string, string> {
+  const all = validateServiceCreateDraft(draft, listingKind);
+  const fields = STEP_FIELDS[step]?.(listingKind) ?? [];
+  return Object.fromEntries(
+    Object.entries(all).filter(([key]) => fields.includes(key)),
+  );
+}
+
 /**
  * Xizmatlar: `priceFrom` / `priceUntil`, `region` / `district`.
  * Mahsulotlar: `price`, `regionId` / `districtId`.

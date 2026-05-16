@@ -9,6 +9,7 @@ import { Card } from '@/shared/ui/card';
 import { openNotification } from '@/shared/lib/notification';
 import { Confirmation } from '../confirmation';
 import { EmptyState } from '../empty-state';
+import { MY_ADS_MOBILE_MQ } from '../../my-ads.const';
 import s from './services-tab.module.css';
 
 type ServicesTabProps = {
@@ -23,7 +24,7 @@ function ServicesTab({ onCreate, onEdit }: ServicesTabProps) {
     queryFn: getMyServices,
   });
   const [deleteTarget, setDeleteTarget] = useState<MyServiceDto | null>(null);
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery(MY_ADS_MOBILE_MQ);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteMyService(id),

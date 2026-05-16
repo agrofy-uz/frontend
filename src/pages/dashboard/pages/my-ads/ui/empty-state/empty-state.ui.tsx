@@ -2,6 +2,7 @@ import { Stack, Text } from '@mantine/core';
 import { MdOutlinePostAdd } from 'react-icons/md';
 import { Button } from '@/shared/ui/button';
 import { useMediaQuery } from '@mantine/hooks';
+import { MY_ADS_MOBILE_MQ } from '../../my-ads.const';
 
 type EmptyStateProps = {
   title: string;
@@ -16,7 +17,7 @@ function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useMediaQuery(MY_ADS_MOBILE_MQ);
   return (
     <Stack
       align="center"

@@ -1,6 +1,6 @@
-import { useRef, useEffect, useState } from 'react';
-import { TextInput } from '@mantine/core';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useMediaQuery } from '@mantine/hooks';
+import classes from './otp-input.module.css';
 
 interface OtpInputProps {
   length?: number;
@@ -10,6 +10,18 @@ interface OtpInputProps {
   error?: boolean;
 }
 
+function digitsFromValue(value: string, length: number): string[] {
+  const digits = Array.from({ length }, () => '');
+  value
+    .replace(/\D/g, '')
+    .slice(0, length)
+    .split('')
+    .forEach((digit, index) => {
+      digits[index] = digit;
+    });
+  return digits;
+}
+
 export function OtpInput({
   length = 6,
   value,
@@ -17,105 +29,130 @@ export function OtpInput({
   disabled,
   error = false,
 }: OtpInputProps) {
-  const [otp, setOtp] = useState<string[]>(Array(length).fill(''));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const focusIndexRef = useRef<number | null>(null);
+  const lastEmittedRef = useRef(value);
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const [digits, setDigits] = useState(() => digitsFromValue(value, length));
+
   useEffect(() => {
-    // Initialize with value if provided
-    if (value) {
-      const values = value.split('').slice(0, length);
-      const newOtp = [...Array(length).fill('')];
-      values.forEach((val, index) => {
-        newOtp[index] = val;
-      });
-      setOtp(newOtp);
-    } else {
-      setOtp(Array(length).fill(''));
-    }
+    if (value === lastEmittedRef.current) return;
+    lastEmittedRef.current = value;
+    setDigits(digitsFromValue(value, length));
   }, [value, length]);
 
-  const handleChange = (index: number, inputValue: string) => {
-    // Only allow digits
-    if (inputValue && !/^\d$/.test(inputValue)) {
+  useLayoutEffect(() => {
+    const index = focusIndexRef.current;
+    if (index === null) return;
+    focusIndexRef.current = null;
+
+    const input = inputRefs.current[index];
+    if (!input) return;
+
+    input.focus({ preventScroll: true });
+    const pos = input.value.length;
+    input.setSelectionRange(pos, pos);
+  });
+
+  const commitDigits = (nextDigits: string[], focusIndex?: number) => {
+    const joined = nextDigits.join('');
+    setDigits(nextDigits);
+    lastEmittedRef.current = joined;
+    onChange(joined);
+
+    if (focusIndex !== undefined) {
+      focusIndexRef.current = focusIndex;
+    }
+  };
+
+  const applyDigitsFrom = (startIndex: number, raw: string) => {
+    const incoming = raw.replace(/\D/g, '');
+    const nextDigits = [...digits];
+
+    if (!incoming) {
+      nextDigits[startIndex] = '';
+      commitDigits(nextDigits, startIndex);
       return;
     }
 
-    const newOtp = [...otp];
-    newOtp[index] = inputValue;
-    setOtp(newOtp);
-
-    // Update parent component
-    onChange(newOtp.join(''));
-
-    // Auto-focus next input
-    if (inputValue && index < length - 1) {
-      inputRefs.current[index + 1]?.focus();
+    let cursor = startIndex;
+    for (const digit of incoming) {
+      if (cursor >= length) break;
+      nextDigits[cursor] = digit;
+      cursor += 1;
     }
+
+    const focusIndex = cursor >= length ? length - 1 : cursor;
+    commitDigits(nextDigits, focusIndex);
   };
 
   const handleKeyDown = (
     index: number,
     e: React.KeyboardEvent<HTMLInputElement>
   ) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    } else if (e.key === 'ArrowLeft' && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      const nextDigits = [...digits];
+
+      if (digits[index]) {
+        nextDigits[index] = '';
+        commitDigits(nextDigits, index);
+        return;
+      }
+
+      if (index > 0) {
+        nextDigits[index - 1] = '';
+        commitDigits(nextDigits, index - 1);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
+      focusIndexRef.current = index - 1;
+      inputRefs.current[index - 1]?.focus({ preventScroll: true });
     } else if (e.key === 'ArrowRight' && index < length - 1) {
-      inputRefs.current[index + 1]?.focus();
+      e.preventDefault();
+      focusIndexRef.current = index + 1;
+      inputRefs.current[index + 1]?.focus({ preventScroll: true });
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text/plain').trim();
-    const digits = pastedData.replace(/\D/g, '').slice(0, length).split('');
-
-    if (digits.length > 0) {
-      const newOtp = [...Array(length).fill('')];
-      digits.forEach((digit, index) => {
-        newOtp[index] = digit;
-      });
-      setOtp(newOtp);
-      onChange(newOtp.join(''));
-
-      // Focus last filled input or first empty
-      const nextIndex = Math.min(digits.length, length - 1);
-      inputRefs.current[nextIndex]?.focus();
-    }
+    if (!pastedData) return;
+    applyDigitsFrom(0, pastedData);
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: isMobile ? '6px' : '8px',
-        justifyContent: 'center',
-        flexWrap: 'nowrap',
-      }}
-    >
-      {otp.map((digit, index) => (
-        <TextInput
+    <div className={classes.row} data-mobile={isMobile || undefined}>
+      {digits.map((digit, index) => (
+        <input
           key={index}
           ref={(el) => {
             inputRefs.current[index] = el;
           }}
+          className={`${classes.cell} ${error ? classes.cellError : ''}`}
           value={digit}
-          onChange={(e) => handleChange(index, e.target.value)}
+          onChange={(e) => applyDigitsFrom(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
-          disabled={disabled}
-          maxLength={1}
-          size={isMobile ? 'md' : 'lg'}
-          error={error}
-          style={{
-            width: isMobile ? '40px' : '48px',
-            textAlign: 'center',
-            fontSize: isMobile ? '18px' : '20px',
-            fontWeight: 600,
+          onFocus={(e) => {
+            focusIndexRef.current = index;
+            const pos = e.currentTarget.value.length;
+            e.currentTarget.setSelectionRange(pos, pos);
           }}
+          disabled={disabled}
+          type="text"
           inputMode="numeric"
-          pattern="[0-9]*"
+          autoComplete={index === 0 ? 'one-time-code' : 'off'}
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+          maxLength={length}
+          aria-label={`OTP raqam ${index + 1}`}
+          aria-invalid={error}
         />
       ))}
     </div>

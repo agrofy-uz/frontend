@@ -1,0 +1,59 @@
+.row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.row[data-mobile] {
+  gap: 6px;
+}
+
+.cell {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--mantine-color-gray-4);
+  border-radius: var(--mantine-radius-default);
+  background: var(--mantine-color-body);
+  color: var(--mantine-color-text);
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0;
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.row[data-mobile] .cell {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+}
+
+.cell:focus {
+  border-color: var(--mantine-primary-color-filled);
+  box-shadow: 0 0 0 1px var(--mantine-primary-color-filled);
+}
+
+.cell:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cellError {
+  border-color: var(--mantine-color-red-6);
+  color: var(--mantine-color-red-6);
+}
+
+.cellError:focus {
+  border-color: var(--mantine-color-red-6);
+  box-shadow: 0 0 0 1px var(--mantine-color-red-6);
+}
+
+[data-mantine-color-scheme='dark'] .cell {
+  border-color: var(--mantine-color-dark-4);
+  background-color: var(--mantine-color-dark-6);
+}

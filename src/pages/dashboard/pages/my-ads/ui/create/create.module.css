@@ -1,0 +1,118 @@
+.shell {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  background: var(--mantine-color-body);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 12px 16px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.headerTitle {
+  flex: 1;
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  padding-right: 4px;
+}
+
+.headerClose {
+  flex-shrink: 0;
+}
+
+.stepMeta {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mantine-color-dimmed);
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.bodyScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  padding-bottom: 8px;
+  scroll-padding-top: 12px;
+  scroll-padding-bottom: 100px;
+}
+
+/* Maydonlar — focus halqasi kesilmasin */
+.fieldStack {
+  overflow: visible;
+}
+
+.fieldStack :global(.mantine-Input-wrapper),
+.fieldStack :global(.mantine-NumberInput-wrapper),
+.fieldStack :global(.mantine-Textarea-wrapper),
+.fieldStack :global(.mantine-Select-wrapper) {
+  overflow: visible;
+}
+
+/* iOS: 16px — zoom va focus muammosini kamaytiradi */
+.fieldStack :global(.mantine-Input-input),
+.fieldStack :global(.mantine-NumberInput-input) {
+  font-size: 16px !important;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.fieldStack :global(.mantine-Textarea-input) {
+  font-size: 16px !important;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Mantine focus holati (wrapper data-focus) */
+.fieldStack :global(.mantine-Input-wrapper[data-focus] .mantine-Input-input),
+.fieldStack
+  :global(.mantine-NumberInput-wrapper[data-focus] .mantine-NumberInput-input),
+.fieldStack
+  :global(.mantine-Textarea-wrapper[data-focus] .mantine-Textarea-input),
+.fieldStack :global(.mantine-Select-wrapper[data-focus] .mantine-Select-input) {
+  border-color: var(--mantine-color-green-filled) !important;
+  outline: 2px solid
+    light-dark(rgba(34, 197, 94, 0.4), rgba(74, 222, 128, 0.35)) !important;
+  outline-offset: 0;
+  box-shadow: none !important;
+}
+
+.footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+}
+
+.footerBtn {
+  flex: 1 1 0;
+  min-width: 0;
+}
