@@ -79,12 +79,15 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
     if (!showProfileDrawer) closeDrawer();
   }, [showProfileDrawer, closeDrawer]);
 
+  const firstName = authUser?.first_name?.trim() ?? '';
+  const lastName = authUser?.last_name?.trim() ?? '';
+
   // User ma'lumotlari
   const user = {
-    name: authUser
-      ? `${authUser.first_name || ''} ${authUser.last_name || ''}`.trim() ||
-        'Foydalanuvchi'
-      : 'Foydalanuvchi',
+    /** Sidebar profil qatorida — faqat ism (bold) */
+    displayName: firstName || 'Foydalanuvchi',
+    name:
+      [firstName, lastName].filter(Boolean).join(' ').trim() || 'Foydalanuvchi',
     phone: authUser?.phone_number || '',
     avatar: authUser?.photo_url || null,
     planLabel: authUser?.premium_plan_tier_label_uz?.trim() || 'Bepul tarif',
@@ -340,18 +343,14 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                     {getInitials(user.name)}
                   </Avatar>
                   <Flex direction="column" gap="0">
-                    <Flex direction="row" gap="5px">
-                      {user.name.split(' ').map((part, index) => (
-                        <Text
-                          key={index}
-                          fz="14px"
-                          fw={500}
-                          className={styles.profileName}
-                        >
-                          {part}
-                        </Text>
-                      ))}
-                    </Flex>
+                    <Text
+                      fz="14px"
+                      fw={700}
+                      className={styles.profileName}
+                      lineClamp={1}
+                    >
+                      {user.displayName}
+                    </Text>
 
                     <Text fz="12px" className={styles.profileStatus}>
                       {user.planLabel}

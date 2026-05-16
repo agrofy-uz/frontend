@@ -10,6 +10,7 @@ import {
 import { FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { HiLightningBolt } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
+import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import { logoutAuth } from '@/shared/api';
 import { useAuthStore } from '@/shared/store/authStore';
 import { useSettingsModalStore } from '@/shared/store/settingsModalStore';
@@ -26,6 +27,7 @@ interface DrowerProps {
 
 function Drower({ opened, onClose, target }: DrowerProps) {
   const navigate = useNavigate();
+  const mobileDrawer = useMobileDashboardDrawer();
   const openSettingsModal = useSettingsModalStore((s) => s.open);
   const openPricingModal = usePricingModalStore((s) => s.open);
   const { user: authUser, logout, refreshToken } = useAuthStore();
@@ -54,6 +56,14 @@ function Drower({ opened, onClose, target }: DrowerProps) {
   const handleUpgrade = () => {
     openPricingModal();
     onClose();
+  };
+
+  const handleProfile = () => {
+    if (mobileDrawer?.isMobile) {
+      mobileDrawer.closeMobileDrawer();
+    }
+    onClose();
+    navigate('/dashboard/profile');
   };
 
   const handleSettings = () => {
@@ -99,10 +109,7 @@ function Drower({ opened, onClose, target }: DrowerProps) {
           <Box
             p="md"
             className={styles.header}
-            onClick={() => {
-              navigate('/dashboard/profile');
-              onClose();
-            }}
+            onClick={handleProfile}
             style={{
               cursor: 'pointer',
               borderTopLeftRadius: 'var(--mantine-radius-md)',

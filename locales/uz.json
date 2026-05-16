@@ -14,7 +14,8 @@
       "partners": "Hamkorlar"
     },
     "dashboard": "Boshqaruv paneli",
-    "startFree": "Bepul boshlash"
+    "startFree": "Bepul boshlash",
+    "getPremium": "Premium"
   },
   "footer": {
     "tagline": "Zamonaviy qishloq xoʻjaligi uchun toʻliq AI ekotizimi. Butun dunyo fermerlarini qoʻllab-quvvatlaymiz.",
@@ -235,5 +236,3 @@
     }
   }
 }
-
-

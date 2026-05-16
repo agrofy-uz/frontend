@@ -1,22 +1,31 @@
-import { Box, Flex, Text } from '@mantine/core';
+import { Box, Flex, Text, UnstyledButton } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
+import { useTranslation } from 'react-i18next';
+import { HiLightningBolt } from 'react-icons/hi';
 import { useLocation } from 'react-router-dom';
 import { SearchInput } from '@/pages/dashboard/pages/services/ui/search-input/search-input.ui';
 import { MarketSearchInput } from '@/pages/dashboard/pages/market/ui/search-input/search-input.ui';
-import { useMediaQuery } from '@mantine/hooks';
+import { useAuthStore } from '@/shared/store/authStore';
+import { usePricingModalStore } from '@/shared/store/pricingModalStore';
+import styles from './dashboard-header.module.css';
 
 const isServicesRoute = (pathname: string) =>
   pathname === '/dashboard/services' ||
   pathname.startsWith('/dashboard/services/');
 
 const isMarketRoute = (pathname: string) =>
-  pathname === '/dashboard/market' ||
-  pathname.startsWith('/dashboard/market/');
+  pathname === '/dashboard/market' || pathname.startsWith('/dashboard/market/');
 
 const DashboardHeader = () => {
   const location = useLocation();
+  const { t } = useTranslation();
+  const user = useAuthStore((s) => s.user);
+  const openPricingModal = usePricingModalStore((s) => s.open);
   const showServicesSearch = isServicesRoute(location.pathname);
   const showMarketSearch = isMarketRoute(location.pathname);
   const isMobile = useMediaQuery('(max-width: 1000px)');
+  const showPremiumCta = !user?.premium;
+
   const getPageName = () => {
     const pathname = location.pathname;
     if (pathname === '/dashboard' || pathname === '/dashboard') {
@@ -40,7 +49,7 @@ const DashboardHeader = () => {
       w="100%"
       style={{ minWidth: 0 }}
     >
-      <Box miw={0} style={{ flex: '0 1 auto' }}>
+      <Box miw={0} style={{ flex: '1 1 auto' }}>
         <Text
           fw={700}
           fz={isMobile ? 'md' : 'lg'}
@@ -81,33 +90,20 @@ const DashboardHeader = () => {
         </Box>
       )}
 
-      {/* Bildirishnomalar — keyinroq qo‘shiladi
-      <Group gap="md" wrap="nowrap" style={{ flexShrink: 0 }}>
-        <ActionIcon variant="subtle" size="lg" style={{ position: 'relative' }}>
-          <IoIosNotifications size={24} className="textPrimary" />
-          <Badge
-            size="xs"
-            circle
-            color="green"
-            style={{
-              position: 'absolute',
-              top: -0,
-              right: 0,
-              minWidth: 14,
-              height: 14,
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 10,
-              fontWeight: 700,
-            }}
-          >
-            3
-          </Badge>
-        </ActionIcon>
-      </Group>
-      */}
+      {showPremiumCta && (
+        <UnstyledButton
+          type="button"
+          className={styles.premiumCta}
+          onClick={openPricingModal}
+          aria-label={t('header.getPremium')}
+          style={{ flexShrink: 0 }}
+        >
+          <HiLightningBolt size={14} aria-hidden />
+          <span className={styles.premiumCtaLabel}>
+            {t('header.getPremium')}
+          </span>
+        </UnstyledButton>
+      )}
     </Flex>
   );
 };
