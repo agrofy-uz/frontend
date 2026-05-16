@@ -22,6 +22,7 @@ import { OtpInput } from './components/otp-input';
 import { getErrorMessage, getTelegramBotLink } from './login-modal.const';
 import type { ViewState } from './login-modal.const';
 import { openNotification } from '@/shared/lib/notification';
+import { openTelegramLoginLink } from '@/shared/lib/telegramNavigation';
 import { useMediaQuery } from '@mantine/hooks';
 
 interface LoginModalProps {
@@ -167,7 +168,7 @@ export function LoginModal({ opened, onClose }: LoginModalProps) {
                 color="blue"
                 radius="md"
                 style={{ cursor: 'pointer' }}
-                onClick={() => window.open(telegramBotLink, '_blank')}
+                onClick={(e) => openTelegramLoginLink(telegramBotLink, e)}
               >
                 <Stack gap="xs">
                   <Text fz="sm" fw={500}>
