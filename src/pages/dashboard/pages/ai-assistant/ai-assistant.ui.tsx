@@ -680,12 +680,7 @@ function AiAssistant() {
                 onChange={(e) => setDraft(e.target.value)}
                 onBlur={handleTextareaBlur}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    if (isMobile) {
-                      e.preventDefault();
-                      textareaRef.current?.blur();
-                      return;
-                    }
+                  if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
                     e.preventDefault();
                     handleSend();
                   }
@@ -693,7 +688,7 @@ function AiAssistant() {
                 rows={1}
                 placeholder="Xabar yozing..."
                 className={styles.textareaInput}
-                enterKeyHint={isMobile ? 'done' : 'send'}
+                enterKeyHint={isMobile ? 'enter' : 'send'}
                 autoComplete="off"
                 autoCorrect="on"
               />

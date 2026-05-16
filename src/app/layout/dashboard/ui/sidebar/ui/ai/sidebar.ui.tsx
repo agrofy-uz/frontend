@@ -208,10 +208,22 @@ function useAiSidebarChats() {
     (id: string) => {
       navigate({ pathname: '/dashboard/ai', search: `?chat=${id}` });
       if (mobileDrawer?.isMobile) {
-        requestAnimationFrame(() => mobileDrawer.closeMobileDrawer());
+        window.setTimeout(() => mobileDrawer.closeMobileDrawer(), 0);
       }
     },
     [mobileDrawer, navigate]
+  );
+
+  const openChatFromTouch = useCallback(
+    (id: string, e: React.PointerEvent<HTMLElement>) => {
+      if (!mobileDrawer?.isMobile || e.button !== 0) return;
+      const target = e.target as HTMLElement;
+      if (target.closest('button, [data-chat-menu]')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openChat(id);
+    },
+    [mobileDrawer?.isMobile, openChat]
   );
 
   const createNewChat = useCallback(async () => {
@@ -334,6 +346,7 @@ function useAiSidebarChats() {
     titleRevealIds,
     isHistoryLoading,
     openChat,
+    openChatFromTouch,
     createNewChat,
     toggleChatPopover,
     handlePinChat,
@@ -344,6 +357,7 @@ function useAiSidebarChats() {
 
 export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
   const navigate = useNavigate();
+  const mobileDrawer = useMobileDashboardDrawer();
   const [historyOpen, { toggle: toggleHistoryOpen }] = useDisclosure(true);
   const [pendingDelete, setPendingDelete] = useState<{
     id: string;
@@ -358,6 +372,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
     titleRevealIds,
     isHistoryLoading,
     openChat,
+    openChatFromTouch,
     createNewChat,
     toggleChatPopover,
     handlePinChat,
@@ -489,8 +504,11 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
                       return (
                         <div
                           key={c.id}
-                          className={`${styles.chatItem} ${isActive ? styles.chatItemActive : ''} ${styles.chatItemWrapper}`}
-                          onClick={() => openChat(c.id)}
+                          className={`${styles.chatItemWrapper} ${isActive ? styles.chatItemActive : ''}`}
+                          onPointerDown={(e) => openChatFromTouch(c.id, e)}
+                          onClick={() => {
+                            if (!mobileDrawer?.isMobile) openChat(c.id);
+                          }}
                           role="button"
                           tabIndex={0}
                           onKeyDown={(e) => {
@@ -529,10 +547,12 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
                                 variant="subtle"
                                 size="sm"
                                 className={styles.chatItemDots}
+                                data-chat-menu
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   toggleChatPopover(c.id);
                                 }}
+                                onPointerDown={(e) => e.stopPropagation()}
                                 aria-label="Chat parametrlari"
                               >
                                 <BsThreeDots size={14} />

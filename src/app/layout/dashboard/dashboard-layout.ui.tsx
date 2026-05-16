@@ -79,6 +79,7 @@ const DashboardLayout = () => {
             position="left"
             size={280}
             padding={0}
+            trapFocus={false}
             classNames={{
               content: styles.mobileDrawerContent,
               body: styles.mobileDrawerBody,
