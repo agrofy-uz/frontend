@@ -4,12 +4,15 @@
   cursor: pointer;
 }
 
-.sidebarNavLink:hover {
-  background-color: var(--mantine-color-gray-2);
-}
+/* Touch: :hover qolib ketmasin — faqat sichqoncha/trackpad */
+@media (hover: hover) and (pointer: fine) {
+  .sidebarNavLink:hover {
+    background-color: var(--mantine-color-gray-2);
+  }
 
-html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover {
-  background-color: hsl(150, 10%, 12%);
+  html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover {
+    background-color: hsl(150, 10%, 12%);
+  }
 }
 
 .sidebarNavLink[data-active] {
@@ -27,8 +30,10 @@ html[data-mantine-color-scheme='dark'] .sidebarNavLink[data-active] {
   transition: color 0.2s ease;
 }
 
-.sidebarNavLink:hover .sidebarIcon {
-  color: var(--mantine-color-green-6);
+@media (hover: hover) and (pointer: fine) {
+  .sidebarNavLink:hover .sidebarIcon {
+    color: var(--mantine-color-green-6);
+  }
 }
 
 .sidebarNavLink[data-active] .sidebarIcon {
@@ -40,8 +45,10 @@ html[data-mantine-color-scheme='dark'] .sidebarIcon {
   color: var(--mantine-color-dark-0);
 }
 
-html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover .sidebarIcon {
-  color: var(--mantine-color-dark-0);
+@media (hover: hover) and (pointer: fine) {
+  html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover .sidebarIcon {
+    color: var(--mantine-color-dark-0);
+  }
 }
 
 html[data-mantine-color-scheme='dark']
@@ -58,8 +65,10 @@ html[data-mantine-color-scheme='dark']
   transition: all 0.2s ease;
 }
 
-.sidebarNavLink:hover .sidebarLabel {
-  color: var(--mantine-color-green-6);
+@media (hover: hover) and (pointer: fine) {
+  .sidebarNavLink:hover .sidebarLabel {
+    color: var(--mantine-color-green-6);
+  }
 }
 
 .sidebarNavLink[data-active] .sidebarLabel {
@@ -72,8 +81,10 @@ html[data-mantine-color-scheme='dark'] .sidebarLabel {
   color: var(--mantine-color-dark-0);
 }
 
-html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover .sidebarLabel {
-  color: var(--mantine-color-dark-0);
+@media (hover: hover) and (pointer: fine) {
+  html[data-mantine-color-scheme='dark'] .sidebarNavLink:hover .sidebarLabel {
+    color: var(--mantine-color-dark-0);
+  }
 }
 
 html[data-mantine-color-scheme='dark']
@@ -89,12 +100,14 @@ html[data-mantine-color-scheme='dark']
   cursor: pointer;
 }
 
-.settingsNavLink:hover {
-  background-color: var(--mantine-color-gray-2);
-}
+@media (hover: hover) and (pointer: fine) {
+  .settingsNavLink:hover {
+    background-color: var(--mantine-color-gray-2);
+  }
 
-html[data-mantine-color-scheme='dark'] .settingsNavLink:hover {
-  background-color: hsl(150, 10%, 12%);
+  html[data-mantine-color-scheme='dark'] .settingsNavLink:hover {
+    background-color: hsl(150, 10%, 12%);
+  }
 }
 
 /* Settings Icon styles */
@@ -104,8 +117,10 @@ html[data-mantine-color-scheme='dark'] .settingsNavLink:hover {
   transition: color 0.2s ease;
 }
 
-.settingsNavLink:hover .settingsIcon {
-  color: var(--mantine-color-green-6);
+@media (hover: hover) and (pointer: fine) {
+  .settingsNavLink:hover .settingsIcon {
+    color: var(--mantine-color-green-6);
+  }
 }
 
 /* Dark mode: oddiy oq, hover oq */
@@ -113,8 +128,10 @@ html[data-mantine-color-scheme='dark'] .settingsIcon {
   color: var(--mantine-color-dark-0);
 }
 
-html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsIcon {
-  color: var(--mantine-color-dark-0);
+@media (hover: hover) and (pointer: fine) {
+  html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsIcon {
+    color: var(--mantine-color-dark-0);
+  }
 }
 
 /* Settings Label styles */
@@ -124,8 +141,10 @@ html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsIcon {
   transition: all 0.2s ease;
 }
 
-.settingsNavLink:hover .settingsLabel {
-  color: var(--mantine-color-green-6);
+@media (hover: hover) and (pointer: fine) {
+  .settingsNavLink:hover .settingsLabel {
+    color: var(--mantine-color-green-6);
+  }
 }
 
 /* Dark mode: oddiy oq, hover oq */
@@ -133,8 +152,10 @@ html[data-mantine-color-scheme='dark'] .settingsLabel {
   color: var(--mantine-color-dark-0);
 }
 
-html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsLabel {
-  color: var(--mantine-color-dark-0);
+@media (hover: hover) and (pointer: fine) {
+  html[data-mantine-color-scheme='dark'] .settingsNavLink:hover .settingsLabel {
+    color: var(--mantine-color-dark-0);
+  }
 }
 
 /* Profile Card styles */
@@ -184,12 +205,14 @@ html[data-mantine-color-scheme='dark'] .profileStatus {
   transition: all 0.2s ease;
 }
 
-.profileCard:hover {
-  background-color: var(--mantine-color-gray-3);
-}
+@media (hover: hover) and (pointer: fine) {
+  .profileCard:hover {
+    background-color: var(--mantine-color-gray-3);
+  }
 
-html[data-mantine-color-scheme='dark'] .profileCard:hover {
-  background-color: hsl(150, 10%, 12%);
+  html[data-mantine-color-scheme='dark'] .profileCard:hover {
+    background-color: hsl(150, 10%, 12%);
+  }
 }
 
 .profileBadge {

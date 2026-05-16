@@ -398,6 +398,10 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
     }
   }, [pendingDelete, executeDeleteChat, closeDeleteModal]);
 
+  const goBackToDashboard = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
   return (
     <Box className={styles.root}>
       {!collapsed && (
@@ -410,7 +414,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
         {collapsed ? (
           <ActionIcon
             variant="subtle"
-            onClick={() => navigate('/dashboard')}
+            onClick={goBackToDashboard}
             aria-label="Orqaga"
             w="100%"
             h={36}
@@ -424,7 +428,7 @@ export default function AiSidebar({ collapsed }: { collapsed: boolean }) {
             h={36}
             variant="subtle"
             leftSection={<BsArrowLeft size={16} />}
-            onClick={() => navigate('/dashboard')}
+            onClick={goBackToDashboard}
             bd="1.5px solid var(--mantine-color-green-3)"
           >
             Orqaga qaytish

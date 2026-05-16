@@ -263,6 +263,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                           mobileDrawer.closeMobileDrawer();
                         }
                         navigate(item.path);
+                        // Touch: bosilgandan keyin :hover qolib ketmasin
+                        requestAnimationFrame(() => {
+                          (document.activeElement as HTMLElement | null)?.blur?.();
+                        });
                       }}
                       className={styles.sidebarNavLink}
                       style={{
