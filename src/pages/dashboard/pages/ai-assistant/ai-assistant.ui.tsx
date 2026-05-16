@@ -69,7 +69,8 @@ function AiAssistant() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const inputDockRef = useRef<HTMLDivElement>(null);
-  const [inputDockHeight, setInputDockHeight] = useState(0);
+  const composerDockRef = useRef<HTMLDivElement>(null);
+  const [composerDockHeight, setComposerDockHeight] = useState(0);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -154,18 +155,18 @@ function AiAssistant() {
     };
   }, [isMobile]);
 
-  // Mobil: input qatori balandligi — shaffof scroll pad (168px padding o‘rniga)
+  // Mobil: faqat composer balandligi (disclaimer scroll/oraliqqa kirmaydi)
   useLayoutEffect(() => {
     if (!isMobile) {
-      setInputDockHeight(0);
+      setComposerDockHeight(0);
       return undefined;
     }
 
-    const el = inputDockRef.current;
+    const el = composerDockRef.current;
     if (!el) return undefined;
 
     const measure = () => {
-      setInputDockHeight(el.getBoundingClientRect().height);
+      setComposerDockHeight(el.getBoundingClientRect().height);
     };
 
     measure();
@@ -174,8 +175,13 @@ function AiAssistant() {
     return () => ro.disconnect();
   }, [isMobile, draft, messages.length, showScrollBtn]);
 
+  const keyboardOpen = isMobile && keyboardInset > 0;
+
   const dockHeightStyle = isMobile
-    ? ({ '--ai-input-dock-height': `${inputDockHeight}px` } as React.CSSProperties)
+    ? ({
+        '--ai-input-dock-height': `${composerDockHeight}px`,
+        '--ai-keyboard-inset': `${keyboardInset}px`,
+      } as React.CSSProperties)
     : undefined;
 
   const focusComposerInput = useCallback(() => {
@@ -539,11 +545,11 @@ function AiAssistant() {
             </AnimatePresence>
 
             <div ref={messagesEndRef} />
-            {isMobile && inputDockHeight > 0 ? (
+            {isMobile && composerDockHeight > 0 ? (
               <div
                 aria-hidden
                 className={styles.scrollPad}
-                style={{ height: inputDockHeight }}
+                style={{ height: composerDockHeight }}
               />
             ) : null}
           </Stack>
@@ -565,10 +571,7 @@ function AiAssistant() {
       <Box
         ref={inputDockRef}
         className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}
-        style={{
-          ...dockHeightStyle,
-          ...(isMobile && keyboardInset > 0 ? { bottom: keyboardInset } : {}),
-        }}
+        style={dockHeightStyle}
       >
         <AnimatePresence>
           {showScrollBtn && (
@@ -594,6 +597,10 @@ function AiAssistant() {
             </motion.div>
           )}
         </AnimatePresence>
+        <Box
+          ref={composerDockRef}
+          className={`${styles.composerDock} ${keyboardOpen ? styles.composerDockKeyboard : ''}`}
+        >
         <div
           className={styles.composer}
           onPointerDown={handleComposerPointerDown}
@@ -670,6 +677,11 @@ function AiAssistant() {
               onBlur={handleTextareaBlur}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
+                  if (isMobile) {
+                    e.preventDefault();
+                    textareaRef.current?.blur();
+                    return;
+                  }
                   e.preventDefault();
                   handleSend();
                 }
@@ -677,7 +689,7 @@ function AiAssistant() {
               rows={1}
               placeholder="Xabar yozing..."
               className={styles.textareaInput}
-              enterKeyHint="send"
+              enterKeyHint={isMobile ? 'done' : 'send'}
               autoComplete="off"
               autoCorrect="on"
             />
@@ -729,8 +741,12 @@ function AiAssistant() {
             </Box>
           </Box>
         </div>
+        </Box>
 
-        <Text className={styles.disclaimer} component="p">
+        <Text
+          className={`${styles.disclaimer} ${keyboardOpen ? styles.disclaimerHidden : ''}`}
+          component="p"
+        >
           {AI_TRUST_DISCLAIMER}
         </Text>
       </Box>
