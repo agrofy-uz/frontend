@@ -70,9 +70,9 @@ export function getTelegramPremiumBotLink(): string {
   return `${baseUrl}?start=premium`;
 }
 
-/** Deep link: chatda `/help` yuboriladi. */
+/** Deep link: Start bosilganda botga `/start help` keladi (avtomatik). */
 export function getTelegramHelpBotLink(): string {
   const baseUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}`;
-  return `${baseUrl}?text=${encodeURIComponent('/help')}`;
+  return `${baseUrl}?start=help`;
 }
 

@@ -1,13 +1,9 @@
 import { TELEGRAM_BOT_USERNAME } from '@/shared/ui/login-modal/login-modal.const';
 
-export type TelegramBotIntent =
-  | { kind: 'start'; value: string }
-  | { kind: 'text'; value: string };
+export type TelegramBotIntent = { kind: 'start'; value: string };
 
-/** Login OTP: mobil — web tab saqlanadi; desktop — yangi tab. */
-const LOGIN_FALLBACK_MS = 450;
-/** Premium: web tab saqlanadi (mobile + desktop). */
-const PRESERVE_WEB_FALLBACK_MS = 400;
+/** Mobil: Telegram ilovasi ochilmasa t.me yangi tabda. */
+const MOBILE_WEB_FALLBACK_MS = 500;
 
 let navigationLocked = false;
 let unlockTimer: ReturnType<typeof setTimeout> | null = null;
@@ -25,18 +21,14 @@ function consumeTelegramNavigation(): boolean {
 
 function buildWebUrl(intent: TelegramBotIntent): string {
   const base = `https://t.me/${TELEGRAM_BOT_USERNAME}`;
-  if (intent.kind === 'start') {
-    return `${base}?start=${encodeURIComponent(intent.value)}`;
-  }
-  return `${base}?text=${encodeURIComponent(intent.value)}`;
+  return `${base}?start=${encodeURIComponent(intent.value)}`;
 }
 
 function buildAppUrlFromStart(start: string): string {
   return `tg://resolve?domain=${TELEGRAM_BOT_USERNAME}&start=${encodeURIComponent(start)}`;
 }
 
-function buildAppUrl(intent: TelegramBotIntent): string | null {
-  if (intent.kind === 'text') return null;
+function buildAppUrl(intent: TelegramBotIntent): string {
   return buildAppUrlFromStart(intent.value);
 }
 
@@ -67,7 +59,8 @@ export function resolveTelegramAppUrl(link: string): string | null {
   }
 }
 
-function launchAppDeepLinkFast(url: string): void {
+/** Brauzer tabini almashtirmaydi — faqat Telegram ilovasini chaqiradi. */
+function launchTelegramApp(url: string): void {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.style.cssText =
@@ -76,21 +69,30 @@ function launchAppDeepLinkFast(url: string): void {
   anchor.click();
   requestAnimationFrame(() => anchor.remove());
 
-  const iframe = document.createElement('iframe');
-  iframe.setAttribute('aria-hidden', 'true');
-  iframe.style.cssText =
-    'display:none;position:fixed;width:0;height:0;border:0;opacity:0';
-  iframe.src = url;
-  document.body.appendChild(iframe);
-  window.setTimeout(() => iframe.remove(), 500);
+  if (isMobileTelegramContext()) {
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.style.cssText =
+      'display:none;position:fixed;width:0;height:0;border:0;opacity:0';
+    iframe.src = url;
+    document.body.appendChild(iframe);
+    window.setTimeout(() => iframe.remove(), 500);
+  }
 }
 
-function scheduleWebFallback(webUrl: string, delayMs: number): void {
+function openWebInNewTab(webUrl: string): void {
+  window.open(webUrl, '_blank', 'noopener,noreferrer');
+}
+
+function scheduleMobileWebFallback(
+  webUrl: string,
+  appOpenedRef: { current: boolean },
+): void {
   window.setTimeout(() => {
-    if (document.visibilityState === 'visible') {
-      window.open(webUrl, '_blank', 'noopener,noreferrer');
+    if (!appOpenedRef.current && document.visibilityState === 'visible') {
+      openWebInNewTab(webUrl);
     }
-  }, delayMs);
+  }, MOBILE_WEB_FALLBACK_MS);
 }
 
 type ClickLike = { preventDefault(): void; stopPropagation(): void };
@@ -102,14 +104,30 @@ function runWithClickGuard(event: ClickLike | undefined, fn: () => void): void {
   fn();
 }
 
-/** Premium / bog‘lanish: web tab har doim saqlanadi (mobile + desktop). */
-function openPreservingWebTab(webUrl: string, appUrl: string | null): void {
-  if (appUrl) {
-    launchAppDeepLinkFast(appUrl);
-    scheduleWebFallback(webUrl, PRESERVE_WEB_FALLBACK_MS);
-    return;
+/**
+ * Premium / bog‘lanish — mobile va desktop:
+ * faqat tg:// (Telegram Desktop / mobil ilova), asosiy web tab Agrofyda qoladi.
+ * t.me fallback faqat mobilda va ilova ochilmasa.
+ */
+function openPreservingWebTab(webUrl: string, appUrl: string): void {
+  const appOpenedRef = { current: false };
+
+  const onVisibility = () => {
+    if (document.visibilityState === 'hidden') {
+      appOpenedRef.current = true;
+    }
+  };
+
+  document.addEventListener('visibilitychange', onVisibility);
+  launchTelegramApp(appUrl);
+
+  if (isMobileTelegramContext()) {
+    scheduleMobileWebFallback(webUrl, appOpenedRef);
   }
-  window.open(webUrl, '_blank', 'noopener,noreferrer');
+
+  window.setTimeout(() => {
+    document.removeEventListener('visibilitychange', onVisibility);
+  }, MOBILE_WEB_FALLBACK_MS + 200);
 }
 
 /** Premium va «biz bilan bog‘laning» */
@@ -122,7 +140,7 @@ export function openTelegramPremium(event?: ClickLike): void {
 
 export function openTelegramHelp(event?: ClickLike): void {
   runWithClickGuard(event, () => {
-    const intent: TelegramBotIntent = { kind: 'text', value: '/help' };
+    const intent: TelegramBotIntent = { kind: 'start', value: 'help' };
     openPreservingWebTab(buildWebUrl(intent), buildAppUrl(intent));
   });
 }
@@ -133,11 +151,19 @@ export function openTelegramLoginLink(link: string, event?: ClickLike): void {
     if (isMobileTelegramContext()) {
       const appUrl = resolveTelegramAppUrl(link);
       if (appUrl) {
-        launchAppDeepLinkFast(appUrl);
-        scheduleWebFallback(link, LOGIN_FALLBACK_MS);
+        const appOpenedRef = { current: false };
+        const onVisibility = () => {
+          if (document.visibilityState === 'hidden') appOpenedRef.current = true;
+        };
+        document.addEventListener('visibilitychange', onVisibility);
+        launchTelegramApp(appUrl);
+        scheduleMobileWebFallback(link, appOpenedRef);
+        window.setTimeout(() => {
+          document.removeEventListener('visibilitychange', onVisibility);
+        }, MOBILE_WEB_FALLBACK_MS + 200);
         return;
       }
     }
-    window.open(link, '_blank', 'noopener,noreferrer');
+    openWebInNewTab(link);
   });
 }
