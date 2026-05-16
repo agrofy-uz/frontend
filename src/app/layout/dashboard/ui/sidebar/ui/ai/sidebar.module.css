@@ -66,6 +66,8 @@ html[data-mantine-color-scheme='dark'] .historyHeaderText:hover {
   padding: 0 10px;
   border-radius: var(--mantine-radius-md);
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: background-color 0.2s ease;
 }
 

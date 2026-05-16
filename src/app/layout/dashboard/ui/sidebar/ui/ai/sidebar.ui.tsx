@@ -206,8 +206,10 @@ function useAiSidebarChats() {
 
   const openChat = useCallback(
     (id: string) => {
-      mobileDrawer?.closeMobileDrawer();
       navigate({ pathname: '/dashboard/ai', search: `?chat=${id}` });
+      if (mobileDrawer?.isMobile) {
+        requestAnimationFrame(() => mobileDrawer.closeMobileDrawer());
+      }
     },
     [mobileDrawer, navigate]
   );

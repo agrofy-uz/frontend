@@ -27,6 +27,7 @@ import {
   MdClose,
 } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
+import { useMediaQuery } from '@mantine/hooks';
 import styles from './ai-assistant.module.css';
 import {
   createChat,
@@ -36,6 +37,8 @@ import {
 } from '@/shared/api';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import {
+  AI_ASSISTANT_MOBILE_MQ,
+  AI_TRUST_DISCLAIMER,
   MAX_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
   TYPING_DOT_ANIMATION,
@@ -65,6 +68,8 @@ function AiAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  const inputDockRef = useRef<HTMLDivElement>(null);
+  const [inputDockHeight, setInputDockHeight] = useState(0);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -77,6 +82,10 @@ function AiAssistant() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
+    getInitialValueInEffect: true,
+  });
 
   // Rasm fayllar uchun object URL lar (thumbnaillar va preview uchun)
   useEffect(() => {
@@ -105,6 +114,92 @@ function AiAssistant() {
     el.style.height = `${newH}px`;
     el.style.overflowY = scrollH > maxH ? 'auto' : 'hidden';
   }, [draft]);
+
+  // Mobil: klaviatura — inputni ko‘tarish, sahifani emas
+  useEffect(() => {
+    if (!isMobile) {
+      setKeyboardInset(0);
+      return undefined;
+    }
+
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+
+    const sync = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardInset(inset);
+    };
+
+    sync();
+    vv.addEventListener('resize', sync);
+    vv.addEventListener('scroll', sync);
+    return () => {
+      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('scroll', sync);
+    };
+  }, [isMobile]);
+
+  // Mobil: tashqi scroll va iOS zoom qolishini kamaytirish
+  useEffect(() => {
+    if (!isMobile) return undefined;
+
+    const prevOverflow = document.body.style.overflow;
+    const prevOverflowX = document.body.style.overflowX;
+    document.body.style.overflow = 'hidden';
+    document.body.style.overflowX = 'hidden';
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.overflowX = prevOverflowX;
+    };
+  }, [isMobile]);
+
+  // Mobil: input qatori balandligi — shaffof scroll pad (168px padding o‘rniga)
+  useLayoutEffect(() => {
+    if (!isMobile) {
+      setInputDockHeight(0);
+      return undefined;
+    }
+
+    const el = inputDockRef.current;
+    if (!el) return undefined;
+
+    const measure = () => {
+      setInputDockHeight(el.getBoundingClientRect().height);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isMobile, draft, messages.length, showScrollBtn]);
+
+  const dockHeightStyle = isMobile
+    ? ({ '--ai-input-dock-height': `${inputDockHeight}px` } as React.CSSProperties)
+    : undefined;
+
+  const focusComposerInput = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+  }, []);
+
+  const handleComposerPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLElement>) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('button, a, [role="button"]')) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      focusComposerInput();
+    },
+    [focusComposerInput]
+  );
+
+  const handleTextareaBlur = useCallback(() => {
+    if (!isMobile) return;
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
+  }, [isMobile]);
 
   // Session yaratish yoki mavjud session history yuklash
   useEffect(() => {
@@ -225,10 +320,10 @@ function AiAssistant() {
 
   // Scroll to bottom when messages change or loading state changes
   useEffect(() => {
-    // Kichik kechikish bilan scroll qilish, DOM yangilanishini kutish uchun
     const timeoutId = setTimeout(() => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      const vp = scrollViewportRef.current;
+      if (vp) {
+        vp.scrollTo({ top: vp.scrollHeight, behavior: 'smooth' });
       }
     }, 50);
 
@@ -339,10 +434,7 @@ function AiAssistant() {
   // Xabar matnini input'ga yozish
   const handleEditMessage = (content: string) => {
     setDraft(content);
-    // Textarea'ga focus qilish
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
+    focusComposerInput();
   };
 
   const handleVoiceTranscribed = (text: string) => {
@@ -352,6 +444,8 @@ function AiAssistant() {
   return (
     <Box
       className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}
+      data-mobile={isMobile || undefined}
+      style={dockHeightStyle}
     >
       {/* Messages Area */}
       {hasMessages || isLoading ? (
@@ -445,6 +539,13 @@ function AiAssistant() {
             </AnimatePresence>
 
             <div ref={messagesEndRef} />
+            {isMobile && inputDockHeight > 0 ? (
+              <div
+                aria-hidden
+                className={styles.scrollPad}
+                style={{ height: inputDockHeight }}
+              />
+            ) : null}
           </Stack>
         </ScrollArea>
       ) : (
@@ -462,7 +563,12 @@ function AiAssistant() {
 
       {/* Input Area */}
       <Box
+        ref={inputDockRef}
         className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}
+        style={{
+          ...dockHeightStyle,
+          ...(isMobile && keyboardInset > 0 ? { bottom: keyboardInset } : {}),
+        }}
       >
         <AnimatePresence>
           {showScrollBtn && (
@@ -475,19 +581,23 @@ function AiAssistant() {
               className={styles.scrollToBottomDock}
             >
               <ActionIcon
-                variant="default"
+                variant="subtle"
+                color="gray"
                 radius="50%"
                 size="lg"
                 className={styles.scrollToBottomBtn}
                 onClick={scrollToBottom}
-                aria-label="Scroll to bottom"
+                aria-label="Pastga tushirish"
               >
                 <IoChevronDown size={18} />
               </ActionIcon>
             </motion.div>
           )}
         </AnimatePresence>
-        <div className={styles.composer}>
+        <div
+          className={styles.composer}
+          onPointerDown={handleComposerPointerDown}
+        >
           {attachments.length > 0 && (
             <Group
               gap={8}
@@ -557,6 +667,7 @@ function AiAssistant() {
               ref={textareaRef}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
+              onBlur={handleTextareaBlur}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -566,6 +677,9 @@ function AiAssistant() {
               rows={1}
               placeholder="Xabar yozing..."
               className={styles.textareaInput}
+              enterKeyHint="send"
+              autoComplete="off"
+              autoCorrect="on"
             />
           </Box>
 
@@ -615,6 +729,10 @@ function AiAssistant() {
             </Box>
           </Box>
         </div>
+
+        <Text className={styles.disclaimer} component="p">
+          {AI_TRUST_DISCLAIMER}
+        </Text>
       </Box>
 
       <VoiceModal
