@@ -84,8 +84,9 @@ export default function ServicesSidebar({ collapsed }: ServicesSidebarProps) {
         next.delete(SERVICES_SEARCH_ENTER_CHIP_QUERY_KEY);
         return next;
       });
+      if (mobileDrawer?.isMobile) mobileDrawer.closeMobileDrawer();
     },
-    [appliedFilter, setSearchParams]
+    [appliedFilter, mobileDrawer, setSearchParams]
   );
 
   const clearEverything = useCallback(() => {
