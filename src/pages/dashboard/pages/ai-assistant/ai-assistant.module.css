@@ -77,11 +77,12 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
     flex: 1;
     padding: 16px 16px 0;
     justify-content: center;
-    transition: padding-bottom 0.2s ease;
+    transition: padding-bottom 0.25s ease;
   }
 
+  /* Klaviatura ochilganda: matn input ustiga ko'tariladi */
   .container[data-mobile] .welcomeStateKeyboard {
-    flex: 0 1 auto;
+    flex: 1;
     justify-content: flex-end;
     align-items: center;
     padding-bottom: calc(

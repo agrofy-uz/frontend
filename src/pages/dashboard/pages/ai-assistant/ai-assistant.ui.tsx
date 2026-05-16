@@ -40,7 +40,6 @@ import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
-  KEYBOARD_INSET_STABLE_PX,
   MOBILE_SCROLL_DISMISS_PX,
   MOBILE_SCROLL_PAD_TRIM_PX,
   MAX_TEXTAREA_HEIGHT,
@@ -87,7 +86,9 @@ function AiAssistant() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
-  const [keyboardInset, setKeyboardInset] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const keyboardOpenRef = useRef(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [composerFocused, setComposerFocused] = useState(false);
   const scrollAtFocusRef = useRef(0);
   const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
@@ -125,7 +126,11 @@ function AiAssistant() {
   // Mobil: klaviatura — inputni ko‘tarish, sahifani emas
   useEffect(() => {
     if (!isMobile) {
-      setKeyboardInset(0);
+      containerRef.current?.style.removeProperty('--ai-keyboard-inset');
+      if (keyboardOpenRef.current) {
+        keyboardOpenRef.current = false;
+        setKeyboardOpen(false);
+      }
       return undefined;
     }
 
@@ -134,9 +139,14 @@ function AiAssistant() {
 
     const sync = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      setKeyboardInset((prev) =>
-        Math.abs(inset - prev) < KEYBOARD_INSET_STABLE_PX ? prev : inset
-      );
+      // CSS var ni to'g'ridan DOM ga — React re-render YO'Q, jitter YO'Q
+      containerRef.current?.style.setProperty('--ai-keyboard-inset', `${inset}px`);
+      // Faqat klaviatura ochildi/yopildi paytida state o'zgaradi (binary)
+      const isOpen = inset > 50;
+      if (isOpen !== keyboardOpenRef.current) {
+        keyboardOpenRef.current = isOpen;
+        setKeyboardOpen(isOpen);
+      }
     };
 
     sync();
@@ -183,7 +193,6 @@ function AiAssistant() {
 
   const hasMessages = messages.length > 0;
 
-  const keyboardOpen = isMobile && keyboardInset > 0;
   const welcomeLifted =
     isMobile && !hasMessages && (keyboardOpen || composerFocused);
 
@@ -196,7 +205,7 @@ function AiAssistant() {
     ? ({
         '--ai-input-dock-height': `${mobileScrollPadHeight}px`,
         '--ai-composer-height': `${composerDockHeight}px`,
-        '--ai-keyboard-inset': `${keyboardInset}px`,
+        // --ai-keyboard-inset is set directly on DOM via containerRef (no re-render)
       } as React.CSSProperties)
     : undefined;
 
@@ -480,6 +489,7 @@ function AiAssistant() {
 
   return (
     <Box
+      ref={containerRef}
       className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}
       data-mobile={isMobile || undefined}
       style={dockHeightStyle}
