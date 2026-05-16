@@ -342,17 +342,23 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                   <Avatar src={user.avatar} size="md" radius="md">
                     {getInitials(user.name)}
                   </Avatar>
-                  <Flex direction="column" gap="0">
+                  <Flex direction="column" gap={0} className={styles.profileTextCol}>
                     <Text
                       fz="14px"
                       fw={700}
                       className={styles.profileName}
-                      lineClamp={1}
+                      truncate
+                      title={user.displayName}
                     >
                       {user.displayName}
                     </Text>
 
-                    <Text fz="12px" className={styles.profileStatus}>
+                    <Text
+                      fz="12px"
+                      className={styles.profileStatus}
+                      truncate
+                      title={user.planLabel}
+                    >
                       {user.planLabel}
                     </Text>
                   </Flex>

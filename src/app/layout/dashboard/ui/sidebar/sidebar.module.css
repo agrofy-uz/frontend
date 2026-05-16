@@ -148,8 +148,19 @@ html[data-mantine-color-scheme='dark'] .profileCard {
   background-color: hsl(150, 10%, 10%);
 }
 
+.profileTextCol {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .profileName {
   color: var(--mantine-color-gray-9);
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 html[data-mantine-color-scheme='dark'] .profileName {
@@ -158,6 +169,11 @@ html[data-mantine-color-scheme='dark'] .profileName {
 
 .profileStatus {
   color: var(--mantine-color-gray-5);
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 html[data-mantine-color-scheme='dark'] .profileStatus {
