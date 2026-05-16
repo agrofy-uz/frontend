@@ -1,5 +1,6 @@
 import { Box, Flex, ActionIcon, Drawer } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { BsLayoutSidebar } from 'react-icons/bs';
 import { SettingsModal } from '@/pages/dashboard/pages/settings';
@@ -29,6 +30,13 @@ const DashboardLayout = () => {
 
     toggleDesktop();
   };
+
+  /** Mobil sidebar Drawer ochiq bo‘lsa — overlay scroll/touchni pricing ustida ushlab qoladi */
+  useEffect(() => {
+    if (pricingModalOpened) {
+      closeMobile();
+    }
+  }, [pricingModalOpened, closeMobile]);
 
   return (
     <>

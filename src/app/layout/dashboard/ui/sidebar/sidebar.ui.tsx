@@ -364,6 +364,10 @@ const Sidebar = ({ collapsed }: SidebarProps) => {
                       className={styles.profileBadge}
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (mobileDrawer?.isMobile) {
+                          mobileDrawer.closeMobileDrawer();
+                        }
+                        closeDrawer();
                         openPricingModal();
                       }}
                       style={{ cursor: 'pointer' }}

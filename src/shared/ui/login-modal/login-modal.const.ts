@@ -69,3 +69,10 @@ export function getTelegramPremiumBotLink(): string {
   const baseUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}`;
   return `${baseUrl}?start=premium`;
 }
+
+/** Deep link: chatda `/help` yuboriladi. */
+export function getTelegramHelpBotLink(): string {
+  const baseUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}`;
+  return `${baseUrl}?text=${encodeURIComponent('/help')}`;
+}
+

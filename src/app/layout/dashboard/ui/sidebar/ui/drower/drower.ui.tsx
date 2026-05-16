@@ -54,8 +54,11 @@ function Drower({ opened, onClose, target }: DrowerProps) {
   };
 
   const handleUpgrade = () => {
-    openPricingModal();
+    if (mobileDrawer?.isMobile) {
+      mobileDrawer.closeMobileDrawer();
+    }
     onClose();
+    openPricingModal();
   };
 
   const handleProfile = () => {

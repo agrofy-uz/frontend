@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import {
   Badge,
   Box,
@@ -23,7 +23,11 @@ import {
 import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import { resolveActivePricingPlanId } from '@/shared/lib/premiumTier';
-import { getTelegramPremiumBotLink } from '@/shared/ui/login-modal/login-modal.const';
+import { createTelegramLinkClickHandler } from '@/shared/lib/telegramNavigation';
+import {
+  getTelegramHelpBotLink,
+  getTelegramPremiumBotLink,
+} from '@/shared/ui/login-modal/login-modal.const';
 import { COLOR_MAP, PLANS, type Feature, type Plan } from './pricing.const';
 import styles from './pricing.module.css';
 
@@ -63,14 +67,15 @@ function FeatureRow({ text, included }: Feature) {
 /* ------------------------------------------------------------------ */
 /*  Plan card                                                            */
 /* ------------------------------------------------------------------ */
+const TELEGRAM_PREMIUM_LINK = getTelegramPremiumBotLink();
+const onTelegramPremiumClick = createTelegramLinkClickHandler();
+
 function PlanCard({
   plan,
   current,
-  onOpenPremiumBot,
 }: {
   plan: Plan;
   current: boolean;
-  onOpenPremiumBot?: () => void;
 }) {
   const c = COLOR_MAP[plan.color];
   const isFree = plan.id === 'free';
@@ -204,9 +209,10 @@ function PlanCard({
           </Box>
         ) : (
           <MantineButton
+            component="a"
+            href={current ? undefined : TELEGRAM_PREMIUM_LINK}
             fullWidth
             radius="lg"
-            type="button"
             disabled={current}
             variant={current ? 'light' : 'filled'}
             color={
@@ -226,9 +232,7 @@ function PlanCard({
                 .filter(Boolean)
                 .join(' '),
             }}
-            onClick={() => {
-              if (!current) onOpenPremiumBot?.();
-            }}
+            onClick={current ? undefined : onTelegramPremiumClick}
             styles={
               current
                 ? undefined
@@ -291,7 +295,6 @@ function UspsRow() {
 /*  Main view                                                            */
 /* ------------------------------------------------------------------ */
 export function PricingView() {
-  const close = usePricingModalStore((s) => s.close);
   const opened = usePricingModalStore((s) => s.opened);
   const hydrated = useAuthStoreHydrated();
   const user = useAuthStore((s) => s.user);
@@ -323,25 +326,22 @@ export function PricingView() {
 
   const currentTier = resolveActivePricingPlanId(user);
 
-  const openPremiumBot = () => {
-    window.open(getTelegramPremiumBotLink(), '_blank', 'noopener,noreferrer');
-    close();
-  };
+  const visiblePlans = useMemo(
+    () => (isMobile ? PLANS.filter((plan) => plan.id !== 'free') : PLANS),
+    [isMobile],
+  );
+
+  const helpBotLink = useMemo(() => getTelegramHelpBotLink(), []);
+  const onHelpLinkClick = useCallback(createTelegramLinkClickHandler(), []);
 
   return (
     <Box
       maw={1200}
       mx="auto"
       px={{ base: 0, sm: 'md' }}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: 'calc(100dvh - 5.5rem)',
-        boxSizing: 'border-box',
-      }}
+      style={{ boxSizing: 'border-box' }}
     >
-      {/* Hero + kartalar — qolgan joyni egallaydi */}
-      <Box style={{ flex: 1 }}>
+      <Stack gap="md">
         {/* Hero text */}
         <Stack align="center" gap={8} mb="md">
           <Badge
@@ -381,25 +381,20 @@ export function PricingView() {
             alignItems: 'stretch',
           }}
         >
-          {PLANS.map((plan) => (
+          {visiblePlans.map((plan) => (
             <PlanCard
               key={plan.id}
               plan={plan}
               current={plan.id === currentTier}
-              onOpenPremiumBot={
-                plan.id !== 'free' ? openPremiumBot : undefined
-              }
             />
           ))}
         </Box>
-      </Box>
 
       {/* Sahifa eng pasti */}
       <Flex
         align="center"
         justify="center"
         gap="xs"
-        mt="auto"
         pt="xl"
         pb="md"
         wrap="wrap"
@@ -408,24 +403,19 @@ export function PricingView() {
         <Text size="xs" c="dimmed" ta="center" maw={520}>
           To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
           <Text
-            component="span"
+            component="a"
+            href={helpBotLink}
             size="xs"
             c="green"
             style={{ cursor: 'pointer', textDecoration: 'underline' }}
-            onClick={() => {
-              window.open(
-                getTelegramPremiumBotLink(),
-                '_blank',
-                'noopener,noreferrer',
-              );
-              close();
-            }}
+            onClick={onHelpLinkClick}
           >
             biz bilan bog'laning
           </Text>
           .
         </Text>
       </Flex>
+      </Stack>
     </Box>
   );
 }
