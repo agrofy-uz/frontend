@@ -15,6 +15,7 @@ import { BottomSheet } from '@/shared/ui/bottom-sheet';
 import { Slider } from '@/shared/ui/slider';
 import { Rating } from '@/shared/ui/rating';
 import { Select } from '@/shared/ui/select';
+import { ListingSheetSelect } from '@/shared/ui/listing-sheet-select';
 import type { MarketFilterValues } from '../../market.const';
 import { DEFAULT_MARKET_FILTER_VALUES } from '../../market.const';
 import {
@@ -107,44 +108,91 @@ export function MarketFilterModal({
         size="lg"
       />
 
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg" verticalSpacing="lg">
-        <Select
-          label="Viloyat"
-          placeholder={
-            regionsQuery.isPending ? 'Yuklanmoqda…' : 'Qidiring yoki tanlang'
-          }
-          data={regionSelectData}
-          value={draft.regionId}
-          onChange={(regionId) =>
-            setDraft((d) => ({ ...d, regionId, districtId: null }))
-          }
-          disabled={regionsQuery.isPending || regionsQuery.isError}
-          size="md"
-        />
-        <Select
-          label="Tuman"
-          placeholder={
-            !draft.regionId
-              ? 'Avval viloyatni tanlang'
-              : districtsQuery.isPending
-                ? 'Yuklanmoqda…'
-                : districtsQuery.isError
-                  ? 'Yuklab bo‘lmadi'
-                  : 'Qidiring yoki tanlang'
-          }
-          data={districtSelectData}
-          value={draft.districtId}
-          onChange={(districtId) => setDraft((d) => ({ ...d, districtId }))}
-          disabled={
-            !draft.regionId ||
-            districtsQuery.isPending ||
-            districtsQuery.isError ||
-            districtSelectData.length === 0
-          }
-          nothingFoundMessage="Tuman topilmadi"
-          size="md"
-        />
-      </SimpleGrid>
+      {isMobile ? (
+        <Stack gap="lg">
+          <ListingSheetSelect
+            label="Viloyat"
+            sheetTitle="Viloyatni tanlang"
+            placeholder={
+              regionsQuery.isPending ? 'Yuklanmoqda…' : 'Viloyatni tanlang'
+            }
+            value={draft.regionId}
+            options={regionSelectData}
+            onChange={(regionId) =>
+              setDraft((d) => ({ ...d, regionId, districtId: null }))
+            }
+            disabled={regionsQuery.isPending || regionsQuery.isError}
+            loading={regionsQuery.isPending}
+            sheetZIndex={1400}
+            size="md"
+          />
+          <ListingSheetSelect
+            label="Tuman"
+            sheetTitle="Tumanni tanlang"
+            placeholder={
+              !draft.regionId
+                ? 'Avval viloyatni tanlang'
+                : districtsQuery.isPending
+                  ? 'Yuklanmoqda…'
+                  : districtsQuery.isError
+                    ? 'Yuklab bo‘lmadi'
+                    : 'Tumanni tanlang'
+            }
+            value={draft.districtId}
+            options={districtSelectData}
+            onChange={(districtId) => setDraft((d) => ({ ...d, districtId }))}
+            disabled={
+              !draft.regionId ||
+              districtsQuery.isPending ||
+              districtsQuery.isError ||
+              districtSelectData.length === 0
+            }
+            loading={districtsQuery.isPending}
+            nothingFoundMessage="Tuman topilmadi"
+            sheetZIndex={1400}
+            size="md"
+          />
+        </Stack>
+      ) : (
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg" verticalSpacing="lg">
+          <Select
+            label="Viloyat"
+            placeholder={
+              regionsQuery.isPending ? 'Yuklanmoqda…' : 'Qidiring yoki tanlang'
+            }
+            data={regionSelectData}
+            value={draft.regionId}
+            onChange={(regionId) =>
+              setDraft((d) => ({ ...d, regionId, districtId: null }))
+            }
+            disabled={regionsQuery.isPending || regionsQuery.isError}
+            size="md"
+          />
+          <Select
+            label="Tuman"
+            placeholder={
+              !draft.regionId
+                ? 'Avval viloyatni tanlang'
+                : districtsQuery.isPending
+                  ? 'Yuklanmoqda…'
+                  : districtsQuery.isError
+                    ? 'Yuklab bo‘lmadi'
+                    : 'Qidiring yoki tanlang'
+            }
+            data={districtSelectData}
+            value={draft.districtId}
+            onChange={(districtId) => setDraft((d) => ({ ...d, districtId }))}
+            disabled={
+              !draft.regionId ||
+              districtsQuery.isPending ||
+              districtsQuery.isError ||
+              districtSelectData.length === 0
+            }
+            nothingFoundMessage="Tuman topilmadi"
+            size="md"
+          />
+        </SimpleGrid>
+      )}
 
       <Rating
         label="Minimal reyting"

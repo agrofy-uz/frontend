@@ -60,6 +60,7 @@ import {
   type ListingCreateKind,
   type ServiceCreateDraft,
 } from './create-form.const';
+import { ListingSheetSelect } from '@/shared/ui/listing-sheet-select';
 import { CreateFormSkeleton } from './ui';
 import shellStyles from '../../create.module.css';
 import { FaArrowLeft } from 'react-icons/fa';
@@ -591,39 +592,64 @@ export function CreateForm({
 
   const step1Fields = (
     <Stack gap="sm" className={fieldStackClass}>
-      <Select
-        label="Kategoriya"
-        size={fieldSize}
-        styles={fieldInputStyles}
-        placeholder={
-          isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'
-        }
-        data={categoryOptions}
-        leftSection={renderCategoryIcon(selectedCategory?.icon)}
-        withCheckIcon={false}
-        renderOption={({ option, checked }) => {
-          const typedOption = option as unknown as CategoryOption;
-          return (
-            <Group gap="xs" wrap="nowrap">
-              {renderCategoryIcon(typedOption.icon)}
-              <Text
-                size="sm"
-                c={checked ? 'green.7' : undefined}
-                fw={checked ? 600 : 400}
-              >
-                {typedOption.label}
-              </Text>
-            </Group>
-          );
-        }}
-        searchable
-        nothingFoundMessage="Topilmadi"
-        value={categoryId}
-        onChange={setCategoryId}
-        required
-        error={errors.categoryId}
-        comboboxProps={selectComboboxProps}
-      />
+      {isFullscreen ? (
+        <ListingSheetSelect
+          label="Kategoriya"
+          sheetTitle={
+            isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'
+          }
+          placeholder={
+            isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'
+          }
+          value={categoryId}
+          options={categoryOptions}
+          onChange={setCategoryId}
+          required
+          error={errors.categoryId}
+          size={fieldSize}
+          inputStyles={fieldInputStyles}
+          renderTriggerStart={() =>
+            renderCategoryIcon(selectedCategory?.icon)
+          }
+          renderOptionStart={(opt) =>
+            renderCategoryIcon((opt as CategoryOption).icon)
+          }
+        />
+      ) : (
+        <Select
+          label="Kategoriya"
+          size={fieldSize}
+          styles={fieldInputStyles}
+          placeholder={
+            isProduct ? 'Mahsulot turini tanlang' : 'Xizmat turini tanlang'
+          }
+          data={categoryOptions}
+          leftSection={renderCategoryIcon(selectedCategory?.icon)}
+          withCheckIcon={false}
+          renderOption={({ option, checked }) => {
+            const typedOption = option as unknown as CategoryOption;
+            return (
+              <Group gap="xs" wrap="nowrap">
+                {renderCategoryIcon(typedOption.icon)}
+                <Text
+                  size="sm"
+                  c={checked ? 'green.7' : undefined}
+                  fw={checked ? 600 : 400}
+                >
+                  {typedOption.label}
+                </Text>
+              </Group>
+            );
+          }}
+          searchable
+          nothingFoundMessage="Topilmadi"
+          value={categoryId}
+          onChange={setCategoryId}
+          required
+          error={errors.categoryId}
+          comboboxProps={selectComboboxProps}
+        />
+      )}
       <TextInput
         label={isProduct ? 'Mahsulot nomi' : 'Xizmat nomi'}
         placeholder={
@@ -710,43 +736,83 @@ export function CreateForm({
 
   const step3Fields = (
     <Stack gap="sm" className={fieldStackClass}>
-      <Select
-        label="Viloyat"
-        size={fieldSize}
-        styles={fieldInputStyles}
-        placeholder="Viloyatni tanlang"
-        data={regionOptions}
-        searchable
-        nothingFoundMessage="Topilmadi"
-        value={regionId}
-        onChange={(value) => {
-          locationTouchedRef.current = true;
-          setRegionId(value);
-          setDistrictId(null);
-        }}
-        required
-        error={errors.regionId}
-        comboboxProps={selectComboboxProps}
-      />
-      <Select
-        label="Tuman"
-        size={fieldSize}
-        styles={fieldInputStyles}
-        placeholder={regionId ? 'Tumanni tanlang' : 'Avval viloyatni tanlang'}
-        data={districtOptions}
-        searchable
-        nothingFoundMessage="Topilmadi"
-        value={districtId}
-        onChange={(value) => {
-          locationTouchedRef.current = true;
-          setDistrictId(value);
-        }}
-        disabled={!regionId}
-        rightSection={districtsLoading ? <Loader size="sm" /> : null}
-        required
-        error={errors.districtId}
-        comboboxProps={selectComboboxProps}
-      />
+      {isFullscreen ? (
+        <>
+          <ListingSheetSelect
+            label="Viloyat"
+            sheetTitle="Viloyatni tanlang"
+            placeholder="Viloyatni tanlang"
+            value={regionId}
+            options={regionOptions}
+            onChange={(value) => {
+              locationTouchedRef.current = true;
+              setRegionId(value);
+              setDistrictId(null);
+            }}
+            required
+            error={errors.regionId}
+            size={fieldSize}
+            inputStyles={fieldInputStyles}
+          />
+          <ListingSheetSelect
+            label="Tuman"
+            sheetTitle="Tumanni tanlang"
+            placeholder={regionId ? 'Tumanni tanlang' : 'Avval viloyatni tanlang'}
+            value={districtId}
+            options={districtOptions}
+            onChange={(value) => {
+              locationTouchedRef.current = true;
+              setDistrictId(value);
+            }}
+            disabled={!regionId}
+            loading={districtsLoading}
+            required
+            error={errors.districtId}
+            size={fieldSize}
+            inputStyles={fieldInputStyles}
+          />
+        </>
+      ) : (
+        <>
+          <Select
+            label="Viloyat"
+            size={fieldSize}
+            styles={fieldInputStyles}
+            placeholder="Viloyatni tanlang"
+            data={regionOptions}
+            searchable
+            nothingFoundMessage="Topilmadi"
+            value={regionId}
+            onChange={(value) => {
+              locationTouchedRef.current = true;
+              setRegionId(value);
+              setDistrictId(null);
+            }}
+            required
+            error={errors.regionId}
+            comboboxProps={selectComboboxProps}
+          />
+          <Select
+            label="Tuman"
+            size={fieldSize}
+            styles={fieldInputStyles}
+            placeholder={regionId ? 'Tumanni tanlang' : 'Avval viloyatni tanlang'}
+            data={districtOptions}
+            searchable
+            nothingFoundMessage="Topilmadi"
+            value={districtId}
+            onChange={(value) => {
+              locationTouchedRef.current = true;
+              setDistrictId(value);
+            }}
+            disabled={!regionId}
+            rightSection={districtsLoading ? <Loader size="sm" /> : null}
+            required
+            error={errors.districtId}
+            comboboxProps={selectComboboxProps}
+          />
+        </>
+      )}
     </Stack>
   );
 

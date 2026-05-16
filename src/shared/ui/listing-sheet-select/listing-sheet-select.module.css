@@ -1,0 +1,80 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--mantine-radius-default);
+  border: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease;
+}
+
+.trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.trigger[data-error] {
+  border-color: var(--mantine-color-red-6);
+}
+
+.triggerValue {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--mantine-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.triggerPlaceholder {
+  color: var(--mantine-color-placeholder);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--mantine-radius-md);
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.option:hover {
+  background: var(--mantine-color-gray-1);
+}
+
+html[data-mantine-color-scheme='dark'] .option:hover {
+  background: var(--mantine-color-dark-5);
+}
+
+.optionActive {
+  background: var(--mantine-color-green-0);
+}
+
+html[data-mantine-color-scheme='dark'] .optionActive {
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.optionLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.optionList {
+  max-height: min(52dvh, 360px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
