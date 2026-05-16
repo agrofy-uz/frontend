@@ -129,8 +129,8 @@ function Statistics() {
       className={styles.section}
       py={{ base: 'xl', md: 80 }}
     >
-      <Container>
-        <Stack gap="xl">
+      <Container className={styles.sectionInner}>
+        <Stack gap="xl" style={{ overflow: 'hidden', maxWidth: '100%' }}>
           {/* Top Section - Key Metrics */}
           <Grid>
             {/* Birinchi 2 ta statistik - mobile'da yonma-yon, desktop'da bir qatorda */}
@@ -150,8 +150,8 @@ function Statistics() {
                     style={{ textAlign: 'center' }}
                   >
                     <motion.div
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
+                      initial={{ opacity: 0, scale: 0.85 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
                     >
@@ -188,8 +188,8 @@ function Statistics() {
                   style={{ textAlign: 'center' }}
                 >
                   <motion.div
-                    initial={{ scale: 0 }}
-                    whileInView={{ scale: 1 }}
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: 0.4 }}
                   >
@@ -217,8 +217,8 @@ function Statistics() {
               {benefits.map((benefit, index) => (
                 <Grid.Col key={index} span={{ base: 12, md: 6 }}>
                   <motion.div
-                    initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 0.5, delay: index * 0.15 }}
                   >
@@ -280,7 +280,7 @@ function Statistics() {
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, amount: 0.3 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.02 }}
                 >
                   <Badge
                     size="lg"

@@ -1,5 +1,12 @@
 .section {
   background-color: var(--mantine-color-gray-1);
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.sectionInner {
+  overflow: hidden;
+  max-width: 100%;
 }
 
 html[data-mantine-color-scheme='dark'] .section {
