@@ -137,11 +137,10 @@ function AiAssistant() {
     const vv = window.visualViewport;
     if (!vv) return undefined;
 
-    const sync = () => {
-      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      // CSS var ni to'g'ridan DOM ga — React re-render YO'Q, jitter YO'Q
+    const onResize = () => {
+      // offsetTop ni qo'shmaymiz: window scroll ni 0 da tutamiz
+      const inset = Math.max(0, window.innerHeight - vv.height);
       containerRef.current?.style.setProperty('--ai-keyboard-inset', `${inset}px`);
-      // Faqat klaviatura ochildi/yopildi paytida state o'zgaradi (binary)
       const isOpen = inset > 50;
       if (isOpen !== keyboardOpenRef.current) {
         keyboardOpenRef.current = isOpen;
@@ -149,10 +148,46 @@ function AiAssistant() {
       }
     };
 
-    sync();
-    vv.addEventListener('resize', sync);
+    // iOS: klaviatura ochilganda brauzer window-ni scroll qiladi →
+    // header yuqoriga chiqadi. Buni darhol bekor qilamiz.
+    const onVpScroll = () => {
+      if (window.scrollX !== 0 || window.scrollY !== 0) {
+        window.scrollTo({ top: 0, left: 0 });
+      }
+    };
+
+    onResize();
+    vv.addEventListener('resize', onResize);
+    vv.addEventListener('scroll', onVpScroll);
     return () => {
-      vv.removeEventListener('resize', sync);
+      vv.removeEventListener('resize', onResize);
+      vv.removeEventListener('scroll', onVpScroll);
+    };
+  }, [isMobile]);
+
+  // Mobil: yuqori scrollable ota-elementlarni qulflash.
+  // Dashboard layout .content box-i overflow:auto — iOS uni scroll qiladi.
+  // AI assistant sahifasida bu shart emas (ichki ScrollArea o'zi boshqaradi).
+  useEffect(() => {
+    if (!isMobile) return undefined;
+    const container = containerRef.current;
+    if (!container) return undefined;
+
+    const locked: { el: HTMLElement; prevOverflow: string }[] = [];
+    let el: HTMLElement | null = container.parentElement;
+    while (el && el !== document.body) {
+      const ov = getComputedStyle(el).overflowY;
+      if (ov === 'auto' || ov === 'scroll') {
+        locked.push({ el, prevOverflow: el.style.overflow });
+        el.style.overflow = 'hidden';
+      }
+      el = el.parentElement;
+    }
+
+    return () => {
+      locked.forEach(({ el: lockedEl, prevOverflow }) => {
+        lockedEl.style.overflow = prevOverflow;
+      });
     };
   }, [isMobile]);
 
@@ -229,7 +264,11 @@ function AiAssistant() {
     setComposerFocused(true);
     const vp = scrollViewportRef.current;
     scrollAtFocusRef.current = vp?.scrollTop ?? 0;
-  }, []);
+    // iOS: focus voqeasida window allaqachon scroll bo'lgan bo'lishi mumkin
+    if (isMobile && (window.scrollX !== 0 || window.scrollY !== 0)) {
+      window.scrollTo({ top: 0, left: 0 });
+    }
+  }, [isMobile]);
 
   const handleTextareaBlur = useCallback(() => {
     setComposerFocused(false);
