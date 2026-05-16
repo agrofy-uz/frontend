@@ -24,14 +24,9 @@ import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import { resolveActivePricingPlanId } from '@/shared/lib/premiumTier';
 import {
-  guardTelegramAnchorClick,
-  TELEGRAM_LINK_REL,
-  TELEGRAM_LINK_TARGET,
+  openTelegramHelp,
+  openTelegramPremium,
 } from '@/shared/lib/telegramNavigation';
-import {
-  getTelegramHelpBotLink,
-  getTelegramPremiumBotLink,
-} from '@/shared/ui/login-modal/login-modal.const';
 import { COLOR_MAP, PLANS, type Feature, type Plan } from './pricing.const';
 import styles from './pricing.module.css';
 
@@ -210,10 +205,7 @@ function PlanCard({
           </Box>
         ) : (
           <MantineButton
-            component="a"
-            href={current ? undefined : getTelegramPremiumBotLink()}
-            target={current ? undefined : TELEGRAM_LINK_TARGET}
-            rel={current ? undefined : TELEGRAM_LINK_REL}
+            type="button"
             fullWidth
             radius="lg"
             disabled={current}
@@ -235,11 +227,9 @@ function PlanCard({
                 .filter(Boolean)
                 .join(' '),
             }}
-            onClick={
-              current
-                ? (e) => e.preventDefault()
-                : guardTelegramAnchorClick
-            }
+            onClick={(e) => {
+              if (!current) openTelegramPremium(e);
+            }}
             styles={
               current
                 ? undefined
@@ -331,6 +321,29 @@ export function PricingView() {
     };
   }, [opened, hydrated, isAuthenticated, accessToken, updateUser]);
 
+  useEffect(() => {
+    if (!opened || !hydrated || !isAuthenticated || !accessToken) return;
+
+    let cancelled = false;
+
+    const syncOnReturn = () => {
+      if (document.visibilityState !== 'visible') return;
+      void getAuthMe()
+        .then((me) => {
+          if (!cancelled) updateUser(mapAuthMeToUser(me));
+        })
+        .catch(() => {
+          /* joriy store qoladi */
+        });
+    };
+
+    document.addEventListener('visibilitychange', syncOnReturn);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', syncOnReturn);
+    };
+  }, [opened, hydrated, isAuthenticated, accessToken, updateUser]);
+
   const currentTier = resolveActivePricingPlanId(user);
 
   const visiblePlans = useMemo(
@@ -407,14 +420,19 @@ export function PricingView() {
         <Text size="xs" c="dimmed" ta="center" maw={520}>
           To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
           <Text
-            component="a"
-            href={getTelegramHelpBotLink()}
-            target={TELEGRAM_LINK_TARGET}
-            rel={TELEGRAM_LINK_REL}
+            component="button"
+            type="button"
             size="xs"
             c="green"
-            style={{ cursor: 'pointer', textDecoration: 'underline' }}
-            onClick={guardTelegramAnchorClick}
+            style={{
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+            }}
+            onClick={openTelegramHelp}
           >
             biz bilan bog'laning
           </Text>
