@@ -62,6 +62,7 @@ import {
 } from './create-form.const';
 import { CreateFormSkeleton } from './ui';
 import shellStyles from '../../create.module.css';
+import { FaArrowLeft } from 'react-icons/fa';
 
 function mergeMyServiceWithServiceDetail(
   list: MyServiceDto,
@@ -524,7 +525,11 @@ export function CreateForm({
   });
 
   const goNextStep = () => {
-    const nextErrors = validateListingCreateStep(step, buildDraft(), listingKind);
+    const nextErrors = validateListingCreateStep(
+      step,
+      buildDraft(),
+      listingKind
+    );
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
     setStep((s) => Math.min(LISTING_CREATE_STEP_COUNT, s + 1));
@@ -778,90 +783,90 @@ export function CreateForm({
 
   const imagesField = (
     <Input.Wrapper
-        label="Rasmlar"
-        description="Min 1 ta, max 3 ta rasm"
-        required
-        error={errors.images}
-      >
-        <SimpleGrid cols={3} spacing="sm">
-          {Array.from({ length: MAX_IMAGES }, (_, index) => {
-            const preview = previews[index];
-            return (
-              <Box
-                key={`slot-${index}`}
-                pos="relative"
-                h={110}
-                style={{
-                  borderRadius: 10,
-                  border:
-                    dragOverIndex === index
-                      ? '1px dashed var(--mantine-color-green-6)'
-                      : '1px dashed light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3))',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  background:
-                    'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))',
-                }}
-                onClick={() => fileInputs.current[index]?.click()}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = 'copy';
-                  setDragOverIndex(index);
-                }}
-                onDragLeave={() => {
-                  setDragOverIndex((prev) => (prev === index ? null : prev));
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setDragOverIndex(null);
-                  void handleDropAt(index, e.dataTransfer);
-                }}
-              >
-                {preview ? (
-                  <>
-                    <Image src={preview.url} alt="" h={110} fit="cover" />
-                    <ActionIcon
-                      color="red"
-                      variant="filled"
-                      radius="xl"
-                      size="sm"
-                      pos="absolute"
-                      top={6}
-                      right={6}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveImage(index);
-                      }}
-                      aria-label="Rasmni o‘chirish"
-                    >
-                      <MdDeleteOutline size={14} />
-                    </ActionIcon>
-                  </>
-                ) : (
-                  <Stack h="100%" justify="center" align="center" gap={4}>
-                    <MdAddPhotoAlternate size={22} />
-                    <Text size="xs" c="dimmed">
-                      Rasm {index + 1}
-                    </Text>
-                  </Stack>
-                )}
+      label="Rasmlar"
+      description="Min 1 ta, max 3 ta rasm"
+      required
+      error={errors.images}
+    >
+      <SimpleGrid cols={3} spacing="sm">
+        {Array.from({ length: MAX_IMAGES }, (_, index) => {
+          const preview = previews[index];
+          return (
+            <Box
+              key={`slot-${index}`}
+              pos="relative"
+              h={110}
+              style={{
+                borderRadius: 10,
+                border:
+                  dragOverIndex === index
+                    ? '1px dashed var(--mantine-color-green-6)'
+                    : '1px dashed light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3))',
+                overflow: 'hidden',
+                cursor: 'pointer',
+                background:
+                  'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))',
+              }}
+              onClick={() => fileInputs.current[index]?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                setDragOverIndex(index);
+              }}
+              onDragLeave={() => {
+                setDragOverIndex((prev) => (prev === index ? null : prev));
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOverIndex(null);
+                void handleDropAt(index, e.dataTransfer);
+              }}
+            >
+              {preview ? (
+                <>
+                  <Image src={preview.url} alt="" h={110} fit="cover" />
+                  <ActionIcon
+                    color="red"
+                    variant="filled"
+                    radius="xl"
+                    size="sm"
+                    pos="absolute"
+                    top={6}
+                    right={6}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage(index);
+                    }}
+                    aria-label="Rasmni o‘chirish"
+                  >
+                    <MdDeleteOutline size={14} />
+                  </ActionIcon>
+                </>
+              ) : (
+                <Stack h="100%" justify="center" align="center" gap={4}>
+                  <MdAddPhotoAlternate size={22} />
+                  <Text size="xs" c="dimmed">
+                    Rasm {index + 1}
+                  </Text>
+                </Stack>
+              )}
 
-                <input
-                  ref={(el) => {
-                    fileInputs.current[index] = el;
-                  }}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: 'none' }}
-                  onChange={(e) => {
-                    const file = e.currentTarget.files?.[0] ?? null;
-                    setImageAt(index, file);
-                  }}
-                />
-              </Box>
-            );
-          })}
-        </SimpleGrid>
+              <input
+                ref={(el) => {
+                  fileInputs.current[index] = el;
+                }}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.currentTarget.files?.[0] ?? null;
+                  setImageAt(index, file);
+                }}
+              />
+            </Box>
+          );
+        })}
+      </SimpleGrid>
     </Input.Wrapper>
   );
 
@@ -884,7 +889,11 @@ export function CreateForm({
 
   const onPrimaryWizard = () => {
     if (step >= LISTING_CREATE_STEP_COUNT) {
-      const stepErrors = validateListingCreateStep(step, buildDraft(), listingKind);
+      const stepErrors = validateListingCreateStep(
+        step,
+        buildDraft(),
+        listingKind
+      );
       setErrors(stepErrors);
       if (Object.keys(stepErrors).length > 0) return;
       handleSave();
@@ -916,6 +925,7 @@ export function CreateForm({
             className={shellStyles.footerBtn}
             onClick={goBackStep}
             disabled={saveMutation.isPending}
+            leftSection={step === 1 ? null : <FaArrowLeft size={14} />}
           >
             {step === 1 ? 'Bekor qilish' : 'Orqaga'}
           </Button>
