@@ -27,7 +27,6 @@
 @media (max-width: 48em) {
   .container[data-mobile] {
     height: 100%;
-    max-height: calc(100dvh - 60px - 2rem);
     min-height: 0;
     margin: -1rem;
     width: calc(100% + 2rem);
@@ -35,8 +34,12 @@
     box-sizing: border-box;
     overflow: hidden;
     touch-action: pan-y;
-    /* Klaviatura: faqat pastki padding (kontent silliq qisqaradi) */
+    /*
+      iOS: JS --ai-kb qo'yadi → padding shrinks the flex area → input visible above keyboard.
+      Android (interactive-widget=resizes-content): layout viewport shrinks → padding stays 0 → still works.
+    */
     padding-bottom: var(--ai-kb, 0px);
+    transition: padding-bottom 0.22s ease-out;
   }
 
   .containerCentered {
@@ -151,9 +154,9 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
 }
 
 @media (max-width: 48em) {
-  /* Oxirgi xabar input ustida to'xtaydi (faqat dock, kb — container padding) */
+  /* Oxirgi xabar composerdan tepada ko'rinadi — faqat composer balandligi */
   .container[data-mobile] .scrollPad {
-    height: calc(var(--ai-dock-h, 80px) + 8px);
+    height: calc(var(--ai-dock-h, 72px) + 12px);
   }
 }
 
@@ -790,11 +793,10 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
   font-family: inherit;
   background: transparent !important;
   border: none !important;
-  /* Bitta qator — height:auto mobilde kattalashib ketmasin */
+  /* JS syncTextareaHeight boshqaradi — CSS field-sizing bilan konflikt bo'lmasin */
   height: 32px;
   min-height: 32px;
   max-height: 160px;
-  field-sizing: content;
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
 }

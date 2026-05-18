@@ -39,7 +39,6 @@ import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
-  KEYBOARD_INSET_STABLE_PX,
   MAX_TEXTAREA_HEIGHT,
   MIN_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
@@ -56,19 +55,12 @@ type Message = ChatMessage & {
   timestamp: number;
 };
 
-/** Klaviatura balandligi (px) */
+/** Klaviatura balandligi (px) — iOS Safari uchun */
 function getKeyboardInset(vv: VisualViewport): number {
   return Math.max(
     0,
     Math.round(window.innerHeight - vv.height - vv.offsetTop)
   );
-}
-
-function stabilizeKeyboardInset(next: number, prev: number): number {
-  if (next === 0) return 0;
-  if (prev === 0) return next;
-  if (Math.abs(next - prev) < KEYBOARD_INSET_STABLE_PX) return prev;
-  return next;
 }
 
 function AiAssistant() {
@@ -90,7 +82,6 @@ function AiAssistant() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const keyboardOpenRef = useRef(false);
-  const lastKbInsetRef = useRef(0);
 
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
@@ -110,29 +101,31 @@ function AiAssistant() {
 
   const hasMessages = messages.length > 0;
 
-  // ─── CSS vars: --ai-kb, --ai-dock-h (DOM ga, re-render siz) ───
+  // ─── CSS vars: --ai-kb, --ai-dock-h (DOM ga, re-render yo'q) ───
   const applyMobileCssVars = useCallback(() => {
     const root = containerRef.current;
     const dock = inputDockRef.current;
     const vv = window.visualViewport;
     if (!root || !vv) return;
 
+    // iOS: window.innerHeight o'zgarmaydi, vv.height kichrayadi
     const rawKb = getKeyboardInset(vv);
-    const kb = stabilizeKeyboardInset(rawKb, lastKbInsetRef.current);
-    lastKbInsetRef.current = kb;
-
+    // Browser address-bar (≤ 60px) dan farqlash — faqat haqiqiy klaviatura insetini olish
+    const kb = rawKb > KEYBOARD_OPEN_THRESHOLD_PX ? rawKb : 0;
     root.style.setProperty('--ai-kb', `${kb}px`);
     dock?.style.setProperty('--ai-kb', `${kb}px`);
 
-    if (dock) {
-      const dockH = Math.round(dock.getBoundingClientRect().height);
+    // --ai-dock-h: faqat composer dock (disclaimer emas) balandligi
+    const composerDock = composerDockRef.current;
+    if (composerDock) {
+      const dockH = Math.round(composerDock.getBoundingClientRect().height);
       if (dockH > 0) {
         root.style.setProperty('--ai-dock-h', `${dockH}px`);
-        dock.style.setProperty('--ai-dock-h', `${dockH}px`);
+        dock?.style.setProperty('--ai-dock-h', `${dockH}px`);
       }
     }
 
-    const isOpen = kb > KEYBOARD_OPEN_THRESHOLD_PX;
+    const isOpen = rawKb > KEYBOARD_OPEN_THRESHOLD_PX;
     if (isOpen !== keyboardOpenRef.current) {
       keyboardOpenRef.current = isOpen;
       setKeyboardOpen(isOpen);
@@ -142,7 +135,6 @@ function AiAssistant() {
   const clearMobileCssVars = useCallback(() => {
     const root = containerRef.current;
     const dock = inputDockRef.current;
-    lastKbInsetRef.current = 0;
     root?.style.removeProperty('--ai-kb');
     root?.style.removeProperty('--ai-dock-h');
     dock?.style.removeProperty('--ai-kb');
@@ -163,18 +155,21 @@ function AiAssistant() {
     const vv = window.visualViewport;
     if (!vv) return undefined;
 
-    const onViewportChange = () => {
-      if (window.scrollY !== 0 || window.scrollX !== 0) {
-        window.scrollTo(0, 0);
-      }
-      applyMobileCssVars();
+    // rAF bilan batching — tez ketma-ket eventlarda ortiqcha reflow yo'q
+    let rafId = 0;
+    const schedule = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0);
+        applyMobileCssVars();
+      });
     };
 
     applyMobileCssVars();
-    vv.addEventListener('resize', onViewportChange);
-    vv.addEventListener('scroll', onViewportChange);
-    window.addEventListener('resize', onViewportChange);
-    window.addEventListener('orientationchange', onViewportChange);
+    vv.addEventListener('resize', schedule);
+    vv.addEventListener('scroll', schedule);
+    window.addEventListener('resize', schedule);
+    window.addEventListener('orientationchange', schedule);
 
     const dock = inputDockRef.current;
     const ro =
@@ -185,10 +180,11 @@ function AiAssistant() {
     if (ro && dock) ro.observe(dock);
 
     return () => {
-      vv.removeEventListener('resize', onViewportChange);
-      vv.removeEventListener('scroll', onViewportChange);
-      window.removeEventListener('resize', onViewportChange);
-      window.removeEventListener('orientationchange', onViewportChange);
+      cancelAnimationFrame(rafId);
+      vv.removeEventListener('resize', schedule);
+      vv.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      window.removeEventListener('orientationchange', schedule);
       ro?.disconnect();
       clearMobileCssVars();
     };
@@ -237,9 +233,19 @@ function AiAssistant() {
     el.style.overflowY = scrollH > MAX_TEXTAREA_HEIGHT ? 'auto' : 'hidden';
   }, []);
 
+  // Mount va draft o'zgarganda sync
   useLayoutEffect(() => {
     syncTextareaHeight();
   }, [draft, syncTextareaHeight]);
+
+  // Mount: textarea ni 32px dan boshlash (CSS field-sizing yo'q)
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = `${MIN_TEXTAREA_HEIGHT}px`;
+      el.style.overflowY = 'hidden';
+    }
+  }, []);
 
   // Klaviatura ochilganda dock qayta o'lchanadi + xabarlar pastga
   useLayoutEffect(() => {
@@ -286,10 +292,13 @@ function AiAssistant() {
 
   const handleTextareaFocus = useCallback(() => {
     window.scrollTo(0, 0);
+    // Klaviatura chiqishini kutib vars yangilaymiz
     requestAnimationFrame(() => {
       applyMobileCssVars();
       syncTextareaHeight();
     });
+    // iOS ba'zan kechroq trigger qiladi
+    setTimeout(applyMobileCssVars, 300);
   }, [applyMobileCssVars, syncTextareaHeight]);
 
   const handleTextareaBlur = useCallback(() => {
@@ -297,6 +306,8 @@ function AiAssistant() {
       window.scrollTo(0, 0);
       applyMobileCssVars();
     });
+    // Klaviatura yopilgach yana bir marta check
+    setTimeout(applyMobileCssVars, 150);
   }, [applyMobileCssVars]);
 
   // ─── Session ───
