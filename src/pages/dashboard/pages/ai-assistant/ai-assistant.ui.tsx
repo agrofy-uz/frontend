@@ -48,20 +48,11 @@ import { VoiceModal } from './ui/voice-modal/voice-modal.ui';
 import { ChatMarkdown } from './ui/chat-markdown';
 
 const SCROLL_THRESHOLD_PX = 80;
-const KEYBOARD_OPEN_THRESHOLD_PX = 60;
 
 type Message = ChatMessage & {
   id: string;
   timestamp: number;
 };
-
-/** Klaviatura balandligi (px) — iOS Safari uchun */
-function getKeyboardInset(vv: VisualViewport): number {
-  return Math.max(
-    0,
-    Math.round(window.innerHeight - vv.height - vv.offsetTop)
-  );
-}
 
 function AiAssistant() {
   const location = useLocation();
@@ -77,12 +68,8 @@ function AiAssistant() {
   const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
-  const inputDockRef = useRef<HTMLDivElement>(null);
-  const composerDockRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const keyboardOpenRef = useRef(false);
-  const composerFocusedRef = useRef(false);
 
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
@@ -99,93 +86,10 @@ function AiAssistant() {
   });
 
   const hasMessages = messages.length > 0;
-  const hasMessagesRef = useRef(hasMessages);
-  hasMessagesRef.current = hasMessages;
 
-  // ─── CSS var: --ai-kb (DOM ga, re-render yo'q) ───
-  const applyMobileCssVars = useCallback(() => {
-    const root = containerRef.current;
-    const dock = inputDockRef.current;
-    const vv = window.visualViewport;
-    if (!root || !vv) return;
-
-    // iOS: window.innerHeight o'zgarmaydi, vv.height kichrayadi
-    const rawKb = getKeyboardInset(vv);
-    // Browser address-bar (≤ 60px) dan farqlash — faqat haqiqiy klaviatura insetini olish
-    const kb = rawKb > KEYBOARD_OPEN_THRESHOLD_PX ? rawKb : 0;
-    root.style.setProperty('--ai-kb', `${kb}px`);
-    dock?.style.setProperty('--ai-kb', `${kb}px`);
-
-    const isOpen = rawKb > KEYBOARD_OPEN_THRESHOLD_PX;
-    const wasOpen = keyboardOpenRef.current;
-    if (isOpen !== wasOpen) {
-      keyboardOpenRef.current = isOpen;
-      root.toggleAttribute('data-keyboard-open', isOpen);
-      if (isOpen && hasMessagesRef.current) {
-        requestAnimationFrame(() => {
-          scrollViewportRef.current?.scrollTo({
-            top: scrollViewportRef.current.scrollHeight,
-            behavior: 'auto',
-          });
-        });
-      }
-    }
-  }, []);
-
-  const clearMobileCssVars = useCallback(() => {
-    const root = containerRef.current;
-    const dock = inputDockRef.current;
-    root?.style.removeProperty('--ai-kb');
-    dock?.style.removeProperty('--ai-kb');
-    root?.removeAttribute('data-keyboard-open');
-    keyboardOpenRef.current = false;
-  }, []);
-
-  // ─── Mobil: viewport + dock o'lchamlari ───
-  useEffect(() => {
-    if (!isMobile) {
-      clearMobileCssVars();
-      return undefined;
-    }
-
-    const vv = window.visualViewport;
-    if (!vv) return undefined;
-
-    // rAF bilan batching — scroll listener yo'q (iOS klaviatura loopiga sabab bo'ladi)
-    let rafId = 0;
-    const schedule = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        if (
-          !composerFocusedRef.current &&
-          (window.scrollY !== 0 || window.scrollX !== 0)
-        ) {
-          window.scrollTo(0, 0);
-        }
-        applyMobileCssVars();
-      });
-    };
-
-    applyMobileCssVars();
-    vv.addEventListener('resize', schedule);
-    window.addEventListener('orientationchange', schedule);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      vv.removeEventListener('resize', schedule);
-      window.removeEventListener('orientationchange', schedule);
-      clearMobileCssVars();
-    };
-  }, [isMobile, applyMobileCssVars, clearMobileCssVars]);
-
-  // ─── Mobil: body va ota scroll qulflash ───
+  // ─── Mobil: faqat dashboard content scroll qulfi (klaviatura — brauzerga) ───
   useEffect(() => {
     if (!isMobile) return undefined;
-
-    const prevBody = document.body.style.overflow;
-    const prevBodyX = document.body.style.overflowX;
-    document.body.style.overflow = 'hidden';
-    document.body.style.overflowX = 'hidden';
 
     const locked: { el: HTMLElement; prev: string }[] = [];
     let node: HTMLElement | null = containerRef.current?.parentElement ?? null;
@@ -199,8 +103,6 @@ function AiAssistant() {
     }
 
     return () => {
-      document.body.style.overflow = prevBody;
-      document.body.style.overflowX = prevBodyX;
       locked.forEach(({ el, prev }) => {
         el.style.overflow = prev;
       });
@@ -264,14 +166,8 @@ function AiAssistant() {
   );
 
   const handleTextareaFocus = useCallback(() => {
-    composerFocusedRef.current = true;
     requestAnimationFrame(syncTextareaHeight);
   }, [syncTextareaHeight]);
-
-  const handleTextareaBlur = useCallback(() => {
-    composerFocusedRef.current = false;
-    requestAnimationFrame(applyMobileCssVars);
-  }, [applyMobileCssVars]);
 
   // ─── Session ───
   useEffect(() => {
@@ -578,7 +474,6 @@ function AiAssistant() {
       )}
 
       <Box
-        ref={inputDockRef}
         className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}
       >
         <AnimatePresence>
@@ -606,7 +501,7 @@ function AiAssistant() {
           )}
         </AnimatePresence>
 
-        <Box ref={composerDockRef} className={styles.composerDock}>
+        <Box className={styles.composerDock}>
           <div
             className={styles.composer}
             onPointerDown={handleComposerPointerDown}
@@ -676,7 +571,6 @@ function AiAssistant() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onFocus={handleTextareaFocus}
-                onBlur={handleTextareaBlur}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
                     e.preventDefault();

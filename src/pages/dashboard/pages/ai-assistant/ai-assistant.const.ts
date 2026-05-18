@@ -10,12 +10,6 @@ export const DEFAULT_MODEL = 'gpt-3.5-turbo';
 /** Mobil layout — CSS (48em) bilan bir xil */
 export const AI_ASSISTANT_MOBILE_MQ = '(max-width: 48em)';
 
-/** Pastga scroll — oxirgi xabar inputdan ~20px yuqoriroqda to‘xtaydi */
-export const MOBILE_SCROLL_PAD_TRIM_PX = 20;
-
-/** Klaviatura inset — kichik o‘zgarishlarni e’tiborsiz qoldirish (scroll jitter) */
-export const KEYBOARD_INSET_STABLE_PX = 12;
-
 /** Input ostida doim ko‘rinadigan ogohlantirish */
 export const AI_TRUST_DISCLAIMER =
   "AI javoblariga to'liq ishonmang — muhim ma'lumotlarni mustaqil tekshiring.";

@@ -26,7 +26,7 @@
 
 @media (max-width: 48em) {
   .container[data-mobile] {
-    height: 100%;
+    height: calc(100vh - 65px);
     min-height: 0;
     margin: -1rem;
     width: calc(100% + 2rem);
@@ -34,11 +34,6 @@
     box-sizing: border-box;
     overflow: hidden;
     touch-action: pan-y;
-    /*
-      iOS: JS --ai-kb qo'yadi → padding shrinks the flex area → input visible above keyboard.
-      Android (interactive-widget=resizes-content): layout viewport shrinks → padding stays 0 → still works.
-    */
-    padding-bottom: var(--ai-kb, 0px);
   }
 
   .containerCentered {
@@ -823,7 +818,7 @@ html[data-mantine-color-scheme='dark']
 .disclaimer {
   width: 100%;
   margin: 8px 0 0;
-  padding: 0 4px 4px;
+  /* padding: 0 4px 4px; */
   font-size: 11px;
   line-height: 1.35;
   text-align: center;
@@ -839,8 +834,8 @@ html[data-mantine-color-scheme='dark']
     line-height: 1.3;
   }
 
-  /* Klaviatura ochiq: yashirish, lekin balandlik o'zgarmasin (fokus loop yo'q) */
-  .container[data-mobile][data-keyboard-open] .disclaimerMobile {
+  /* Input fokusda: disclaimer yashirin, joy saqlanadi */
+  .container[data-mobile] .inputArea:focus-within .disclaimerMobile {
     visibility: hidden;
     opacity: 0;
     pointer-events: none;
