@@ -34,6 +34,12 @@
     box-sizing: border-box;
     overflow-x: hidden;
     touch-action: pan-y;
+    transition: height 0.2s ease;
+  }
+
+  /* Klaviatura: kontent maydoni yuqoriga qisqaradi */
+  .container[data-mobile][data-keyboard-open] {
+    height: calc(100% - var(--ai-keyboard-inset, 0px));
   }
 
   .containerCentered {
@@ -148,6 +154,14 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
   width: 100%;
   pointer-events: none;
   background: transparent;
+}
+
+@media (max-width: 48em) {
+  .container[data-mobile] .scrollPad {
+    height: calc(
+      var(--ai-input-dock-height, 60px) + var(--ai-keyboard-inset, 0px)
+    );
+  }
 }
 
 .userMessage {
@@ -580,7 +594,10 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     pointer-events: none;
     flex-direction: column;
     align-items: stretch;
-    will-change: bottom;
+    /* Scroll paytida bottom o'zgarmasin — transition yo'q */
+    transition: none;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   .container[data-mobile] .inputArea > * {

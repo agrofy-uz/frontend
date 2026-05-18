@@ -40,7 +40,7 @@ import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
-  MOBILE_SCROLL_DISMISS_PX,
+  KEYBOARD_INSET_STABLE_PX,
   MOBILE_SCROLL_PAD_TRIM_PX,
   MAX_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
@@ -90,7 +90,13 @@ function AiAssistant() {
   const keyboardOpenRef = useRef(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [composerFocused, setComposerFocused] = useState(false);
-  const scrollAtFocusRef = useRef(0);
+  const lastVvHeightRef = useRef(
+    typeof window !== 'undefined' ? window.innerHeight : 0
+  );
+  const isMessagesScrollingRef = useRef(false);
+  const messagesScrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
@@ -138,7 +144,15 @@ function AiAssistant() {
     if (!vv) return undefined;
 
     const onResize = () => {
-      // offsetTop ni qo'shmaymiz: window scroll ni 0 da tutamiz
+      // Xabarlar scroll paytida inset yangilanmasin — input silkinmaydi
+      if (isMessagesScrollingRef.current) return;
+      if (
+        Math.abs(vv.height - lastVvHeightRef.current) < KEYBOARD_INSET_STABLE_PX
+      ) {
+        return;
+      }
+      lastVvHeightRef.current = vv.height;
+
       const inset = Math.max(0, window.innerHeight - vv.height);
       containerRef.current?.style.setProperty('--ai-keyboard-inset', `${inset}px`);
       const isOpen = inset > 50;
@@ -262,9 +276,6 @@ function AiAssistant() {
 
   const handleTextareaFocus = useCallback(() => {
     setComposerFocused(true);
-    const vp = scrollViewportRef.current;
-    scrollAtFocusRef.current = vp?.scrollTop ?? 0;
-    // iOS: focus voqeasida window allaqachon scroll bo'lgan bo'lishi mumkin
     if (isMobile && (window.scrollX !== 0 || window.scrollY !== 0)) {
       window.scrollTo({ top: 0, left: 0 });
     }
@@ -380,15 +391,25 @@ function AiAssistant() {
   const handleMessagesScroll = useCallback(() => {
     syncScrollBtn();
     if (!isMobile) return;
-    const el = textareaRef.current;
-    if (!el || document.activeElement !== el) return;
-    const vp = scrollViewportRef.current;
-    if (!vp) return;
-    const delta = Math.abs(vp.scrollTop - scrollAtFocusRef.current);
-    if (delta >= MOBILE_SCROLL_DISMISS_PX) {
-      el.blur();
+    // Faqat ichki scroll — input inset va fokus o'zgarmaydi
+    isMessagesScrollingRef.current = true;
+    if (messagesScrollEndTimerRef.current) {
+      clearTimeout(messagesScrollEndTimerRef.current);
     }
+    messagesScrollEndTimerRef.current = setTimeout(() => {
+      isMessagesScrollingRef.current = false;
+      messagesScrollEndTimerRef.current = null;
+    }, 180);
   }, [isMobile, syncScrollBtn]);
+
+  useEffect(
+    () => () => {
+      if (messagesScrollEndTimerRef.current) {
+        clearTimeout(messagesScrollEndTimerRef.current);
+      }
+    },
+    []
+  );
 
   const scrollToBottom = useCallback(() => {
     const vp = scrollViewportRef.current;
@@ -531,6 +552,7 @@ function AiAssistant() {
       ref={containerRef}
       className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}
       data-mobile={isMobile || undefined}
+      data-keyboard-open={isMobile && keyboardOpen ? true : undefined}
       style={dockHeightStyle}
     >
       {/* Messages Area */}
@@ -626,11 +648,7 @@ function AiAssistant() {
 
             <div ref={messagesEndRef} />
             {isMobile && mobileScrollPadHeight > 0 ? (
-              <div
-                aria-hidden
-                className={styles.scrollPad}
-                style={{ height: mobileScrollPadHeight }}
-              />
+              <div aria-hidden className={styles.scrollPad} />
             ) : null}
           </Stack>
         </ScrollArea>
