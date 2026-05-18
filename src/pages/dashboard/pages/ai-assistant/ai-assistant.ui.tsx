@@ -41,6 +41,7 @@ import {
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
   MAX_TEXTAREA_HEIGHT,
+  MIN_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
   TYPING_DOT_ANIMATION,
 } from './ai-assistant.const';
@@ -104,16 +105,23 @@ function AiAssistant() {
     };
   }, [attachments]);
 
-  // Textarea balandligi — JS orqali (CSS height:auto boshlang'ich holat)
-  useLayoutEffect(() => {
+  // Textarea balandligi — bitta qator boshlang'ich, matn bilan kengayadi
+  const syncTextareaHeight = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
-    el.style.height = 'auto';
+    el.style.height = '0px';
     const scrollH = el.scrollHeight;
-    const newH = Math.min(scrollH, MAX_TEXTAREA_HEIGHT);
+    const newH = Math.min(
+      Math.max(scrollH, MIN_TEXTAREA_HEIGHT),
+      MAX_TEXTAREA_HEIGHT
+    );
     el.style.height = `${newH}px`;
     el.style.overflowY = scrollH > MAX_TEXTAREA_HEIGHT ? 'auto' : 'hidden';
-  }, [draft]);
+  }, []);
+
+  useLayoutEffect(() => {
+    syncTextareaHeight();
+  }, [draft, isMobile, syncTextareaHeight]);
 
   // Mobil: klaviatura inset → --ai-kb CSS var (to'g'ridan DOM, re-render yo'q)
   useEffect(() => {

@@ -3,6 +3,8 @@
  */
 
 export const MAX_TEXTAREA_HEIGHT = 160;
+/** Bitta qator balandligi (font 16px × line-height 1.5 + padding) */
+export const MIN_TEXTAREA_HEIGHT = 32;
 export const DEFAULT_MODEL = 'gpt-3.5-turbo';
 
 /** Mobil layout — CSS (48em) bilan bir xil */

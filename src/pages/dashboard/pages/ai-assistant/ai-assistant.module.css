@@ -782,6 +782,7 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
 }
 
 .textareaInput {
+  box-sizing: border-box;
   padding: 4px;
   line-height: 1.5;
   font-size: 16px;
@@ -794,9 +795,11 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
   font-family: inherit;
   background: transparent !important;
   border: none !important;
-  /* height: JS orqali boshqariladi — CSS height shart emas */
-  height: auto;
-  min-height: 24px;
+  /* Bitta qator — height:auto mobilde kattalashib ketmasin */
+  height: 32px;
+  min-height: 32px;
+  max-height: 160px;
+  field-sizing: content;
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
 }
