@@ -26,16 +26,15 @@
 
 @media (max-width: 48em) {
   .container[data-mobile] {
+    /* Balandlik JS: visualViewport pastigacha (klaviatura bilan birga qisqaradi) */
     height: 100%;
     min-height: 0;
     margin: -1rem;
     width: calc(100% + 2rem);
     max-width: none;
     box-sizing: border-box;
-    overflow-x: hidden;
+    overflow: hidden;
     touch-action: pan-y;
-    /* Klaviatura: kontent yuqoriga suriladi (ikki marta hisoblanmaydi) */
-    padding-bottom: var(--ai-kb, 0px);
   }
 
   .containerCentered {
@@ -82,12 +81,12 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
     transition: padding-bottom 0.25s ease;
   }
 
-  /* Klaviatura ochilganda: matn input + klaviatura ustiga */
+  /* Klaviatura: konteyner qisqargani uchun faqat dock oralig‘i */
   .container[data-mobile] .welcomeStateKeyboard {
     flex: 1;
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: calc(var(--ai-dock-h, 80px) + var(--ai-kb, 0px) + 16px);
+    padding-bottom: calc(var(--ai-dock-h, 80px) + 16px);
   }
 }
 
@@ -573,27 +572,19 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
 
 @media (max-width: 48em) {
   .container[data-mobile] .inputArea {
-    position: fixed;
-    left: 0;
-    right: 0;
-    /* Klaviatura ustida — --ai-kb inputDock va containerda */
-    bottom: var(--ai-kb, 0px);
-    z-index: 40;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 2;
     margin: 0;
     padding: 8px 12px 0;
     padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
     background: transparent;
     border: none;
     box-shadow: none;
-    pointer-events: none;
+    pointer-events: auto;
     flex-direction: column;
     align-items: stretch;
     transition: none;
-    transform: translateZ(0);
-  }
-
-  .container[data-mobile] .inputArea > * {
-    pointer-events: auto;
   }
 
   .inputAreaCentered {

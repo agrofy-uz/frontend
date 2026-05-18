@@ -118,17 +118,21 @@ function AiAssistant() {
   const applyMobileCssVars = useCallback(() => {
     const root = containerRef.current;
     const dock = inputDockRef.current;
-    if (!root) return;
+    const vv = window.visualViewport;
+    if (!root || !vv) return;
 
-    const kb = getKeyboardInset();
+    const kb = getKeyboardInset(vv);
+    const containerH = getContainerHeightPx(root, vv);
+
+    root.style.height = `${containerH}px`;
     root.style.setProperty('--ai-kb', `${kb}px`);
     dock?.style.setProperty('--ai-kb', `${kb}px`);
 
     if (dock) {
-      const h = Math.round(dock.getBoundingClientRect().height);
-      if (h > 0) {
-        root.style.setProperty('--ai-dock-h', `${h}px`);
-        dock.style.setProperty('--ai-dock-h', `${h}px`);
+      const dockH = Math.round(dock.getBoundingClientRect().height);
+      if (dockH > 0) {
+        root.style.setProperty('--ai-dock-h', `${dockH}px`);
+        dock.style.setProperty('--ai-dock-h', `${dockH}px`);
       }
     }
 
@@ -142,6 +146,7 @@ function AiAssistant() {
   const clearMobileCssVars = useCallback(() => {
     const root = containerRef.current;
     const dock = inputDockRef.current;
+    root?.style.removeProperty('height');
     root?.style.removeProperty('--ai-kb');
     root?.style.removeProperty('--ai-dock-h');
     dock?.style.removeProperty('--ai-kb');
@@ -163,15 +168,17 @@ function AiAssistant() {
     if (!vv) return undefined;
 
     const onViewportChange = () => {
-      applyMobileCssVars();
       if (window.scrollY !== 0 || window.scrollX !== 0) {
         window.scrollTo(0, 0);
       }
+      applyMobileCssVars();
     };
 
     applyMobileCssVars();
     vv.addEventListener('resize', onViewportChange);
     vv.addEventListener('scroll', onViewportChange);
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', onViewportChange);
 
     const dock = inputDockRef.current;
     const ro =
@@ -184,6 +191,8 @@ function AiAssistant() {
     return () => {
       vv.removeEventListener('resize', onViewportChange);
       vv.removeEventListener('scroll', onViewportChange);
+      window.removeEventListener('resize', onViewportChange);
+      window.removeEventListener('orientationchange', onViewportChange);
       ro?.disconnect();
       clearMobileCssVars();
     };
@@ -282,10 +291,13 @@ function AiAssistant() {
   const handleTextareaFocus = useCallback(() => {
     setComposerFocused(true);
     window.scrollTo(0, 0);
+    applyMobileCssVars();
     requestAnimationFrame(() => {
       applyMobileCssVars();
       syncTextareaHeight();
     });
+    setTimeout(applyMobileCssVars, 120);
+    setTimeout(applyMobileCssVars, 320);
   }, [applyMobileCssVars, syncTextareaHeight]);
 
   const handleTextareaBlur = useCallback(() => {
