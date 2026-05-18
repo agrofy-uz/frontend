@@ -130,7 +130,10 @@ function AiAssistant() {
     if (!vv) return undefined;
 
     const onResize = () => {
-      const inset = Math.max(0, window.innerHeight - vv.height);
+      const inset = Math.max(
+        0,
+        window.innerHeight - vv.height - vv.offsetTop
+      );
       c?.style.setProperty('--ai-kb', `${inset}px`);
       const isOpen = inset > 80;
       if (isOpen !== keyboardOpenRef.current) {

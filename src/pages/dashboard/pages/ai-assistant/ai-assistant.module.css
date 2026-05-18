@@ -575,8 +575,8 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     position: fixed;
     left: 0;
     right: 0;
-    /* Klaviatura ustida turadi — konteyner allaqachon qisqargan */
-    bottom: 0;
+    /* Klaviatura balandligi — input klaviatura ustiga ko'tariladi */
+    bottom: var(--ai-kb, 0px);
     z-index: 40;
     margin: 0;
     padding: 8px 12px 0;
