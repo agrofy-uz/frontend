@@ -39,6 +39,7 @@ import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
+  KEYBOARD_INSET_STABLE_PX,
   MAX_TEXTAREA_HEIGHT,
   MIN_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
@@ -63,14 +64,11 @@ function getKeyboardInset(vv: VisualViewport): number {
   );
 }
 
-/** Konteyner yuqorisidan visual viewport pastigacha (px) */
-function getContainerHeightPx(
-  container: HTMLElement,
-  vv: VisualViewport
-): number {
-  const top = container.getBoundingClientRect().top;
-  const vvBottom = vv.offsetTop + vv.height;
-  return Math.max(120, Math.round(vvBottom - top));
+function stabilizeKeyboardInset(next: number, prev: number): number {
+  if (next === 0) return 0;
+  if (prev === 0) return next;
+  if (Math.abs(next - prev) < KEYBOARD_INSET_STABLE_PX) return prev;
+  return next;
 }
 
 function AiAssistant() {
@@ -92,6 +90,7 @@ function AiAssistant() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const keyboardOpenRef = useRef(false);
+  const lastKbInsetRef = useRef(0);
 
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
@@ -104,15 +103,12 @@ function AiAssistant() {
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [composerFocused, setComposerFocused] = useState(false);
 
   const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
 
   const hasMessages = messages.length > 0;
-  const welcomeLifted =
-    isMobile && !hasMessages && (keyboardOpen || composerFocused);
 
   // ─── CSS vars: --ai-kb, --ai-dock-h (DOM ga, re-render siz) ───
   const applyMobileCssVars = useCallback(() => {
@@ -121,10 +117,10 @@ function AiAssistant() {
     const vv = window.visualViewport;
     if (!root || !vv) return;
 
-    const kb = getKeyboardInset(vv);
-    const containerH = getContainerHeightPx(root, vv);
+    const rawKb = getKeyboardInset(vv);
+    const kb = stabilizeKeyboardInset(rawKb, lastKbInsetRef.current);
+    lastKbInsetRef.current = kb;
 
-    root.style.height = `${containerH}px`;
     root.style.setProperty('--ai-kb', `${kb}px`);
     dock?.style.setProperty('--ai-kb', `${kb}px`);
 
@@ -146,7 +142,7 @@ function AiAssistant() {
   const clearMobileCssVars = useCallback(() => {
     const root = containerRef.current;
     const dock = inputDockRef.current;
-    root?.style.removeProperty('height');
+    lastKbInsetRef.current = 0;
     root?.style.removeProperty('--ai-kb');
     root?.style.removeProperty('--ai-dock-h');
     dock?.style.removeProperty('--ai-kb');
@@ -289,19 +285,14 @@ function AiAssistant() {
   );
 
   const handleTextareaFocus = useCallback(() => {
-    setComposerFocused(true);
     window.scrollTo(0, 0);
-    applyMobileCssVars();
     requestAnimationFrame(() => {
       applyMobileCssVars();
       syncTextareaHeight();
     });
-    setTimeout(applyMobileCssVars, 120);
-    setTimeout(applyMobileCssVars, 320);
   }, [applyMobileCssVars, syncTextareaHeight]);
 
   const handleTextareaBlur = useCallback(() => {
-    setComposerFocused(false);
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
       applyMobileCssVars();
@@ -602,9 +593,7 @@ function AiAssistant() {
           </Stack>
         </ScrollArea>
       ) : (
-        <Box
-          className={`${styles.welcomeState} ${welcomeLifted ? styles.welcomeStateKeyboard : ''}`}
-        >
+        <Box className={styles.welcomeState}>
           <Text className={styles.welcomeTitle}>
             Nima bilan yordam bera olaman?
           </Text>

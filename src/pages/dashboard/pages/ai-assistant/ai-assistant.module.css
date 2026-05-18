@@ -26,8 +26,8 @@
 
 @media (max-width: 48em) {
   .container[data-mobile] {
-    /* Balandlik JS: visualViewport pastigacha (klaviatura bilan birga qisqaradi) */
     height: 100%;
+    max-height: calc(100dvh - 60px - 2rem);
     min-height: 0;
     margin: -1rem;
     width: calc(100% + 2rem);
@@ -35,6 +35,8 @@
     box-sizing: border-box;
     overflow: hidden;
     touch-action: pan-y;
+    /* Klaviatura: faqat pastki padding (kontent silliq qisqaradi) */
+    padding-bottom: var(--ai-kb, 0px);
   }
 
   .containerCentered {
@@ -76,17 +78,16 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
 @media (max-width: 48em) {
   .welcomeState {
     flex: 1;
-    padding: 16px 16px 0;
+    min-height: 0;
+    padding: 16px;
     justify-content: center;
-    transition: padding-bottom 0.25s ease;
+    align-items: center;
+    overflow: hidden;
   }
 
-  /* Klaviatura: konteyner qisqargani uchun faqat dock oralig‘i */
-  .container[data-mobile] .welcomeStateKeyboard {
-    flex: 1;
-    justify-content: flex-end;
-    align-items: center;
-    padding-bottom: calc(var(--ai-dock-h, 80px) + 16px);
+  /* Sarlavha input ustidagi bo'sh joyda markazda qoladi */
+  .container[data-mobile].containerCentered .welcomeState {
+    padding-bottom: 8px;
   }
 }
 
@@ -577,6 +578,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     z-index: 2;
     margin: 0;
     padding: 8px 12px 0;
+    padding-top: 0;
     padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
     background: transparent;
     border: none;
@@ -598,7 +600,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
 /* Scroll-to-bottom tugmasi — inputArea tepasiga absolute */
 .scrollToBottomDock {
   position: absolute;
-  top: -32px;
+  top: -52px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
@@ -628,7 +630,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
 html[data-mantine-color-scheme='dark'] .scrollToBottomBtn {
   border-color: color-mix(
     in srgb,
-    var(--mantine-color-dark-3) 75%, 
+    var(--mantine-color-dark-3) 75%,
     transparent
   ) !important;
   background-color: transparent !important;
