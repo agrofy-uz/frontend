@@ -82,6 +82,7 @@ function AiAssistant() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const keyboardOpenRef = useRef(false);
+  const composerFocusedRef = useRef(false);
 
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
@@ -93,13 +94,13 @@ function AiAssistant() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-
   const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
 
   const hasMessages = messages.length > 0;
+  const hasMessagesRef = useRef(hasMessages);
+  hasMessagesRef.current = hasMessages;
 
   // ─── CSS var: --ai-kb (DOM ga, re-render yo'q) ───
   const applyMobileCssVars = useCallback(() => {
@@ -116,9 +117,18 @@ function AiAssistant() {
     dock?.style.setProperty('--ai-kb', `${kb}px`);
 
     const isOpen = rawKb > KEYBOARD_OPEN_THRESHOLD_PX;
-    if (isOpen !== keyboardOpenRef.current) {
+    const wasOpen = keyboardOpenRef.current;
+    if (isOpen !== wasOpen) {
       keyboardOpenRef.current = isOpen;
-      setKeyboardOpen(isOpen);
+      root.toggleAttribute('data-keyboard-open', isOpen);
+      if (isOpen && hasMessagesRef.current) {
+        requestAnimationFrame(() => {
+          scrollViewportRef.current?.scrollTo({
+            top: scrollViewportRef.current.scrollHeight,
+            behavior: 'auto',
+          });
+        });
+      }
     }
   }, []);
 
@@ -127,10 +137,8 @@ function AiAssistant() {
     const dock = inputDockRef.current;
     root?.style.removeProperty('--ai-kb');
     dock?.style.removeProperty('--ai-kb');
-    if (keyboardOpenRef.current) {
-      keyboardOpenRef.current = false;
-      setKeyboardOpen(false);
-    }
+    root?.removeAttribute('data-keyboard-open');
+    keyboardOpenRef.current = false;
   }, []);
 
   // ─── Mobil: viewport + dock o'lchamlari ───
@@ -143,37 +151,29 @@ function AiAssistant() {
     const vv = window.visualViewport;
     if (!vv) return undefined;
 
-    // rAF bilan batching — tez ketma-ket eventlarda ortiqcha reflow yo'q
+    // rAF bilan batching — scroll listener yo'q (iOS klaviatura loopiga sabab bo'ladi)
     let rafId = 0;
     const schedule = () => {
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0);
+        if (
+          !composerFocusedRef.current &&
+          (window.scrollY !== 0 || window.scrollX !== 0)
+        ) {
+          window.scrollTo(0, 0);
+        }
         applyMobileCssVars();
       });
     };
 
     applyMobileCssVars();
     vv.addEventListener('resize', schedule);
-    vv.addEventListener('scroll', schedule);
-    window.addEventListener('resize', schedule);
     window.addEventListener('orientationchange', schedule);
-
-    const dock = inputDockRef.current;
-    const ro =
-      dock &&
-      new ResizeObserver(() => {
-        applyMobileCssVars();
-      });
-    if (ro && dock) ro.observe(dock);
 
     return () => {
       cancelAnimationFrame(rafId);
       vv.removeEventListener('resize', schedule);
-      vv.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
       window.removeEventListener('orientationchange', schedule);
-      ro?.disconnect();
       clearMobileCssVars();
     };
   }, [isMobile, applyMobileCssVars, clearMobileCssVars]);
@@ -235,21 +235,6 @@ function AiAssistant() {
     }
   }, []);
 
-  // Klaviatura ochilganda dock qayta o'lchanadi + xabarlar pastga
-  useLayoutEffect(() => {
-    if (!isMobile) return;
-    const id = requestAnimationFrame(() => {
-      applyMobileCssVars();
-      if (keyboardOpenRef.current && hasMessages) {
-        scrollViewportRef.current?.scrollTo({
-          top: scrollViewportRef.current.scrollHeight,
-          behavior: 'auto',
-        });
-      }
-    });
-    return () => cancelAnimationFrame(id);
-  }, [isMobile, keyboardOpen, hasMessages, applyMobileCssVars]);
-
   // ─── Attachments URLs ───
   useEffect(() => {
     const urls = attachments.map((f) =>
@@ -271,7 +256,7 @@ function AiAssistant() {
   const handleComposerPointerDown = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
       const target = e.target as HTMLElement;
-      if (target.closest('button, a, [role="button"]')) return;
+      if (target.closest('button, a, [role="button"], textarea')) return;
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       focusComposerInput();
     },
@@ -279,23 +264,13 @@ function AiAssistant() {
   );
 
   const handleTextareaFocus = useCallback(() => {
-    window.scrollTo(0, 0);
-    // Klaviatura chiqishini kutib vars yangilaymiz
-    requestAnimationFrame(() => {
-      applyMobileCssVars();
-      syncTextareaHeight();
-    });
-    // iOS ba'zan kechroq trigger qiladi
-    setTimeout(applyMobileCssVars, 300);
-  }, [applyMobileCssVars, syncTextareaHeight]);
+    composerFocusedRef.current = true;
+    requestAnimationFrame(syncTextareaHeight);
+  }, [syncTextareaHeight]);
 
   const handleTextareaBlur = useCallback(() => {
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-      applyMobileCssVars();
-    });
-    // Klaviatura yopilgach yana bir marta check
-    setTimeout(applyMobileCssVars, 150);
+    composerFocusedRef.current = false;
+    requestAnimationFrame(applyMobileCssVars);
   }, [applyMobileCssVars]);
 
   // ─── Session ───
@@ -498,7 +473,6 @@ function AiAssistant() {
       ref={containerRef}
       className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}
       data-mobile={isMobile || undefined}
-      data-keyboard-open={isMobile && keyboardOpen ? true : undefined}
     >
       {hasMessages || isLoading ? (
         <ScrollArea
@@ -746,7 +720,7 @@ function AiAssistant() {
         </Box>
 
         <Text
-          className={`${styles.disclaimer} ${isMobile ? styles.disclaimerMobile : ''} ${keyboardOpen ? styles.disclaimerHidden : ''}`}
+          className={`${styles.disclaimer} ${isMobile ? styles.disclaimerMobile : ''}`}
           component="p"
         >
           {isMobile ? AI_TRUST_DISCLAIMER_MOBILE : AI_TRUST_DISCLAIMER}
