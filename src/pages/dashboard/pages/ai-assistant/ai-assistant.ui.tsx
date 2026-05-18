@@ -20,7 +20,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
 import { IoArrowUp, IoChevronDown } from 'react-icons/io5';
 import {
-  // MdAttachFile,
   MdContentCopy,
   MdEdit,
   MdCheck,
@@ -46,15 +45,33 @@ import {
   TYPING_DOT_ANIMATION,
 } from './ai-assistant.const';
 import { VoiceModal } from './ui/voice-modal/voice-modal.ui';
-// import { AttachMenu } from './ui/attach-menu';
 import { ChatMarkdown } from './ui/chat-markdown';
 
 const SCROLL_THRESHOLD_PX = 80;
+const KEYBOARD_OPEN_THRESHOLD_PX = 60;
 
 type Message = ChatMessage & {
   id: string;
   timestamp: number;
 };
+
+/** Klaviatura balandligi (px) */
+function getKeyboardInset(vv: VisualViewport): number {
+  return Math.max(
+    0,
+    Math.round(window.innerHeight - vv.height - vv.offsetTop)
+  );
+}
+
+/** Konteyner yuqorisidan visual viewport pastigacha (px) */
+function getContainerHeightPx(
+  container: HTMLElement,
+  vv: VisualViewport
+): number {
+  const top = container.getBoundingClientRect().top;
+  const vvBottom = vv.offsetTop + vv.height;
+  return Math.max(120, Math.round(vvBottom - top));
+}
 
 function AiAssistant() {
   const location = useLocation();
@@ -72,9 +89,12 @@ function AiAssistant() {
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const inputDockRef = useRef<HTMLDivElement>(null);
   const composerDockRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const keyboardOpenRef = useRef(false);
+
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [_isInitializing, setIsInitializing] = useState(true);
@@ -83,29 +103,122 @@ function AiAssistant() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const keyboardOpenRef = useRef(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [composerFocused, setComposerFocused] = useState(false);
+
   const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
 
-  // Rasm fayllar uchun object URL lar
-  useEffect(() => {
-    const urls = attachments.map((f) =>
-      f.type.startsWith('image/') ? URL.createObjectURL(f) : null
-    );
-    setImageUrls((prev) => {
-      prev.forEach((u) => u && URL.revokeObjectURL(u));
-      return urls;
-    });
-    return () => {
-      urls.forEach((u) => u && URL.revokeObjectURL(u));
-    };
-  }, [attachments]);
+  const hasMessages = messages.length > 0;
+  const welcomeLifted =
+    isMobile && !hasMessages && (keyboardOpen || composerFocused);
 
-  // Textarea balandligi — bitta qator boshlang'ich, matn bilan kengayadi
+  // ─── CSS vars: --ai-kb, --ai-dock-h (DOM ga, re-render siz) ───
+  const applyMobileCssVars = useCallback(() => {
+    const root = containerRef.current;
+    const dock = inputDockRef.current;
+    if (!root) return;
+
+    const kb = getKeyboardInset();
+    root.style.setProperty('--ai-kb', `${kb}px`);
+    dock?.style.setProperty('--ai-kb', `${kb}px`);
+
+    if (dock) {
+      const h = Math.round(dock.getBoundingClientRect().height);
+      if (h > 0) {
+        root.style.setProperty('--ai-dock-h', `${h}px`);
+        dock.style.setProperty('--ai-dock-h', `${h}px`);
+      }
+    }
+
+    const isOpen = kb > KEYBOARD_OPEN_THRESHOLD_PX;
+    if (isOpen !== keyboardOpenRef.current) {
+      keyboardOpenRef.current = isOpen;
+      setKeyboardOpen(isOpen);
+    }
+  }, []);
+
+  const clearMobileCssVars = useCallback(() => {
+    const root = containerRef.current;
+    const dock = inputDockRef.current;
+    root?.style.removeProperty('--ai-kb');
+    root?.style.removeProperty('--ai-dock-h');
+    dock?.style.removeProperty('--ai-kb');
+    dock?.style.removeProperty('--ai-dock-h');
+    if (keyboardOpenRef.current) {
+      keyboardOpenRef.current = false;
+      setKeyboardOpen(false);
+    }
+  }, []);
+
+  // ─── Mobil: viewport + dock o'lchamlari ───
+  useEffect(() => {
+    if (!isMobile) {
+      clearMobileCssVars();
+      return undefined;
+    }
+
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+
+    const onViewportChange = () => {
+      applyMobileCssVars();
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    applyMobileCssVars();
+    vv.addEventListener('resize', onViewportChange);
+    vv.addEventListener('scroll', onViewportChange);
+
+    const dock = inputDockRef.current;
+    const ro =
+      dock &&
+      new ResizeObserver(() => {
+        applyMobileCssVars();
+      });
+    if (ro && dock) ro.observe(dock);
+
+    return () => {
+      vv.removeEventListener('resize', onViewportChange);
+      vv.removeEventListener('scroll', onViewportChange);
+      ro?.disconnect();
+      clearMobileCssVars();
+    };
+  }, [isMobile, applyMobileCssVars, clearMobileCssVars]);
+
+  // ─── Mobil: body va ota scroll qulflash ───
+  useEffect(() => {
+    if (!isMobile) return undefined;
+
+    const prevBody = document.body.style.overflow;
+    const prevBodyX = document.body.style.overflowX;
+    document.body.style.overflow = 'hidden';
+    document.body.style.overflowX = 'hidden';
+
+    const locked: { el: HTMLElement; prev: string }[] = [];
+    let node: HTMLElement | null = containerRef.current?.parentElement ?? null;
+    while (node && node !== document.body) {
+      const ov = getComputedStyle(node).overflowY;
+      if (ov === 'auto' || ov === 'scroll') {
+        locked.push({ el: node, prev: node.style.overflow });
+        node.style.overflow = 'hidden';
+      }
+      node = node.parentElement;
+    }
+
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.body.style.overflowX = prevBodyX;
+      locked.forEach(({ el, prev }) => {
+        el.style.overflow = prev;
+      });
+    };
+  }, [isMobile]);
+
+  // ─── Textarea balandligi ───
   const syncTextareaHeight = useCallback(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -121,105 +234,39 @@ function AiAssistant() {
 
   useLayoutEffect(() => {
     syncTextareaHeight();
-  }, [draft, isMobile, syncTextareaHeight]);
+  }, [draft, syncTextareaHeight]);
 
-  // Mobil: klaviatura inset → --ai-kb CSS var (to'g'ridan DOM, re-render yo'q)
+  // Klaviatura ochilganda dock qayta o'lchanadi + xabarlar pastga
+  useLayoutEffect(() => {
+    if (!isMobile) return;
+    const id = requestAnimationFrame(() => {
+      applyMobileCssVars();
+      if (keyboardOpenRef.current && hasMessages) {
+        scrollViewportRef.current?.scrollTo({
+          top: scrollViewportRef.current.scrollHeight,
+          behavior: 'auto',
+        });
+      }
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isMobile, keyboardOpen, hasMessages, applyMobileCssVars]);
+
+  // ─── Attachments URLs ───
   useEffect(() => {
-    const c = containerRef.current;
-    if (!isMobile) {
-      c?.style.removeProperty('--ai-kb');
-      if (keyboardOpenRef.current) {
-        keyboardOpenRef.current = false;
-        setKeyboardOpen(false);
-      }
-      return undefined;
-    }
-    const vv = window.visualViewport;
-    if (!vv) return undefined;
-
-    const onResize = () => {
-      const inset = Math.max(
-        0,
-        window.innerHeight - vv.height - vv.offsetTop
-      );
-      c?.style.setProperty('--ai-kb', `${inset}px`);
-      const isOpen = inset > 80;
-      if (isOpen !== keyboardOpenRef.current) {
-        keyboardOpenRef.current = isOpen;
-        setKeyboardOpen(isOpen);
-      }
-    };
-
-    // iOS: focus paytida window scroll qiladi → header ko'tariladi
-    const onVpScroll = () => {
-      if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0);
-    };
-
-    onResize();
-    vv.addEventListener('resize', onResize);
-    vv.addEventListener('scroll', onVpScroll);
+    const urls = attachments.map((f) =>
+      f.type.startsWith('image/') ? URL.createObjectURL(f) : null
+    );
+    setImageUrls((prev) => {
+      prev.forEach((u) => u && URL.revokeObjectURL(u));
+      return urls;
+    });
     return () => {
-      vv.removeEventListener('resize', onResize);
-      vv.removeEventListener('scroll', onVpScroll);
+      urls.forEach((u) => u && URL.revokeObjectURL(u));
     };
-  }, [isMobile]);
-
-  // Mobil: composer balandligi → --ai-input-h CSS var (re-render yo'q)
-  useEffect(() => {
-    if (!isMobile) {
-      containerRef.current?.style.removeProperty('--ai-input-h');
-      return undefined;
-    }
-    const el = composerDockRef.current;
-    if (!el) return undefined;
-    const update = () => {
-      const h = el.getBoundingClientRect().height;
-      if (h > 0) containerRef.current?.style.setProperty('--ai-input-h', `${h}px`);
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isMobile]);
-
-  // Mobil: ota-elementlar overflow:auto → hidden (iOS window scroll oldini olish)
-  useEffect(() => {
-    if (!isMobile) return undefined;
-    const container = containerRef.current;
-    if (!container) return undefined;
-    const locked: { el: HTMLElement; prev: string }[] = [];
-    let node: HTMLElement | null = container.parentElement;
-    while (node && node !== document.body) {
-      const ov = getComputedStyle(node).overflowY;
-      if (ov === 'auto' || ov === 'scroll') {
-        locked.push({ el: node, prev: node.style.overflow });
-        node.style.overflow = 'hidden';
-      }
-      node = node.parentElement;
-    }
-    return () => locked.forEach(({ el, prev }) => { el.style.overflow = prev; });
-  }, [isMobile]);
-
-  // Mobil: body scroll → hidden
-  useEffect(() => {
-    if (!isMobile) return undefined;
-    const prev = document.body.style.overflow;
-    const prevX = document.body.style.overflowX;
-    document.body.style.overflow = 'hidden';
-    document.body.style.overflowX = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-      document.body.style.overflowX = prevX;
-    };
-  }, [isMobile]);
-
-  const hasMessages = messages.length > 0;
-  const welcomeLifted = isMobile && !hasMessages && (keyboardOpen || composerFocused);
+  }, [attachments]);
 
   const focusComposerInput = useCallback(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.focus({ preventScroll: true });
+    textareaRef.current?.focus({ preventScroll: true });
   }, []);
 
   const handleComposerPointerDown = useCallback(
@@ -234,27 +281,29 @@ function AiAssistant() {
 
   const handleTextareaFocus = useCallback(() => {
     setComposerFocused(true);
-    if (isMobile && (window.scrollY !== 0 || window.scrollX !== 0)) {
-      window.scrollTo(0, 0);
-    }
-  }, [isMobile]);
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => {
+      applyMobileCssVars();
+      syncTextareaHeight();
+    });
+  }, [applyMobileCssVars, syncTextareaHeight]);
 
   const handleTextareaBlur = useCallback(() => {
     setComposerFocused(false);
-    if (!isMobile) return;
-    requestAnimationFrame(() => window.scrollTo(0, 0));
-  }, [isMobile]);
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      applyMobileCssVars();
+    });
+  }, [applyMobileCssVars]);
 
-  // Session yaratish yoki mavjud session history yuklash
+  // ─── Session ───
   useEffect(() => {
     if (!authHydrated) return undefined;
-
     let cancelled = false;
 
     const initializeSession = async () => {
       setIsInitializing(true);
       setError(null);
-
       try {
         if (urlSessionId) {
           setCurrentSessionId(urlSessionId);
@@ -263,8 +312,8 @@ function AiAssistant() {
           } else {
             const envelope = await getChatMessages(urlSessionId, user.id);
             if (cancelled) return;
-            const formattedMessages: Message[] = envelope.messages.map(
-              (msg) => {
+            setMessages(
+              envelope.messages.map((msg) => {
                 const r = msg.role?.toLowerCase();
                 const role: Message['role'] =
                   r === 'assistant'
@@ -274,18 +323,15 @@ function AiAssistant() {
                       : 'user';
                 return {
                   id:
-                    msg.id !== undefined && msg.id !== null
-                      ? String(msg.id)
-                      : `msg_${Date.now()}_${Math.random()}`,
+                    msg.id != null ? String(msg.id) : `msg_${Date.now()}`,
                   role,
                   content: msg.text,
                   timestamp: msg.createdAt
                     ? new Date(msg.createdAt).getTime()
                     : Date.now(),
                 };
-              }
+              })
             );
-            setMessages(formattedMessages);
           }
         } else {
           setCurrentSessionId(null);
@@ -309,20 +355,15 @@ function AiAssistant() {
             }
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (cancelled) return;
+        const e = err as { response?: { data?: { message?: string } }; message?: string };
         const errorMessage =
-          err.response?.data?.message || err.message || 'Xatolik yuz berdi';
+          e.response?.data?.message || e.message || 'Xatolik yuz berdi';
         setError(errorMessage);
-        notifications.show({
-          title: 'Xatolik',
-          message: errorMessage,
-          color: 'red',
-        });
+        notifications.show({ title: 'Xatolik', message: errorMessage, color: 'red' });
       } finally {
-        if (!cancelled) {
-          setIsInitializing(false);
-        }
+        if (!cancelled) setIsInitializing(false);
       }
     };
 
@@ -361,41 +402,31 @@ function AiAssistant() {
     return () => cancelAnimationFrame(id);
   }, [messages, hasMessages, isLoading, syncScrollBtn]);
 
-  // Xabarlar o'zgarganda pastga scroll
   useEffect(() => {
-    const id = setTimeout(() => {
-      const vp = scrollViewportRef.current;
-      if (vp) vp.scrollTo({ top: vp.scrollHeight, behavior: 'smooth' });
+    const t = setTimeout(() => {
+      scrollViewportRef.current?.scrollTo({
+        top: scrollViewportRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }, 50);
-    return () => clearTimeout(id);
+    return () => clearTimeout(t);
   }, [messages.length, isLoading]);
 
-  // Klaviatura ochilganda oxirgi xabar ko'rinsin
-  useEffect(() => {
-    if (!isMobile || !keyboardOpen || !hasMessages) return undefined;
-    const id = requestAnimationFrame(() => {
-      const vp = scrollViewportRef.current;
-      if (vp) vp.scrollTo({ top: vp.scrollHeight, behavior: 'auto' });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [isMobile, keyboardOpen, hasMessages]);
-
   const handleSend = async () => {
-    if (!draft.trim() || isLoading) return;
-    if (!user?.id) return;
+    if (!draft.trim() || isLoading || !user?.id) return;
     const content = draft.trim();
-
     const chatId = currentSessionId || urlSessionId;
     if (!chatId) return;
 
-    const userMsg: Message = {
-      id: `msg_${Date.now()}_${Math.random()}`,
-      role: 'user',
-      content,
-      timestamp: Date.now(),
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `msg_${Date.now()}`,
+        role: 'user',
+        content,
+        timestamp: Date.now(),
+      },
+    ]);
     setDraft('');
     setAttachments([]);
     setIsLoading(true);
@@ -419,7 +450,6 @@ function AiAssistant() {
           );
         }
       );
-
       const finalText = response.text?.trim() ?? '';
       setMessages((prev) => {
         const next = prev.map((m) =>
@@ -439,9 +469,10 @@ function AiAssistant() {
         }
         return next;
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
       const errorMessage =
-        err.response?.data?.message || err.message || 'Xatolik yuz berdi';
+        e.response?.data?.message || e.message || 'Xatolik yuz berdi';
       setError(errorMessage);
       notifications.show({ title: 'Xatolik', message: errorMessage, color: 'red' });
       setMessages((prev) => prev.filter((m) => m.id !== assistantId));
@@ -456,17 +487,8 @@ function AiAssistant() {
       setCopiedMessageId(messageId);
       setTimeout(() => setCopiedMessageId(null), 2000);
     } catch {
-      // silent
+      /* ignore */
     }
-  };
-
-  const handleEditMessage = (content: string) => {
-    setDraft(content);
-    focusComposerInput();
-  };
-
-  const handleVoiceTranscribed = (text: string) => {
-    setDraft((prev) => (prev ? `${prev} ${text}` : text));
   };
 
   return (
@@ -474,8 +496,8 @@ function AiAssistant() {
       ref={containerRef}
       className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}
       data-mobile={isMobile || undefined}
+      data-keyboard-open={isMobile && keyboardOpen ? true : undefined}
     >
-      {/* Messages Area */}
       {hasMessages || isLoading ? (
         <ScrollArea
           className={styles.messagesArea}
@@ -520,7 +542,6 @@ function AiAssistant() {
                           <ChatMarkdown content={message.content} />
                         )}
                       </Box>
-
                       {!showStreamingTyping && (
                         <Box className={styles.messageActions}>
                           <Tooltip label="Nusxa olish" position="top">
@@ -541,13 +562,15 @@ function AiAssistant() {
                               )}
                             </ActionIcon>
                           </Tooltip>
-
                           {isUser && (
                             <Tooltip label="Tahrirlash" position="top">
                               <ActionIcon
                                 variant="subtle"
                                 size="md"
-                                onClick={() => handleEditMessage(message.content)}
+                                onClick={() => {
+                                  setDraft(message.content);
+                                  focusComposerInput();
+                                }}
                                 aria-label="Edit message"
                                 className={styles.actionIcon}
                               >
@@ -562,9 +585,7 @@ function AiAssistant() {
                 );
               })}
             </AnimatePresence>
-
             <div ref={messagesEndRef} />
-            {/* Scroll oralig'i: input + klaviatura balandligi */}
             {isMobile ? <div aria-hidden className={styles.scrollPad} /> : null}
           </Stack>
         </ScrollArea>
@@ -583,7 +604,6 @@ function AiAssistant() {
         </Box>
       )}
 
-      {/* Input Area */}
       <Box
         ref={inputDockRef}
         className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}
@@ -612,6 +632,7 @@ function AiAssistant() {
             </motion.div>
           )}
         </AnimatePresence>
+
         <Box ref={composerDockRef} className={styles.composerDock}>
           <div
             className={styles.composer}
@@ -697,7 +718,6 @@ function AiAssistant() {
                 autoCorrect="on"
               />
             </Box>
-
             <Box className={styles.actionsContainer}>
               <Box className={styles.actions}>
                 <ActionIcon
@@ -710,7 +730,6 @@ function AiAssistant() {
                 >
                   <BsMicMuteFill size={18} />
                 </ActionIcon>
-
                 <ActionIcon
                   className={styles.sendBtn}
                   size="lg"
@@ -738,7 +757,7 @@ function AiAssistant() {
       <VoiceModal
         opened={voiceModalOpened}
         onClose={() => setVoiceModalOpened(false)}
-        onTranscribed={handleVoiceTranscribed}
+        onTranscribed={(text) => setDraft((p) => (p ? `${p} ${text}` : text))}
       />
       <Modal
         opened={!!previewImageUrl}

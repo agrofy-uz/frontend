@@ -26,8 +26,7 @@
 
 @media (max-width: 48em) {
   .container[data-mobile] {
-    /* Viewport balandligi = klaviatura ochiq bo'lsa kamayadi */
-    height: calc(100% - var(--ai-kb, 0px));
+    height: 100%;
     min-height: 0;
     margin: -1rem;
     width: calc(100% + 2rem);
@@ -35,6 +34,8 @@
     box-sizing: border-box;
     overflow-x: hidden;
     touch-action: pan-y;
+    /* Klaviatura: kontent yuqoriga suriladi (ikki marta hisoblanmaydi) */
+    padding-bottom: var(--ai-kb, 0px);
   }
 
   .containerCentered {
@@ -81,12 +82,12 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
     transition: padding-bottom 0.25s ease;
   }
 
-  /* Klaviatura ochilganda: matn input ustiga ko'tariladi */
+  /* Klaviatura ochilganda: matn input + klaviatura ustiga */
   .container[data-mobile] .welcomeStateKeyboard {
     flex: 1;
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: calc(var(--ai-input-h, 72px) + 16px);
+    padding-bottom: calc(var(--ai-dock-h, 80px) + var(--ai-kb, 0px) + 16px);
   }
 }
 
@@ -150,9 +151,9 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
 }
 
 @media (max-width: 48em) {
-  /* ScrollPad: input balandligi qadar bo'sh joy (klaviatura inset konteyner orqali hisoblanadi) */
+  /* Oxirgi xabar input ustida to'xtaydi (faqat dock, kb — container padding) */
   .container[data-mobile] .scrollPad {
-    height: calc(var(--ai-input-h, 60px) + 8px);
+    height: calc(var(--ai-dock-h, 80px) + 8px);
   }
 }
 
@@ -575,7 +576,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     position: fixed;
     left: 0;
     right: 0;
-    /* Klaviatura balandligi — input klaviatura ustiga ko'tariladi */
+    /* Klaviatura ustida — --ai-kb inputDock va containerda */
     bottom: var(--ai-kb, 0px);
     z-index: 40;
     margin: 0;
@@ -588,6 +589,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     flex-direction: column;
     align-items: stretch;
     transition: none;
+    transform: translateZ(0);
   }
 
   .container[data-mobile] .inputArea > * {
