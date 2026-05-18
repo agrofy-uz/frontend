@@ -73,7 +73,7 @@ function AiAssistant() {
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const inputDockRef = useRef<HTMLDivElement>(null);
   const composerDockRef = useRef<HTMLDivElement>(null);
-  const [composerDockHeight, setComposerDockHeight] = useState(0);
+  const [inputDockHeight, setInputDockHeight] = useState(0);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -143,24 +143,40 @@ function AiAssistant() {
     const vv = window.visualViewport;
     if (!vv) return undefined;
 
-    const onResize = () => {
-      // Xabarlar scroll paytida inset yangilanmasin — input silkinmaydi
-      if (isMessagesScrollingRef.current) return;
-      if (
-        Math.abs(vv.height - lastVvHeightRef.current) < KEYBOARD_INSET_STABLE_PX
-      ) {
-        return;
-      }
+    const syncMobileLayout = (force = false) => {
+      if (isMessagesScrollingRef.current && !force) return;
+
+      const heightChanged =
+        Math.abs(vv.height - lastVvHeightRef.current) >= KEYBOARD_INSET_STABLE_PX;
+      if (!force && !heightChanged) return;
       lastVvHeightRef.current = vv.height;
 
+      const container = containerRef.current;
+      const inputEl = inputDockRef.current;
+      if (!container) return;
+
       const inset = Math.max(0, window.innerHeight - vv.height);
-      containerRef.current?.style.setProperty('--ai-keyboard-inset', `${inset}px`);
+      container.style.setProperty('--ai-keyboard-inset', `${inset}px`);
+
       const isOpen = inset > 50;
       if (isOpen !== keyboardOpenRef.current) {
         keyboardOpenRef.current = isOpen;
         setKeyboardOpen(isOpen);
       }
+
+      // Kontent balandligi = viewport pasti − input (klaviatura inset ikki marta qo‘shilmasin)
+      if (isOpen && inputEl) {
+        const top = container.getBoundingClientRect().top;
+        const vvBottom = vv.offsetTop + vv.height;
+        const inputH = inputEl.getBoundingClientRect().height;
+        const available = Math.round(vvBottom - top - inputH);
+        container.style.height = `${Math.max(120, available)}px`;
+      } else {
+        container.style.height = '';
+      }
     };
+
+    const onResize = () => syncMobileLayout(false);
 
     // iOS: klaviatura ochilganda brauzer window-ni scroll qiladi →
     // header yuqoriga chiqadi. Buni darhol bekor qilamiz.
@@ -170,7 +186,7 @@ function AiAssistant() {
       }
     };
 
-    onResize();
+    syncMobileLayout(true);
     vv.addEventListener('resize', onResize);
     vv.addEventListener('scroll', onVpScroll);
     return () => {
@@ -220,25 +236,35 @@ function AiAssistant() {
     };
   }, [isMobile]);
 
-  // Mobil: faqat composer balandligi (disclaimer scroll/oraliqqa kirmaydi)
+  // Mobil: butun input bloki (composer + disclaimer) — scroll oralig‘i uchun
   useLayoutEffect(() => {
     if (!isMobile) {
-      setComposerDockHeight(0);
+      setInputDockHeight(0);
       return undefined;
     }
 
-    const el = composerDockRef.current;
+    const el = inputDockRef.current;
     if (!el) return undefined;
 
     const measure = () => {
-      setComposerDockHeight(el.getBoundingClientRect().height);
+      setInputDockHeight(el.getBoundingClientRect().height);
+      const vv = window.visualViewport;
+      if (!vv || !containerRef.current) return;
+      const inset = Math.max(0, window.innerHeight - vv.height);
+      if (inset <= 50) return;
+      const container = containerRef.current;
+      const top = container.getBoundingClientRect().top;
+      const vvBottom = vv.offsetTop + vv.height;
+      const inputH = el.getBoundingClientRect().height;
+      const available = Math.round(vvBottom - top - inputH);
+      container.style.height = `${Math.max(120, available)}px`;
     };
 
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [isMobile, draft, messages.length, showScrollBtn]);
+  }, [isMobile, draft, messages.length, showScrollBtn, keyboardOpen]);
 
   const hasMessages = messages.length > 0;
 
@@ -247,14 +273,13 @@ function AiAssistant() {
 
   const mobileScrollPadHeight = Math.max(
     0,
-    composerDockHeight - MOBILE_SCROLL_PAD_TRIM_PX
+    inputDockHeight - MOBILE_SCROLL_PAD_TRIM_PX
   );
 
   const dockHeightStyle = isMobile
     ? ({
         '--ai-input-dock-height': `${mobileScrollPadHeight}px`,
-        '--ai-composer-height': `${composerDockHeight}px`,
-        // --ai-keyboard-inset is set directly on DOM via containerRef (no re-render)
+        // --ai-keyboard-inset: containerRef orqali (re-render siz)
       } as React.CSSProperties)
     : undefined;
 
@@ -435,6 +460,16 @@ function AiAssistant() {
 
     return () => clearTimeout(timeoutId);
   }, [messages.length, isLoading]);
+
+  // Klaviatura ochilganda oxirgi xabar input ustida ko‘rinsin
+  useEffect(() => {
+    if (!isMobile || !keyboardOpen || !hasMessages) return undefined;
+    const id = requestAnimationFrame(() => {
+      const vp = scrollViewportRef.current;
+      if (vp) vp.scrollTo({ top: vp.scrollHeight, behavior: 'auto' });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isMobile, keyboardOpen, hasMessages, inputDockHeight]);
 
   const handleSend = async () => {
     if (!draft.trim() || isLoading) return;

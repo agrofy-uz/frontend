@@ -34,12 +34,6 @@
     box-sizing: border-box;
     overflow-x: hidden;
     touch-action: pan-y;
-    transition: height 0.2s ease;
-  }
-
-  /* Klaviatura: kontent maydoni yuqoriga qisqaradi */
-  .container[data-mobile][data-keyboard-open] {
-    height: calc(100% - var(--ai-keyboard-inset, 0px));
   }
 
   .containerCentered {
@@ -91,9 +85,7 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
     flex: 1;
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: calc(
-      var(--ai-composer-height, 72px) + var(--ai-keyboard-inset, 0px) + 16px
-    );
+    padding-bottom: calc(var(--ai-input-dock-height, 72px) + 16px);
   }
 }
 
@@ -157,10 +149,9 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
 }
 
 @media (max-width: 48em) {
+  /* Faqat input balandligi — klaviatura inset alohida (konteyner balandligi orqali) */
   .container[data-mobile] .scrollPad {
-    height: calc(
-      var(--ai-input-dock-height, 60px) + var(--ai-keyboard-inset, 0px)
-    );
+    height: var(--ai-input-dock-height, 60px);
   }
 }
 
