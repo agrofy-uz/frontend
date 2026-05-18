@@ -101,7 +101,7 @@ function AiAssistant() {
 
   const hasMessages = messages.length > 0;
 
-  // ─── CSS vars: --ai-kb, --ai-dock-h (DOM ga, re-render yo'q) ───
+  // ─── CSS var: --ai-kb (DOM ga, re-render yo'q) ───
   const applyMobileCssVars = useCallback(() => {
     const root = containerRef.current;
     const dock = inputDockRef.current;
@@ -115,16 +115,6 @@ function AiAssistant() {
     root.style.setProperty('--ai-kb', `${kb}px`);
     dock?.style.setProperty('--ai-kb', `${kb}px`);
 
-    // --ai-dock-h: faqat composer dock (disclaimer emas) balandligi
-    const composerDock = composerDockRef.current;
-    if (composerDock) {
-      const dockH = Math.round(composerDock.getBoundingClientRect().height);
-      if (dockH > 0) {
-        root.style.setProperty('--ai-dock-h', `${dockH}px`);
-        dock?.style.setProperty('--ai-dock-h', `${dockH}px`);
-      }
-    }
-
     const isOpen = rawKb > KEYBOARD_OPEN_THRESHOLD_PX;
     if (isOpen !== keyboardOpenRef.current) {
       keyboardOpenRef.current = isOpen;
@@ -136,9 +126,7 @@ function AiAssistant() {
     const root = containerRef.current;
     const dock = inputDockRef.current;
     root?.style.removeProperty('--ai-kb');
-    root?.style.removeProperty('--ai-dock-h');
     dock?.style.removeProperty('--ai-kb');
-    dock?.style.removeProperty('--ai-dock-h');
     if (keyboardOpenRef.current) {
       keyboardOpenRef.current = false;
       setKeyboardOpen(false);
@@ -600,7 +588,6 @@ function AiAssistant() {
               })}
             </AnimatePresence>
             <div ref={messagesEndRef} />
-            {isMobile ? <div aria-hidden className={styles.scrollPad} /> : null}
           </Stack>
         </ScrollArea>
       ) : (

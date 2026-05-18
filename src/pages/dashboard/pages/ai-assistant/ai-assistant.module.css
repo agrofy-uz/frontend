@@ -140,23 +140,8 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
   .container[data-mobile] .messagesList {
     padding-left: 4px;
     padding-right: 4px;
-    padding-bottom: 0;
+    padding-bottom: 4px;
     min-height: auto;
-  }
-}
-
-/* Input balandligi — faqat scroll oralig‘i, fon yo‘q */
-.scrollPad {
-  flex-shrink: 0;
-  width: 100%;
-  pointer-events: none;
-  background: transparent;
-}
-
-@media (max-width: 48em) {
-  /* Oxirgi xabar composerdan tepada ko'rinadi — faqat composer balandligi */
-  .container[data-mobile] .scrollPad {
-    height: calc(var(--ai-dock-h, 72px) + 12px);
   }
 }
 
@@ -582,7 +567,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     margin: 0;
     padding: 8px 12px 0;
     padding-top: 0;
-    padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     background: transparent;
     border: none;
     box-shadow: none;
@@ -846,6 +831,14 @@ html[data-mantine-color-scheme='dark']
   color: var(--mantine-color-dimmed);
   flex-shrink: 0;
   background: transparent;
+}
+
+@media (max-width: 48em) {
+  .disclaimerMobile {
+    margin: 6px 0 0;
+    padding: 0 8px 0;
+    line-height: 1.3;
+  }
 }
 
 .disclaimerHidden {
