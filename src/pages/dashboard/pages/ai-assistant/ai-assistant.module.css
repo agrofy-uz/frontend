@@ -26,7 +26,8 @@
 
 @media (max-width: 48em) {
   .container[data-mobile] {
-    height: 100%;
+    /* Viewport balandligi = klaviatura ochiq bo'lsa kamayadi */
+    height: calc(100% - var(--ai-kb, 0px));
     min-height: 0;
     margin: -1rem;
     width: calc(100% + 2rem);
@@ -85,7 +86,7 @@ html[data-mantine-color-scheme='dark'] .emptyStateText {
     flex: 1;
     justify-content: flex-end;
     align-items: center;
-    padding-bottom: calc(var(--ai-input-dock-height, 72px) + 16px);
+    padding-bottom: calc(var(--ai-input-h, 72px) + 16px);
   }
 }
 
@@ -149,9 +150,9 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
 }
 
 @media (max-width: 48em) {
-  /* Faqat input balandligi — klaviatura inset alohida (konteyner balandligi orqali) */
+  /* ScrollPad: input balandligi qadar bo'sh joy (klaviatura inset konteyner orqali hisoblanadi) */
   .container[data-mobile] .scrollPad {
-    height: var(--ai-input-dock-height, 60px);
+    height: calc(var(--ai-input-h, 60px) + 8px);
   }
 }
 
@@ -574,7 +575,8 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: var(--ai-keyboard-inset, 0px);
+    /* Klaviatura ustida turadi — konteyner allaqachon qisqargan */
+    bottom: 0;
     z-index: 40;
     margin: 0;
     padding: 8px 12px 0;
@@ -585,10 +587,7 @@ html[data-mantine-color-scheme='dark'] .typingIndicator span {
     pointer-events: none;
     flex-direction: column;
     align-items: stretch;
-    /* Scroll paytida bottom o'zgarmasin — transition yo'q */
     transition: none;
-    transform: translateZ(0);
-    backface-visibility: hidden;
   }
 
   .container[data-mobile] .inputArea > * {
@@ -795,7 +794,9 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
   font-family: inherit;
   background: transparent !important;
   border: none !important;
-  height: 100%;
+  /* height: JS orqali boshqariladi — CSS height shart emas */
+  height: auto;
+  min-height: 24px;
   touch-action: manipulation;
   -webkit-text-size-adjust: 100%;
 }

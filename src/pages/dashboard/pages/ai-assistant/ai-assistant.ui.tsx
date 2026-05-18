@@ -40,8 +40,6 @@ import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
-  KEYBOARD_INSET_STABLE_PX,
-  MOBILE_SCROLL_PAD_TRIM_PX,
   MAX_TEXTAREA_HEIGHT,
   MESSAGE_ANIMATION_VARIANTS,
   TYPING_DOT_ANIMATION,
@@ -73,7 +71,6 @@ function AiAssistant() {
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
   const inputDockRef = useRef<HTMLDivElement>(null);
   const composerDockRef = useRef<HTMLDivElement>(null);
-  const [inputDockHeight, setInputDockHeight] = useState(0);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -82,7 +79,6 @@ function AiAssistant() {
   const [_isInitializing, setIsInitializing] = useState(true);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [voiceModalOpened, setVoiceModalOpened] = useState(false);
-  // const [attachMenuOpened, setAttachMenuOpened] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [imageUrls, setImageUrls] = useState<(string | null)[]>([]);
@@ -90,18 +86,11 @@ function AiAssistant() {
   const keyboardOpenRef = useRef(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [composerFocused, setComposerFocused] = useState(false);
-  const lastVvHeightRef = useRef(
-    typeof window !== 'undefined' ? window.innerHeight : 0
-  );
-  const isMessagesScrollingRef = useRef(false);
-  const messagesScrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
   const isMobile = useMediaQuery(AI_ASSISTANT_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
 
-  // Rasm fayllar uchun object URL lar (thumbnaillar va preview uchun)
+  // Rasm fayllar uchun object URL lar
   useEffect(() => {
     const urls = attachments.map((f) =>
       f.type.startsWith('image/') ? URL.createObjectURL(f) : null
@@ -115,78 +104,47 @@ function AiAssistant() {
     };
   }, [attachments]);
 
-  // Textarea-ni to'g'ridan-to'g'ri DOM orqali o'lchaymiz va o'zgartiramiz
+  // Textarea balandligi — JS orqali (CSS height:auto boshlang'ich holat)
   useLayoutEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
-
-    el.style.height = 'auto'; // Reset height
+    el.style.height = 'auto';
     const scrollH = el.scrollHeight;
-    const maxH = MAX_TEXTAREA_HEIGHT;
-    const newH = Math.min(scrollH, maxH);
-
+    const newH = Math.min(scrollH, MAX_TEXTAREA_HEIGHT);
     el.style.height = `${newH}px`;
-    el.style.overflowY = scrollH > maxH ? 'auto' : 'hidden';
+    el.style.overflowY = scrollH > MAX_TEXTAREA_HEIGHT ? 'auto' : 'hidden';
   }, [draft]);
 
-  // Mobil: klaviatura — inputni ko‘tarish, sahifani emas
+  // Mobil: klaviatura inset → --ai-kb CSS var (to'g'ridan DOM, re-render yo'q)
   useEffect(() => {
+    const c = containerRef.current;
     if (!isMobile) {
-      containerRef.current?.style.removeProperty('--ai-keyboard-inset');
+      c?.style.removeProperty('--ai-kb');
       if (keyboardOpenRef.current) {
         keyboardOpenRef.current = false;
         setKeyboardOpen(false);
       }
       return undefined;
     }
-
     const vv = window.visualViewport;
     if (!vv) return undefined;
 
-    const syncMobileLayout = (force = false) => {
-      if (isMessagesScrollingRef.current && !force) return;
-
-      const heightChanged =
-        Math.abs(vv.height - lastVvHeightRef.current) >= KEYBOARD_INSET_STABLE_PX;
-      if (!force && !heightChanged) return;
-      lastVvHeightRef.current = vv.height;
-
-      const container = containerRef.current;
-      const inputEl = inputDockRef.current;
-      if (!container) return;
-
+    const onResize = () => {
       const inset = Math.max(0, window.innerHeight - vv.height);
-      container.style.setProperty('--ai-keyboard-inset', `${inset}px`);
-
-      const isOpen = inset > 50;
+      c?.style.setProperty('--ai-kb', `${inset}px`);
+      const isOpen = inset > 80;
       if (isOpen !== keyboardOpenRef.current) {
         keyboardOpenRef.current = isOpen;
         setKeyboardOpen(isOpen);
       }
-
-      // Kontent balandligi = viewport pasti − input (klaviatura inset ikki marta qo‘shilmasin)
-      if (isOpen && inputEl) {
-        const top = container.getBoundingClientRect().top;
-        const vvBottom = vv.offsetTop + vv.height;
-        const inputH = inputEl.getBoundingClientRect().height;
-        const available = Math.round(vvBottom - top - inputH);
-        container.style.height = `${Math.max(120, available)}px`;
-      } else {
-        container.style.height = '';
-      }
     };
 
-    const onResize = () => syncMobileLayout(false);
-
-    // iOS: klaviatura ochilganda brauzer window-ni scroll qiladi →
-    // header yuqoriga chiqadi. Buni darhol bekor qilamiz.
+    // iOS: focus paytida window scroll qiladi → header ko'tariladi
     const onVpScroll = () => {
-      if (window.scrollX !== 0 || window.scrollY !== 0) {
-        window.scrollTo({ top: 0, left: 0 });
-      }
+      if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0);
     };
 
-    syncMobileLayout(true);
+    onResize();
     vv.addEventListener('resize', onResize);
     vv.addEventListener('scroll', onVpScroll);
     return () => {
@@ -195,93 +153,57 @@ function AiAssistant() {
     };
   }, [isMobile]);
 
-  // Mobil: yuqori scrollable ota-elementlarni qulflash.
-  // Dashboard layout .content box-i overflow:auto — iOS uni scroll qiladi.
-  // AI assistant sahifasida bu shart emas (ichki ScrollArea o'zi boshqaradi).
+  // Mobil: composer balandligi → --ai-input-h CSS var (re-render yo'q)
+  useEffect(() => {
+    if (!isMobile) {
+      containerRef.current?.style.removeProperty('--ai-input-h');
+      return undefined;
+    }
+    const el = composerDockRef.current;
+    if (!el) return undefined;
+    const update = () => {
+      const h = el.getBoundingClientRect().height;
+      if (h > 0) containerRef.current?.style.setProperty('--ai-input-h', `${h}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isMobile]);
+
+  // Mobil: ota-elementlar overflow:auto → hidden (iOS window scroll oldini olish)
   useEffect(() => {
     if (!isMobile) return undefined;
     const container = containerRef.current;
     if (!container) return undefined;
-
-    const locked: { el: HTMLElement; prevOverflow: string }[] = [];
-    let el: HTMLElement | null = container.parentElement;
-    while (el && el !== document.body) {
-      const ov = getComputedStyle(el).overflowY;
+    const locked: { el: HTMLElement; prev: string }[] = [];
+    let node: HTMLElement | null = container.parentElement;
+    while (node && node !== document.body) {
+      const ov = getComputedStyle(node).overflowY;
       if (ov === 'auto' || ov === 'scroll') {
-        locked.push({ el, prevOverflow: el.style.overflow });
-        el.style.overflow = 'hidden';
+        locked.push({ el: node, prev: node.style.overflow });
+        node.style.overflow = 'hidden';
       }
-      el = el.parentElement;
+      node = node.parentElement;
     }
-
-    return () => {
-      locked.forEach(({ el: lockedEl, prevOverflow }) => {
-        lockedEl.style.overflow = prevOverflow;
-      });
-    };
+    return () => locked.forEach(({ el, prev }) => { el.style.overflow = prev; });
   }, [isMobile]);
 
-  // Mobil: tashqi scroll va iOS zoom qolishini kamaytirish
+  // Mobil: body scroll → hidden
   useEffect(() => {
     if (!isMobile) return undefined;
-
-    const prevOverflow = document.body.style.overflow;
-    const prevOverflowX = document.body.style.overflowX;
+    const prev = document.body.style.overflow;
+    const prevX = document.body.style.overflowX;
     document.body.style.overflow = 'hidden';
     document.body.style.overflowX = 'hidden';
-
     return () => {
-      document.body.style.overflow = prevOverflow;
-      document.body.style.overflowX = prevOverflowX;
+      document.body.style.overflow = prev;
+      document.body.style.overflowX = prevX;
     };
   }, [isMobile]);
 
-  // Mobil: butun input bloki (composer + disclaimer) — scroll oralig‘i uchun
-  useLayoutEffect(() => {
-    if (!isMobile) {
-      setInputDockHeight(0);
-      return undefined;
-    }
-
-    const el = inputDockRef.current;
-    if (!el) return undefined;
-
-    const measure = () => {
-      setInputDockHeight(el.getBoundingClientRect().height);
-      const vv = window.visualViewport;
-      if (!vv || !containerRef.current) return;
-      const inset = Math.max(0, window.innerHeight - vv.height);
-      if (inset <= 50) return;
-      const container = containerRef.current;
-      const top = container.getBoundingClientRect().top;
-      const vvBottom = vv.offsetTop + vv.height;
-      const inputH = el.getBoundingClientRect().height;
-      const available = Math.round(vvBottom - top - inputH);
-      container.style.height = `${Math.max(120, available)}px`;
-    };
-
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isMobile, draft, messages.length, showScrollBtn, keyboardOpen]);
-
   const hasMessages = messages.length > 0;
-
-  const welcomeLifted =
-    isMobile && !hasMessages && (keyboardOpen || composerFocused);
-
-  const mobileScrollPadHeight = Math.max(
-    0,
-    inputDockHeight - MOBILE_SCROLL_PAD_TRIM_PX
-  );
-
-  const dockHeightStyle = isMobile
-    ? ({
-        '--ai-input-dock-height': `${mobileScrollPadHeight}px`,
-        // --ai-keyboard-inset: containerRef orqali (re-render siz)
-      } as React.CSSProperties)
-    : undefined;
+  const welcomeLifted = isMobile && !hasMessages && (keyboardOpen || composerFocused);
 
   const focusComposerInput = useCallback(() => {
     const el = textareaRef.current;
@@ -301,17 +223,15 @@ function AiAssistant() {
 
   const handleTextareaFocus = useCallback(() => {
     setComposerFocused(true);
-    if (isMobile && (window.scrollX !== 0 || window.scrollY !== 0)) {
-      window.scrollTo({ top: 0, left: 0 });
+    if (isMobile && (window.scrollY !== 0 || window.scrollX !== 0)) {
+      window.scrollTo(0, 0);
     }
   }, [isMobile]);
 
   const handleTextareaBlur = useCallback(() => {
     setComposerFocused(false);
     if (!isMobile) return;
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-    });
+    requestAnimationFrame(() => window.scrollTo(0, 0));
   }, [isMobile]);
 
   // Session yaratish yoki mavjud session history yuklash
@@ -415,26 +335,7 @@ function AiAssistant() {
 
   const handleMessagesScroll = useCallback(() => {
     syncScrollBtn();
-    if (!isMobile) return;
-    // Faqat ichki scroll — input inset va fokus o'zgarmaydi
-    isMessagesScrollingRef.current = true;
-    if (messagesScrollEndTimerRef.current) {
-      clearTimeout(messagesScrollEndTimerRef.current);
-    }
-    messagesScrollEndTimerRef.current = setTimeout(() => {
-      isMessagesScrollingRef.current = false;
-      messagesScrollEndTimerRef.current = null;
-    }, 180);
-  }, [isMobile, syncScrollBtn]);
-
-  useEffect(
-    () => () => {
-      if (messagesScrollEndTimerRef.current) {
-        clearTimeout(messagesScrollEndTimerRef.current);
-      }
-    },
-    []
-  );
+  }, [syncScrollBtn]);
 
   const scrollToBottom = useCallback(() => {
     const vp = scrollViewportRef.current;
@@ -449,19 +350,16 @@ function AiAssistant() {
     return () => cancelAnimationFrame(id);
   }, [messages, hasMessages, isLoading, syncScrollBtn]);
 
-  // Scroll to bottom when messages change or loading state changes
+  // Xabarlar o'zgarganda pastga scroll
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const id = setTimeout(() => {
       const vp = scrollViewportRef.current;
-      if (vp) {
-        vp.scrollTo({ top: vp.scrollHeight, behavior: 'smooth' });
-      }
+      if (vp) vp.scrollTo({ top: vp.scrollHeight, behavior: 'smooth' });
     }, 50);
-
-    return () => clearTimeout(timeoutId);
+    return () => clearTimeout(id);
   }, [messages.length, isLoading]);
 
-  // Klaviatura ochilganda oxirgi xabar input ustida ko‘rinsin
+  // Klaviatura ochilganda oxirgi xabar ko'rinsin
   useEffect(() => {
     if (!isMobile || !keyboardOpen || !hasMessages) return undefined;
     const id = requestAnimationFrame(() => {
@@ -469,7 +367,7 @@ function AiAssistant() {
       if (vp) vp.scrollTo({ top: vp.scrollHeight, behavior: 'auto' });
     });
     return () => cancelAnimationFrame(id);
-  }, [isMobile, keyboardOpen, hasMessages, inputDockHeight]);
+  }, [isMobile, keyboardOpen, hasMessages]);
 
   const handleSend = async () => {
     if (!draft.trim() || isLoading) return;
@@ -479,7 +377,6 @@ function AiAssistant() {
     const chatId = currentSessionId || urlSessionId;
     if (!chatId) return;
 
-    // User xabarini darhol qo'shish
     const userMsg: Message = {
       id: `msg_${Date.now()}_${Math.random()}`,
       role: 'user',
@@ -496,21 +393,13 @@ function AiAssistant() {
     const assistantId = `msg_${Date.now()}_assistant`;
     setMessages((prev) => [
       ...prev,
-      {
-        id: assistantId,
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-      },
+      { id: assistantId, role: 'assistant', content: '', timestamp: Date.now() },
     ]);
 
     try {
       const response = await sendChatMessage(
         chatId,
-        {
-          userId: user.id,
-          text: content,
-        },
+        { userId: user.id, text: content },
         (accumulated) => {
           setMessages((prev) =>
             prev.map((m) =>
@@ -534,10 +423,7 @@ function AiAssistant() {
               }
             : m
         );
-        if (
-          !finalText &&
-          !next.find((m) => m.id === assistantId)?.content.trim()
-        ) {
+        if (!finalText && !next.find((m) => m.id === assistantId)?.content.trim()) {
           return next.filter((m) => m.id !== assistantId);
         }
         return next;
@@ -546,33 +432,23 @@ function AiAssistant() {
       const errorMessage =
         err.response?.data?.message || err.message || 'Xatolik yuz berdi';
       setError(errorMessage);
-      notifications.show({
-        title: 'Xatolik',
-        message: errorMessage,
-        color: 'red',
-      });
+      notifications.show({ title: 'Xatolik', message: errorMessage, color: 'red' });
       setMessages((prev) => prev.filter((m) => m.id !== assistantId));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Xabar matnini nusxalash
   const handleCopyMessage = async (content: string, messageId: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      // Icon'ni check iconiga o'zgartirish
       setCopiedMessageId(messageId);
-      // 2 soniyadan keyin qaytarish
-      setTimeout(() => {
-        setCopiedMessageId(null);
-      }, 2000);
-    } catch (err) {
-      // Xatolik bo'lsa ham hech narsa qilmaymiz
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch {
+      // silent
     }
   };
 
-  // Xabar matnini input'ga yozish
   const handleEditMessage = (content: string) => {
     setDraft(content);
     focusComposerInput();
@@ -587,8 +463,6 @@ function AiAssistant() {
       ref={containerRef}
       className={`${styles.container} ${messages.length === 0 ? styles.containerCentered : ''}`}
       data-mobile={isMobile || undefined}
-      data-keyboard-open={isMobile && keyboardOpen ? true : undefined}
-      style={dockHeightStyle}
     >
       {/* Messages Area */}
       {hasMessages || isLoading ? (
@@ -636,7 +510,6 @@ function AiAssistant() {
                         )}
                       </Box>
 
-                      {/* Copy va Edit tugmalari — xabarga hover qilganda chiqadi */}
                       {!showStreamingTyping && (
                         <Box className={styles.messageActions}>
                           <Tooltip label="Nusxa olish" position="top">
@@ -663,9 +536,7 @@ function AiAssistant() {
                               <ActionIcon
                                 variant="subtle"
                                 size="md"
-                                onClick={() =>
-                                  handleEditMessage(message.content)
-                                }
+                                onClick={() => handleEditMessage(message.content)}
                                 aria-label="Edit message"
                                 className={styles.actionIcon}
                               >
@@ -682,9 +553,8 @@ function AiAssistant() {
             </AnimatePresence>
 
             <div ref={messagesEndRef} />
-            {isMobile && mobileScrollPadHeight > 0 ? (
-              <div aria-hidden className={styles.scrollPad} />
-            ) : null}
+            {/* Scroll oralig'i: input + klaviatura balandligi */}
+            {isMobile ? <div aria-hidden className={styles.scrollPad} /> : null}
           </Stack>
         </ScrollArea>
       ) : (
@@ -706,7 +576,6 @@ function AiAssistant() {
       <Box
         ref={inputDockRef}
         className={`${styles.inputArea} ${messages.length === 0 ? styles.inputAreaCentered : ''}`}
-        style={dockHeightStyle}
       >
         <AnimatePresence>
           {showScrollBtn && (
@@ -732,21 +601,13 @@ function AiAssistant() {
             </motion.div>
           )}
         </AnimatePresence>
-        <Box
-          ref={composerDockRef}
-          className={styles.composerDock}
-        >
+        <Box ref={composerDockRef} className={styles.composerDock}>
           <div
             className={styles.composer}
             onPointerDown={handleComposerPointerDown}
           >
             {attachments.length > 0 && (
-              <Group
-                gap={8}
-                wrap="wrap"
-                mb="xs"
-                className={styles.attachmentsRow}
-              >
+              <Group gap={8} wrap="wrap" mb="xs" className={styles.attachmentsRow}>
                 {attachments.map((file, index) => {
                   const isImage = file.type.startsWith('image/');
                   const thumbUrl = isImage ? imageUrls[index] : null;
@@ -827,25 +688,6 @@ function AiAssistant() {
             </Box>
 
             <Box className={styles.actionsContainer}>
-              {/* <AttachMenu
-              opened={attachMenuOpened}
-              onOpenChange={setAttachMenuOpened}
-              onFilesSelected={(files) =>
-                setAttachments((prev) => [...prev, ...files])
-              }
-            >
-              <ActionIcon
-                className={styles.plusBtn}
-                size="lg"
-                radius="xl"
-                variant="subtle"
-                aria-label="Qo'shish"
-                onClick={() => setAttachMenuOpened((o) => !o)}
-              >
-                <MdAttachFile size={18} />
-              </ActionIcon>
-            </AttachMenu> */}
-
               <Box className={styles.actions}>
                 <ActionIcon
                   className={styles.micBtn}
