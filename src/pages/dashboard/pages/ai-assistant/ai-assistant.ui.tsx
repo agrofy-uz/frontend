@@ -1,12 +1,12 @@
 import {
   Box,
   ActionIcon,
+  Button,
   ScrollArea,
   Stack,
   Text,
   Tooltip,
   Group,
-  Modal,
 } from '@mantine/core';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -20,12 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
 import { IoArrowUp, IoChevronDown } from 'react-icons/io5';
-import {
-  MdContentCopy,
-  MdEdit,
-  MdCheck,
-  MdClose,
-} from 'react-icons/md';
+import { MdContentCopy, MdEdit, MdCheck, MdClose } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
 import { useMediaQuery } from '@mantine/hooks';
 import styles from './ai-assistant.module.css';
@@ -40,13 +35,17 @@ import {
   AiChatLimitError,
   applyAiChatLimitedFromPayload,
   applyAiChatLimitedUntil,
-  formatAiChatLimitUntil,
+  formatAiChatLimitCountdown,
   isAiChatSendBlocked,
 } from '@/shared/lib/aiChatLimit';
 import { refetchAuthMe } from '@/shared/lib/authSession';
+import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import {
   AI_ASSISTANT_MOBILE_MQ,
   AI_CHAT_LIMIT_MESSAGE,
+  AI_CHAT_LIMIT_NEXT_WRITE,
+  AI_CHAT_LIMIT_TITLE,
+  AI_CHAT_LIMIT_UPGRADE,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
   MAX_TEXTAREA_HEIGHT,
@@ -55,6 +54,7 @@ import {
   TYPING_DOT_ANIMATION,
 } from './ai-assistant.const';
 import { VoiceModal } from './ui/voice-modal/voice-modal.ui';
+import { ImagePreviewModal } from './ui/image-preview-modal';
 import { ChatMarkdown } from './ui/chat-markdown';
 
 const SCROLL_THRESHOLD_PX = 80;
@@ -69,6 +69,7 @@ function AiAssistant() {
   const navigate = useNavigate();
   const authHydrated = useAuthStoreHydrated();
   const { user } = useAuthStore();
+  const openPricingModal = usePricingModalStore((s) => s.open);
   const params = new URLSearchParams(location.search);
   const urlSessionId = params.get('chat');
 
@@ -100,12 +101,26 @@ function AiAssistant() {
   const chatLimitUntil = user?.ai_chat_limited_until;
   const isChatLimitActive = isAiChatSendBlocked(chatLimitUntil);
 
-  const chatLimitLabel = useMemo(() => {
+  const [limitCountdownTick, setLimitCountdownTick] = useState(0);
+
+  const chatLimitCountdown = useMemo(() => {
     if (!isChatLimitActive) return null;
-    if (chatLimitUntil?.trim()) {
-      return formatAiChatLimitUntil(chatLimitUntil);
-    }
-    return null;
+    return formatAiChatLimitCountdown(chatLimitUntil);
+  }, [isChatLimitActive, chatLimitUntil, limitCountdownTick]);
+
+  useEffect(() => {
+    if (!authHydrated) return undefined;
+    void refetchAuthMe();
+    return undefined;
+  }, [authHydrated]);
+
+  useEffect(() => {
+    if (!isChatLimitActive || !chatLimitUntil?.trim()) return undefined;
+    setLimitCountdownTick((t) => t + 1);
+    const id = window.setInterval(() => {
+      setLimitCountdownTick((t) => t + 1);
+    }, 1000);
+    return () => window.clearInterval(id);
   }, [isChatLimitActive, chatLimitUntil]);
 
   useEffect(() => {
@@ -229,8 +244,7 @@ function AiAssistant() {
                       ? 'system'
                       : 'user';
                 return {
-                  id:
-                    msg.id != null ? String(msg.id) : `msg_${Date.now()}`,
+                  id: msg.id != null ? String(msg.id) : `msg_${Date.now()}`,
                   role,
                   content: msg.text,
                   timestamp: msg.createdAt
@@ -265,11 +279,18 @@ function AiAssistant() {
         }
       } catch (err: unknown) {
         if (cancelled) return;
-        const e = err as { response?: { data?: { message?: string } }; message?: string };
+        const e = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
         const errorMessage =
           e.response?.data?.message || e.message || 'Xatolik yuz berdi';
         setError(errorMessage);
-        notifications.show({ title: 'Xatolik', message: errorMessage, color: 'red' });
+        notifications.show({
+          title: 'Xatolik',
+          message: errorMessage,
+          color: 'red',
+        });
       } finally {
         if (!cancelled) setIsInitializing(false);
       }
@@ -337,9 +358,9 @@ function AiAssistant() {
     if (!draft.trim() || isLoading || !user?.id) return;
     if (isChatLimitActive) {
       notifications.show({
-        title: 'Limit tugadi',
-        message: chatLimitLabel
-          ? `${AI_CHAT_LIMIT_MESSAGE} ${chatLimitLabel}`
+        title: AI_CHAT_LIMIT_TITLE,
+        message: chatLimitCountdown
+          ? `${AI_CHAT_LIMIT_MESSAGE} ${chatLimitCountdown}`
           : AI_CHAT_LIMIT_MESSAGE,
         color: 'orange',
       });
@@ -366,7 +387,12 @@ function AiAssistant() {
     const assistantId = `msg_${Date.now()}_assistant`;
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: 'assistant', content: '', timestamp: Date.now() },
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: '',
+        timestamp: Date.now(),
+      },
     ]);
 
     try {
@@ -395,7 +421,10 @@ function AiAssistant() {
               }
             : m
         );
-        if (!finalText && !next.find((m) => m.id === assistantId)?.content.trim()) {
+        if (
+          !finalText &&
+          !next.find((m) => m.id === assistantId)?.content.trim()
+        ) {
           return next.filter((m) => m.id !== assistantId);
         }
         return next;
@@ -406,11 +435,11 @@ function AiAssistant() {
       if (err instanceof AiChatLimitError) {
         applyAiChatLimitedUntil(err.limitedUntil);
         const limitMsg = err.limitedUntil
-          ? `${AI_CHAT_LIMIT_MESSAGE} ${formatAiChatLimitUntil(err.limitedUntil)}`
+          ? `${AI_CHAT_LIMIT_MESSAGE} ${formatAiChatLimitCountdown(err.limitedUntil)}`
           : AI_CHAT_LIMIT_MESSAGE;
         setError(limitMsg);
         notifications.show({
-          title: 'Limit tugadi',
+          title: AI_CHAT_LIMIT_TITLE,
           message: limitMsg,
           color: 'orange',
         });
@@ -592,22 +621,50 @@ function AiAssistant() {
 
         <Box className={styles.composerDock}>
           {isChatLimitActive && (
-            <Text className={styles.chatLimitBanner} size="sm" component="p">
-              {AI_CHAT_LIMIT_MESSAGE}
-              {chatLimitLabel ? (
-                <>
-                  {' '}
-                  <strong>{chatLimitLabel}</strong>
-                </>
-              ) : null}
-            </Text>
+            <Box className={styles.chatLimitStrip} aria-live="polite">
+              <Box className={styles.chatLimitStripInner}>
+                <Box className={styles.chatLimitStripInfo}>
+                  <Text className={styles.chatLimitStripTitle} component="p">
+                    {AI_CHAT_LIMIT_TITLE}
+                  </Text>
+                  <Text className={styles.chatLimitStripMeta} component="p">
+                    {AI_CHAT_LIMIT_NEXT_WRITE}
+                    {chatLimitCountdown ? (
+                      <>
+                        :{' '}
+                        <strong className={styles.chatLimitCountdown}>
+                          {chatLimitCountdown}
+                        </strong>
+                      </>
+                    ) : null}
+                  </Text>
+                </Box>
+                <Button
+                  type="button"
+                  // size="compact-sm"
+                  h={30}
+                  radius={22}
+                  variant="filled"
+                  color="green"
+                  className={styles.chatLimitUpgradeBtn}
+                  onClick={openPricingModal}
+                >
+                  {AI_CHAT_LIMIT_UPGRADE}
+                </Button>
+              </Box>
+            </Box>
           )}
           <div
-            className={`${styles.composer} ${isChatLimitActive ? styles.composerDisabled : ''}`}
-            onPointerDown={isChatLimitActive ? undefined : handleComposerPointerDown}
+            className={`${styles.composer} ${isChatLimitActive ? styles.composerWithLimitStrip : ''}`}
+            onPointerDown={handleComposerPointerDown}
           >
             {attachments.length > 0 && (
-              <Group gap={8} wrap="wrap" mb="xs" className={styles.attachmentsRow}>
+              <Group
+                gap={8}
+                wrap="wrap"
+                mb="xs"
+                className={styles.attachmentsRow}
+              >
                 {attachments.map((file, index) => {
                   const isImage = file.type.startsWith('image/');
                   const thumbUrl = isImage ? imageUrls[index] : null;
@@ -672,21 +729,14 @@ function AiAssistant() {
                 onChange={(e) => setDraft(e.target.value)}
                 onFocus={handleTextareaFocus}
                 onKeyDown={(e) => {
-                  if (isChatLimitActive) return;
                   if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
                     e.preventDefault();
                     handleSend();
                   }
                 }}
                 rows={1}
-                placeholder={
-                  isChatLimitActive
-                    ? 'Savol limiti tugadi'
-                    : 'Xabar yozing...'
-                }
+                placeholder="Xabar yozing..."
                 className={styles.textareaInput}
-                disabled={isChatLimitActive}
-                readOnly={isChatLimitActive}
                 enterKeyHint={isMobile ? 'enter' : 'send'}
                 autoComplete="off"
                 autoCorrect="on"
@@ -734,33 +784,10 @@ function AiAssistant() {
         onClose={() => setVoiceModalOpened(false)}
         onTranscribed={(text) => setDraft((p) => (p ? `${p} ${text}` : text))}
       />
-      <Modal
-        opened={!!previewImageUrl}
+      <ImagePreviewModal
+        imageUrl={previewImageUrl}
         onClose={() => setPreviewImageUrl(null)}
-        withCloseButton
-        size="auto"
-        padding={0}
-        radius="md"
-        centered
-        styles={{
-          content: { overflow: 'hidden' },
-          body: { padding: 0 },
-          header: { display: 'none' },
-        }}
-      >
-        {previewImageUrl && (
-          <img
-            src={previewImageUrl}
-            alt="Katta ko'rinish"
-            style={{
-              maxWidth: '100vw',
-              maxHeight: '100vh',
-              objectFit: 'contain',
-              display: 'block',
-            }}
-          />
-        )}
-      </Modal>
+      />
     </Box>
   );
 }

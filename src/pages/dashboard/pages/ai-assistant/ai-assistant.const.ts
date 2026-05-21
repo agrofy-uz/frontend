@@ -16,8 +16,11 @@ export const AI_TRUST_DISCLAIMER =
 export const AI_TRUST_DISCLAIMER_MOBILE =
   'AI javoblarini tekshirib foydalaning.';
 
+export const AI_CHAT_LIMIT_TITLE = 'Limitiz tugadi';
+export const AI_CHAT_LIMIT_NEXT_WRITE = 'Keyingi yozish vaqti';
+export const AI_CHAT_LIMIT_UPGRADE = 'Tarifni yangilash';
 export const AI_CHAT_LIMIT_MESSAGE =
-  "Savol limiti tugadi. Keyingi savolni yuborish uchun quyidagi vaqtgacha kuting:";
+  'Savol limiti tugadi. Keyingi yozish uchun kuting:';
 /**
  * Generates a short title for a chat based on the first AI response
  * @param content The assistant's reply content

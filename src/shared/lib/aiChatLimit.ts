@@ -98,13 +98,56 @@ export function isAiChatSendBlocked(
 export function formatAiChatLimitUntil(
   iso: string,
   locale = 'uz-UZ',
+  timeZone = 'Asia/Tashkent',
 ): string {
   const ms = Date.parse(iso);
   if (Number.isNaN(ms)) return iso;
   return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
+    timeZone,
   }).format(new Date(ms));
+}
+
+export type AiChatLimitRemaining = {
+  totalMs: number;
+  hours: number;
+  minutes: number;
+};
+
+/** Backend `limitedUntil` gacha qolgan vaqt (soat / daqiqa) */
+export function getAiChatLimitRemaining(
+  limitedUntil: string | null | undefined,
+  now = Date.now(),
+): AiChatLimitRemaining | null {
+  if (!limitedUntil?.trim()) return null;
+  const endMs = Date.parse(limitedUntil.trim());
+  if (Number.isNaN(endMs)) return null;
+  const totalMs = Math.max(0, endMs - now);
+  const hours = Math.floor(totalMs / 3_600_000);
+  const minutes = Math.floor((totalMs % 3_600_000) / 60_000);
+  return { totalMs, hours, minutes };
+}
+
+export function formatAiChatLimitCountdown(
+  limitedUntil: string | null | undefined,
+  now = Date.now(),
+): string {
+  const remaining = getAiChatLimitRemaining(limitedUntil, now);
+  if (!remaining) return '—';
+  if (remaining.totalMs <= 0) return 'tez orada';
+
+  const { hours, minutes } = remaining;
+
+  // 1 soatdan kam — faqat daqiqa (masalan: «20 daqiqa», soat yo‘q)
+  if (hours < 1) {
+    if (minutes > 0) return `${minutes} daqiqa`;
+    return '1 daqiqadan kam';
+  }
+
+  // 1 soat va undan ko‘p — daqiqa faqat qoldiq bo‘lsa
+  if (minutes > 0) return `${hours} soat ${minutes} daqiqa`;
+  return `${hours} soat`;
 }
 
 /** Store: chat yoki `/auth/me` dan limit yangilash */
