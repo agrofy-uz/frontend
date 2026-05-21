@@ -1,5 +1,9 @@
 import API, { API_BASE_URL } from '../../api.interface';
 import {
+  AiChatLimitError,
+  parseAiChatLimitedFromPayload,
+} from '@/shared/lib/aiChatLimit';
+import {
   ensureFreshAccessToken,
   isAuthErrorRequiringLogout,
   refreshAccessToken,
@@ -45,6 +49,8 @@ function parseSseDataPayload(
       lastMeta.id = String(j.id);
     if (j.role === 'user' || j.role === 'assistant') lastMeta.role = j.role;
     if (typeof j.createdAt === 'string') lastMeta.createdAt = j.createdAt;
+    if (j.aiChatLimited !== undefined) lastMeta.aiChatLimited = j.aiChatLimited;
+    if (j.AiChatLimited !== undefined) lastMeta.aiChatLimited = j.AiChatLimited;
     return fullText;
   } catch {
     return fullText + payload;
@@ -129,7 +135,19 @@ export const sendChatMessage = async (
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(errText || `HTTP ${res.status}`);
+    let message = errText || `HTTP ${res.status}`;
+    try {
+      const j = JSON.parse(errText) as Record<string, unknown>;
+      const parsed = parseAiChatLimitedFromPayload(j);
+      if (parsed?.active) {
+        const msg = j.message ?? j.Message;
+        if (typeof msg === 'string' && msg.trim()) message = msg.trim();
+        throw new AiChatLimitError(message, parsed.limitedUntil);
+      }
+    } catch (e) {
+      if (e instanceof AiChatLimitError) throw e;
+    }
+    throw new Error(message);
   }
 
   const contentType = res.headers.get('content-type') || '';
@@ -148,6 +166,9 @@ export const sendChatMessage = async (
           role: j.role ?? 'assistant',
           text: j.text ?? '',
           createdAt: j.createdAt,
+          aiChatLimited:
+            (j as Record<string, unknown>).aiChatLimited ??
+            (j as Record<string, unknown>).AiChatLimited,
         };
       }
     } catch {
@@ -188,6 +209,7 @@ export const sendChatMessage = async (
     role: lastMeta.role ?? 'assistant',
     text: fullText,
     createdAt: lastMeta.createdAt,
+    aiChatLimited: lastMeta.aiChatLimited,
   };
 };
 

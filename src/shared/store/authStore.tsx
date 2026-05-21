@@ -19,6 +19,8 @@ export interface IUser {
   premium_plan_tier?: string | null;
   premium_plan_tier_label_uz?: string | null;
   premium_plan_months?: number | null;
+  /** `aiChatLimited` — shu vaqtgacha AI chat yuborish bloklangan (ISO) */
+  ai_chat_limited_until?: string | null;
 }
 
 interface AuthState {

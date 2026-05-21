@@ -123,6 +123,9 @@ html[data-mantine-color-scheme='dark'] .welcomeTitle {
 
 .messagesList {
   min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   padding-bottom: 20px;
   max-width: 768px;
   margin: 0 auto;
@@ -673,6 +676,33 @@ html[data-mantine-color-scheme='dark'] .composer:focus-within {
     transparent
   );
   box-shadow: none;
+}
+
+.chatLimitBanner {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+  color: var(--mantine-color-orange-9);
+  background: var(--mantine-color-orange-0);
+  border: 1px solid var(--mantine-color-orange-3);
+}
+
+html[data-mantine-color-scheme='dark'] .chatLimitBanner {
+  color: var(--mantine-color-orange-2);
+  background: color-mix(
+    in srgb,
+    var(--mantine-color-orange-9) 18%,
+    transparent
+  );
+  border-color: var(--mantine-color-orange-8);
+}
+
+.composerDisabled {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .plusBtn {

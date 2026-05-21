@@ -15,6 +15,7 @@ import {
   useRef,
   useLayoutEffect,
   useCallback,
+  useMemo,
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
@@ -36,7 +37,16 @@ import {
 } from '@/shared/api';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
 import {
+  AiChatLimitError,
+  applyAiChatLimitedFromPayload,
+  applyAiChatLimitedUntil,
+  formatAiChatLimitUntil,
+  isAiChatSendBlocked,
+} from '@/shared/lib/aiChatLimit';
+import { refetchAuthMe } from '@/shared/lib/authSession';
+import {
   AI_ASSISTANT_MOBILE_MQ,
+  AI_CHAT_LIMIT_MESSAGE,
   AI_TRUST_DISCLAIMER,
   AI_TRUST_DISCLAIMER_MOBILE,
   MAX_TEXTAREA_HEIGHT,
@@ -66,8 +76,8 @@ function AiAssistant() {
     urlSessionId
   );
   const [messages, setMessages] = useState<Message[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
+  const scrollBottomAfterHistoryRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +96,30 @@ function AiAssistant() {
   });
 
   const hasMessages = messages.length > 0;
+
+  const chatLimitUntil = user?.ai_chat_limited_until;
+  const isChatLimitActive = isAiChatSendBlocked(chatLimitUntil);
+
+  const chatLimitLabel = useMemo(() => {
+    if (!isChatLimitActive) return null;
+    if (chatLimitUntil?.trim()) {
+      return formatAiChatLimitUntil(chatLimitUntil);
+    }
+    return null;
+  }, [isChatLimitActive, chatLimitUntil]);
+
+  useEffect(() => {
+    if (!chatLimitUntil?.trim() || !isChatLimitActive) return undefined;
+    const ms = Date.parse(chatLimitUntil.trim()) - Date.now();
+    if (ms <= 0) {
+      void refetchAuthMe();
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      void refetchAuthMe();
+    }, ms + 500);
+    return () => window.clearTimeout(timer);
+  }, [chatLimitUntil, isChatLimitActive]);
 
   // ─── Mobil: faqat dashboard content scroll qulfi (klaviatura — brauzerga) ───
   useEffect(() => {
@@ -205,6 +239,7 @@ function AiAssistant() {
                 };
               })
             );
+            scrollBottomAfterHistoryRef.current = true;
           }
         } else {
           setCurrentSessionId(null);
@@ -269,24 +304,47 @@ function AiAssistant() {
     setTimeout(syncScrollBtn, 350);
   }, [syncScrollBtn]);
 
+  /** Stream: yangi matn input ustida qoladi, eski qatorlar yuqoriga siljiydi */
+  const scrollToBottomInstant = useCallback(() => {
+    const vp = scrollViewportRef.current;
+    if (!vp) return;
+    vp.scrollTop = vp.scrollHeight;
+    syncScrollBtn();
+  }, [syncScrollBtn]);
+
   useLayoutEffect(() => {
     if (!hasMessages && !isLoading) return;
     const id = requestAnimationFrame(syncScrollBtn);
     return () => cancelAnimationFrame(id);
   }, [messages, hasMessages, isLoading, syncScrollBtn]);
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      scrollViewportRef.current?.scrollTo({
-        top: scrollViewportRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    }, 50);
-    return () => clearTimeout(t);
-  }, [messages.length, isLoading]);
+  useLayoutEffect(() => {
+    if (!isLoading || !hasMessages) return;
+    scrollToBottomInstant();
+  }, [messages, isLoading, hasMessages, scrollToBottomInstant]);
+
+  /** Chat tarixi yuklanganda — oxirgi xabarga */
+  useLayoutEffect(() => {
+    if (!scrollBottomAfterHistoryRef.current || isLoading) return;
+    scrollBottomAfterHistoryRef.current = false;
+    const id = requestAnimationFrame(() => {
+      scrollToBottom();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [messages, isLoading, scrollToBottom]);
 
   const handleSend = async () => {
     if (!draft.trim() || isLoading || !user?.id) return;
+    if (isChatLimitActive) {
+      notifications.show({
+        title: 'Limit tugadi',
+        message: chatLimitLabel
+          ? `${AI_CHAT_LIMIT_MESSAGE} ${chatLimitLabel}`
+          : AI_CHAT_LIMIT_MESSAGE,
+        color: 'orange',
+      });
+      return;
+    }
     const content = draft.trim();
     const chatId = currentSessionId || urlSessionId;
     if (!chatId) return;
@@ -342,13 +400,44 @@ function AiAssistant() {
         }
         return next;
       });
+
+      applyAiChatLimitedFromPayload(response);
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } }; message?: string };
-      const errorMessage =
-        e.response?.data?.message || e.message || 'Xatolik yuz berdi';
-      setError(errorMessage);
-      notifications.show({ title: 'Xatolik', message: errorMessage, color: 'red' });
-      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+      if (err instanceof AiChatLimitError) {
+        applyAiChatLimitedUntil(err.limitedUntil);
+        const limitMsg = err.limitedUntil
+          ? `${AI_CHAT_LIMIT_MESSAGE} ${formatAiChatLimitUntil(err.limitedUntil)}`
+          : AI_CHAT_LIMIT_MESSAGE;
+        setError(limitMsg);
+        notifications.show({
+          title: 'Limit tugadi',
+          message: limitMsg,
+          color: 'orange',
+        });
+        setMessages((prev) => {
+          const withoutAssistant = prev.filter((m) => m.id !== assistantId);
+          const last = withoutAssistant[withoutAssistant.length - 1];
+          if (last?.role === 'user' && last.content === content) {
+            return withoutAssistant.slice(0, -1);
+          }
+          return withoutAssistant;
+        });
+        setDraft(content);
+      } else {
+        const e = err as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          e.response?.data?.message || e.message || 'Xatolik yuz berdi';
+        setError(errorMessage);
+        notifications.show({
+          title: 'Xatolik',
+          message: errorMessage,
+          color: 'red',
+        });
+        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -391,6 +480,7 @@ function AiAssistant() {
                 return (
                   <motion.div
                     key={message.id}
+                    data-message-id={message.id}
                     {...MESSAGE_ANIMATION_VARIANTS}
                     className={
                       isUser ? styles.userMessage : styles.assistantMessage
@@ -457,7 +547,6 @@ function AiAssistant() {
                 );
               })}
             </AnimatePresence>
-            <div ref={messagesEndRef} />
           </Stack>
         </ScrollArea>
       ) : (
@@ -502,9 +591,20 @@ function AiAssistant() {
         </AnimatePresence>
 
         <Box className={styles.composerDock}>
+          {isChatLimitActive && (
+            <Text className={styles.chatLimitBanner} size="sm" component="p">
+              {AI_CHAT_LIMIT_MESSAGE}
+              {chatLimitLabel ? (
+                <>
+                  {' '}
+                  <strong>{chatLimitLabel}</strong>
+                </>
+              ) : null}
+            </Text>
+          )}
           <div
-            className={styles.composer}
-            onPointerDown={handleComposerPointerDown}
+            className={`${styles.composer} ${isChatLimitActive ? styles.composerDisabled : ''}`}
+            onPointerDown={isChatLimitActive ? undefined : handleComposerPointerDown}
           >
             {attachments.length > 0 && (
               <Group gap={8} wrap="wrap" mb="xs" className={styles.attachmentsRow}>
@@ -572,14 +672,21 @@ function AiAssistant() {
                 onChange={(e) => setDraft(e.target.value)}
                 onFocus={handleTextareaFocus}
                 onKeyDown={(e) => {
+                  if (isChatLimitActive) return;
                   if (e.key === 'Enter' && !e.shiftKey && !isMobile) {
                     e.preventDefault();
                     handleSend();
                   }
                 }}
                 rows={1}
-                placeholder="Xabar yozing..."
+                placeholder={
+                  isChatLimitActive
+                    ? 'Savol limiti tugadi'
+                    : 'Xabar yozing...'
+                }
                 className={styles.textareaInput}
+                disabled={isChatLimitActive}
+                readOnly={isChatLimitActive}
                 enterKeyHint={isMobile ? 'enter' : 'send'}
                 autoComplete="off"
                 autoCorrect="on"
@@ -593,6 +700,7 @@ function AiAssistant() {
                   radius="xl"
                   variant="subtle"
                   aria-label="Ovoz"
+                  disabled={isChatLimitActive}
                   onClick={() => setVoiceModalOpened(true)}
                 >
                   <BsMicMuteFill size={18} />
@@ -603,7 +711,7 @@ function AiAssistant() {
                   radius="xl"
                   variant="filled"
                   aria-label="Yuborish"
-                  disabled={!draft.trim() || isLoading}
+                  disabled={isChatLimitActive || !draft.trim() || isLoading}
                   onClick={handleSend}
                 >
                   <IoArrowUp size={18} />

@@ -1,3 +1,4 @@
+import { parseAiChatLimitedFromPayload } from '@/shared/lib/aiChatLimit';
 import { normalizePremiumPlanTierFromApi } from '@/shared/lib/premiumTier';
 import type { IUser } from '@/shared/store/authStore';
 import type { AuthMeResponse } from './auth.types';
@@ -47,6 +48,8 @@ export function mapAuthMeToUser(me: AuthMeResponse): IUser {
 
   const idRaw = readMeField(raw, 'id', 'Id');
 
+  const chatLimit = parseAiChatLimitedFromPayload(raw);
+
   return {
     id: String(idRaw ?? me.id),
     phone_number: phone,
@@ -65,5 +68,8 @@ export function mapAuthMeToUser(me: AuthMeResponse): IUser {
     premium_plan_tier: normalizePremiumPlanTierFromApi(tierRaw),
     premium_plan_tier_label_uz: labelUz ?? null,
     premium_plan_months: premiumMonths,
+    ai_chat_limited_until: chatLimit?.active
+      ? (chatLimit.limitedUntil ?? null)
+      : null,
   };
 }

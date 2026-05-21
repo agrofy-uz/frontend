@@ -44,6 +44,10 @@ export interface AuthMeResponse {
   premiumPlanMonths?: number | null;
   premiumPlanMonthsUnlimited?: boolean;
 
+  /** AI chat limiti — obyekt yoki ISO vaqt */
+  aiChatLimited?: unknown;
+  aiChatLimitedUntil?: string | null;
+
   /** JWT access token */
   // NOTE: me javobida tokenlar bo'lmaydi, ular verify javobidan olinadi
 }

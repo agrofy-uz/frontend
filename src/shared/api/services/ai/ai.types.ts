@@ -77,6 +77,7 @@ export interface SendChatMessageResponse {
   text?: string;
   role?: 'user' | 'assistant';
   createdAt?: string;
+  aiChatLimited?: unknown;
 }
 
 export interface ChatMessageItem {

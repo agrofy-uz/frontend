@@ -15,6 +15,9 @@ export const AI_TRUST_DISCLAIMER =
   "AI javoblariga to'liq ishonmang — muhim ma'lumotlarni mustaqil tekshiring.";
 export const AI_TRUST_DISCLAIMER_MOBILE =
   'AI javoblarini tekshirib foydalaning.';
+
+export const AI_CHAT_LIMIT_MESSAGE =
+  "Savol limiti tugadi. Keyingi savolni yuborish uchun quyidagi vaqtgacha kuting:";
 /**
  * Generates a short title for a chat based on the first AI response
  * @param content The assistant's reply content
