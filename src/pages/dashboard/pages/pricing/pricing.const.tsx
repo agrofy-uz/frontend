@@ -10,14 +10,16 @@ export type Feature = {
   included: boolean;
 };
 
+export type PlanColor = 'gray' | 'green' | 'blue' | 'violet';
+
 export type Plan = {
   id: string;
   name: string;
   slogan: string;
   price: string;
   period: string;
-  color: string;
-  gradient: string;
+  /** Faqat ikonka / CTA accent (karta foni bir xil) */
+  color: PlanColor;
   badge?: string;
   icon: React.ReactNode;
   features: Feature[];
@@ -33,7 +35,6 @@ export const PLANS: Plan[] = [
     price: "0 so'm",
     period: '',
     color: 'gray',
-    gradient: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
     icon: <HiOutlineXCircle size={22} />,
     cta: 'Bepul tarif',
     features: [
@@ -50,7 +51,6 @@ export const PLANS: Plan[] = [
     price: "29 999 so'm",
     period: '1 oy',
     color: 'green',
-    gradient: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
     icon: <HiLightningBolt size={22} />,
     cta: 'GO ni tanlash',
     features: [
@@ -68,8 +68,7 @@ export const PLANS: Plan[] = [
     slogan: "Ko'rinuvchanlik va tahlil",
     price: "79 999 so'm",
     period: '3 oy',
-    color: 'blue',
-    gradient: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+    color: 'green',
     badge: 'Mashhur',
     icon: <HiStar size={22} />,
     cta: 'PLUS ni tanlash',
@@ -90,8 +89,7 @@ export const PLANS: Plan[] = [
     slogan: "Maksimal vosita to'plami",
     price: "149 999 so'm",
     period: '6 oy',
-    color: 'violet',
-    gradient: 'linear-gradient(135deg, #faf5ff 0%, #ede9fe 100%)',
+    color: 'green',
     badge: 'Eng kuchli',
     icon: <HiSparkles size={22} />,
     cta: 'PRO ni tanlash',
@@ -107,13 +105,3 @@ export const PLANS: Plan[] = [
     ],
   },
 ];
-
-export const COLOR_MAP: Record<
-  string,
-  { icon: string; ring: string; badge: string }
-> = {
-  gray: { icon: '#94a3b8', ring: '#e2e8f0', badge: '#64748b' },
-  green: { icon: '#22c55e', ring: '#bbf7d0', badge: '#16a34a' },
-  blue: { icon: '#3b82f6', ring: '#bfdbfe', badge: '#2563eb' },
-  violet: { icon: '#8b5cf6', ring: '#ddd6fe', badge: '#7c3aed' },
-};

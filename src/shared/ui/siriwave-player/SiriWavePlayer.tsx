@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import SiriWave from 'siriwave';
+import SiriWave, { type IiOS9Ranges } from 'siriwave';
 
 export type SiriWavePlayerProps = {
   width?: number;
@@ -7,26 +7,31 @@ export type SiriWavePlayerProps = {
   speed?: number;
   amplitude?: number;
   color?: string;
-  /** true — animatsiya ishlaydi; false — to‘xtatiladi */
+  lerpSpeed?: number;
+  ranges?: IiOS9Ranges;
   isActive?: boolean;
   className?: string;
+  /** SiriWave instance ga to'g'ridan kirish uchun */
+  waveRef?: React.MutableRefObject<SiriWave | null>;
 };
 
 export function SiriWavePlayer({
   width = 300,
   height = 120,
-  speed = 0.2,
-  amplitude = 1,
+  speed = 0.15,
+  amplitude = 1.5,
   color,
+  lerpSpeed = 0.04,
+  ranges,
   isActive = true,
   className,
+  waveRef,
 }: SiriWavePlayerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const waveRef = useRef<SiriWave | null>(null);
+  const instanceRef = useRef<SiriWave | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
-
     const container = containerRef.current;
     if (!container) return undefined;
 
@@ -39,45 +44,37 @@ export function SiriWavePlayer({
       height,
       speed,
       amplitude,
+      lerpSpeed,
       autostart: false,
       ...(color ? { color } : {}),
+      ...(ranges ? { ranges } : {}),
     });
 
-    waveRef.current = wave;
-    if (isActive) {
-      wave.start();
-    }
+    instanceRef.current = wave;
+    if (waveRef) waveRef.current = wave;
+
+    if (isActive) wave.start();
 
     return () => {
       wave.dispose();
-      waveRef.current = null;
+      instanceRef.current = null;
+      if (waveRef) waveRef.current = null;
     };
-  }, [width, height, speed, amplitude, color]);
+  // amplitude/speed/isActive intentionally excluded — controlled via waveRef externally
+  }, [width, height, color, lerpSpeed, ranges]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const wave = waveRef.current;
+    const wave = instanceRef.current;
     if (!wave) return;
-
-    wave.setSpeed(speed);
-    wave.setAmplitude(amplitude);
-  }, [speed, amplitude]);
-
-  useEffect(() => {
-    const wave = waveRef.current;
-    if (!wave) return;
-
-    if (isActive) {
-      wave.start();
-    } else {
-      wave.stop();
-    }
+    if (isActive) wave.start();
+    else wave.stop();
   }, [isActive]);
 
   return (
     <div
       ref={containerRef}
       className={className}
-      style={{ width, height, lineHeight: 0 }}
+      style={{ width, height, lineHeight: 0, overflow: 'hidden' }}
       aria-hidden
     />
   );

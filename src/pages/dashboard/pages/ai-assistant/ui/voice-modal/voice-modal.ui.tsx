@@ -1,26 +1,29 @@
 import {
   Modal,
-  Stack,
   Text,
-  Group,
   ActionIcon,
   rem,
   Box,
-  Progress,
-  Slider,
-  Button as MantineButton,
 } from '@mantine/core';
-import { Button } from '@/shared/ui/button';
-import { SiriWavePlayer, SiriWavePlayerDemo } from '@/shared/ui/siriwave-player';
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { MdMic, MdPlayArrow, MdPause, MdRefresh, MdSend } from 'react-icons/md';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import {
+  MdMic,
+  MdStop,
+  MdPlayArrow,
+  MdPause,
+  MdSend,
+} from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
+import type SiriWave from 'siriwave';
+import { SiriWavePlayer } from '@/shared/ui/siriwave-player';
 import { transcribeAudio } from '@/shared/api';
 import { VOICE_MAX_DURATION, VOICE_MAX_SIZE } from '../../ai-assistant.const';
-import { VoiceModalStopButton } from './voice-modal-stop-button';
+import { useVoiceWaveLevel } from './use-voice-wave-level';
 import styles from './voice-modal.module.css';
 
-interface VoiceModalProps {
+const WAVE_HEIGHT = 180;
+
+export interface VoiceModalProps {
   opened: boolean;
   onClose: () => void;
   onTranscribed: (text: string) => void;
@@ -32,221 +35,162 @@ function formatTime(sec: number) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export function VoiceModal({
-  opened,
-  onClose,
-  onTranscribed,
-}: VoiceModalProps) {
-  const [isRecording, setIsRecording] = useState(false);
+export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) {
+  const [isRecording, setIsRecording]     = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [seconds, setSeconds] = useState(0);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [seconds, setSeconds]             = useState(0);
+  const [stream, setStream]               = useState<MediaStream | null>(null);
+  const [recordedBlob, setRecordedBlob]   = useState<Blob | null>(null);
   const [recordedDuration, setRecordedDuration] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playbackProgress, setPlaybackProgress] = useState(0);
-  const [waveWidth, setWaveWidth] = useState(240);
+  const [isPlaying, setIsPlaying]         = useState(false);
+  const [waveWidth, setWaveWidth]         = useState(300);
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const blobUrlRef = useRef<string | null>(null);
-  const waveTrackRef = useRef<HTMLDivElement | null>(null);
+  const waveInstanceRef   = useRef<SiriWave | null>(null);
+  const waveHostRef       = useRef<HTMLDivElement | null>(null);
+  const mediaRecorderRef  = useRef<MediaRecorder | null>(null);
+  const chunksRef         = useRef<Blob[]>([]);
+  const timerRef          = useRef<ReturnType<typeof setInterval> | null>(null);
+  const secondsRef        = useRef(0);
+  const [playbackAudio, setPlaybackAudio] = useState<HTMLAudioElement | null>(null);
+  const blobUrlRef        = useRef<string | null>(null);
 
-  const isRecorded = recordedBlob != null;
+  const hasRecording = recordedBlob != null;
+  const displaySeconds = isRecording ? seconds : hasRecording ? recordedDuration : 0;
 
+  // ── amplitude ni to'g'ridan wave ga uzatamiz (React state yo'q) ──────────
+  useVoiceWaveLevel({
+    enabled: opened,
+    isRecording,
+    isPlaying,
+    stream,
+    audioElement: playbackAudio,
+    waveRef: waveInstanceRef,
+  });
+
+  // ── waveHost kengligi ─────────────────────────────────────────────────────
+  useEffect(() => {
+    const el = waveHostRef.current;
+    if (!el) return undefined;
+    const sync = () => setWaveWidth(Math.max(260, el.clientWidth));
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [opened]);
+
+  // ── Modal ochildi/yopildi ─────────────────────────────────────────────────
   const stopRecordingLocally = useCallback(() => {
     setIsRecording(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    if (stream) { stream.getTracks().forEach((t) => t.stop()); setStream(null); }
   }, [stream]);
 
   useEffect(() => {
     if (!opened) {
       stopRecordingLocally();
+      setIsPlaying(false);
       setSeconds(0);
       setIsTranscribing(false);
       setRecordedBlob(null);
       setRecordedDuration(0);
-      setIsPlaying(false);
-      setPlaybackProgress(0);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-        blobUrlRef.current = null;
-      }
+      if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
+      setPlaybackAudio(null);
+      return undefined;
     }
+
+    const audio = new Audio();
+    audio.onended = () => {
+      setIsPlaying(false);
+      if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
+    };
+    setPlaybackAudio(audio);
+    return () => { audio.pause(); audio.src = ''; setPlaybackAudio(null); };
   }, [opened, stopRecordingLocally]);
 
-  useEffect(() => {
-    const el = waveTrackRef.current;
-    if (!el || !isRecording) return undefined;
+  useEffect(() => { secondsRef.current = seconds; }, [seconds]);
 
-    const syncWidth = () => {
-      setWaveWidth(Math.max(120, Math.floor(el.clientWidth)));
-    };
-
-    syncWidth();
-    const ro = new ResizeObserver(syncWidth);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isRecording]);
-
+  // ── Yozish ───────────────────────────────────────────────────────────────
   const startRecording = async () => {
+    if (isRecording || isTranscribing) return;
+    setRecordedBlob(null); setRecordedDuration(0); setSeconds(0); secondsRef.current = 0;
+    if (playbackAudio) { playbackAudio.pause(); setIsPlaying(false); }
+
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       setStream(mediaStream);
 
-      const mediaRecorder = new MediaRecorder(mediaStream);
-      mediaRecorderRef.current = mediaRecorder;
+      const rec = new MediaRecorder(mediaStream);
+      mediaRecorderRef.current = rec;
       chunksRef.current = [];
 
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, {
-          type: mediaRecorder.mimeType || 'audio/webm',
-        });
+      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
         if (blob.size > VOICE_MAX_SIZE) {
-          notifications.show({
-            title: 'Xatolik',
-            message: 'Audio fayl hajmi juda katta (maks: 5MB)',
-            color: 'red',
-          });
+          notifications.show({ title: 'Xatolik', message: 'Fayl hajmi juda katta (maks 5MB)', color: 'red' });
           return;
         }
         setRecordedBlob(blob);
-        setRecordedDuration(seconds);
+        setRecordedDuration(secondsRef.current);
       };
 
-      mediaRecorder.start();
+      rec.start();
       setIsRecording(true);
-      setRecordedBlob(null);
-      setSeconds(0);
 
       timerRef.current = setInterval(() => {
         setSeconds((prev) => {
           if (prev >= VOICE_MAX_DURATION) {
-            if (mediaRecorderRef.current?.state === 'recording') {
-              mediaRecorderRef.current.stop();
-              stopRecordingLocally();
-            }
+            if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
+            stopRecordingLocally();
             return prev;
           }
           return prev + 1;
         });
       }, 1000);
-    } catch (err) {
-      console.error('Mikrofonga ruxsat berilmadi:', err);
-      notifications.show({
-        title: 'Xatolik',
-        message: 'Mikrofonga ruxsat berilmagan yoki qurilma topilmadi',
-        color: 'red',
-      });
+    } catch {
+      notifications.show({ title: 'Xatolik', message: "Mikrofonga ruxsat yo'q", color: 'red' });
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      stopRecordingLocally();
-    }
+    if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
+    stopRecordingLocally();
   };
 
+  const handleRecordToggle = () => {
+    if (isTranscribing) return;
+    if (isRecording) stopRecording(); else void startRecording();
+  };
+
+  // ── Qayta eshitish ────────────────────────────────────────────────────────
   const handlePlayPause = () => {
-    if (!recordedBlob) return;
+    if (!recordedBlob || !playbackAudio || isRecording || isTranscribing) return;
+    if (isPlaying) { playbackAudio.pause(); setIsPlaying(false); return; }
     if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
     const url = URL.createObjectURL(recordedBlob);
     blobUrlRef.current = url;
-    if (!audioRef.current) {
-      const audio = new Audio();
-      audioRef.current = audio;
-      audio.onended = () => {
-        setIsPlaying(false);
-        setPlaybackProgress(100);
-        if (blobUrlRef.current) {
-          URL.revokeObjectURL(blobUrlRef.current);
-          blobUrlRef.current = null;
-        }
-      };
-      audio.ontimeupdate = () => {
-        if (audio.duration) {
-          setPlaybackProgress((audio.currentTime / audio.duration) * 100);
-        }
-      };
-    }
-    const audio = audioRef.current;
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.src = url;
-      audio.play();
-    }
-    setIsPlaying(!isPlaying);
+    playbackAudio.src = url;
+    void playbackAudio.play();
+    setIsPlaying(true);
   };
 
+  // ── Yuborish ─────────────────────────────────────────────────────────────
   const handleSendTranscribe = async () => {
-    if (!recordedBlob) return;
+    if (!recordedBlob || isTranscribing) return;
     setIsTranscribing(true);
+    if (playbackAudio) { playbackAudio.pause(); setIsPlaying(false); }
     try {
-      const response = await transcribeAudio(recordedBlob);
-      if (response.text?.trim()) {
-        onTranscribed(response.text);
-        onClose();
-      } else {
-        notifications.show({
-          title: "Ma'lumot",
-          message: 'Hech qanday gap aniqlanmadi',
-          color: 'blue',
-        });
-      }
+      const res = await transcribeAudio(recordedBlob);
+      if (res.text?.trim()) { onTranscribed(res.text); onClose(); }
+      else notifications.show({ title: "Ma'lumot", message: 'Gap aniqlanmadi', color: 'blue' });
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Transkripsiya qilishda xatolik yuz berdi';
       notifications.show({
         title: 'Xatolik',
-        message,
+        message: err instanceof Error ? err.message : 'Transkripsiya xatoligi',
         color: 'red',
       });
-    } finally {
-      setIsTranscribing(false);
-    }
+    } finally { setIsTranscribing(false); }
   };
-
-  const handleRecordAgain = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
-    }
-    setRecordedBlob(null);
-    setRecordedDuration(0);
-    setIsPlaying(false);
-    setPlaybackProgress(0);
-    setSeconds(0);
-    startRecording();
-  };
-
-  const progressValue = (seconds / VOICE_MAX_DURATION) * 100;
 
   return (
     <Modal
@@ -257,170 +201,78 @@ export function VoiceModal({
       size="sm"
       radius="md"
       withCloseButton={!isTranscribing}
-      styles={{
-        title: { fontWeight: 600, fontSize: rem(18) },
-      }}
+      styles={{ title: { fontWeight: 600, fontSize: rem(18) }, body: { paddingTop: rem(8) } }}
     >
-      <Stack align="stretch" py="md" gap="xl">
-        <Box className={styles.voiceStrip}>
-          {!isRecorded && !isRecording && !isTranscribing && (
-            <>
-              <SiriWavePlayerDemo />
-              <Stack align="center" gap="xs" pb="md">
-                <Text fw={600} fz="lg" c="dimmed" ta="center">
-                  Tez kunda
-                </Text>
-                <Text fz="sm" c="dimmed" ta="center">
-                  Ovozli xabar xususiyati yaqinda qo‘shiladi
-                </Text>
-              </Stack>
-            </>
-          )}
+      <Box className={`${styles.shell} ${isTranscribing ? styles.shellTranscribing : ''}`}>
+        {isTranscribing && (
+          <Box className={styles.transcribingOverlay}>
+            <Text className={styles.transcribingText} size="sm">Matnga o&apos;girilmoqda...</Text>
+          </Box>
+        )}
 
-          {!isRecorded && !isRecording && !isTranscribing && (
-            <Stack align="center" gap="lg">
-              <ActionIcon
-                color="green"
-                size={72}
-                radius="xl"
-                variant="filled"
-                onClick={startRecording}
-                disabled={isTranscribing}
-                style={{
-                  boxShadow: '0 4px 14px rgba(34, 197, 94, 0.4)',
-                  transition: 'transform 0.2s ease',
-                }}
-              >
-                <MdMic size={40} />
-              </ActionIcon>
-              <Text fw={500} fz="md" c="dimmed" ta="center">
-                Mikrofonni bosib gapirishni boshlang
-              </Text>
-            </Stack>
-          )}
-
-          {(isRecording || isRecorded) && !isTranscribing && (
-            <>
-              <Group wrap="nowrap" align="center" justify="space-between">
-                {isRecording ? (
-                  <VoiceModalStopButton onClick={stopRecording} />
-                ) : (
-                  <ActionIcon
-                    color="green"
-                    size="lg"
-                    radius="xl"
-                    variant="filled"
-                    onClick={handlePlayPause}
-                    style={{ flexShrink: 0 }}
-                  >
-                    {isPlaying ? (
-                      <MdPause size={24} />
-                    ) : (
-                      <MdPlayArrow size={24} />
-                    )}
-                  </ActionIcon>
-                )}
-                <Box ref={waveTrackRef} className={styles.waveTrack}>
-                  {isRecording ? (
-                    <SiriWavePlayer
-                      width={waveWidth}
-                      height={48}
-                      speed={0.25}
-                      amplitude={1.2}
-                      color="#22c55e"
-                      isActive={isRecording}
-                    />
-                  ) : (
-                    <Slider
-                      value={playbackProgress}
-                      onChange={() => {}}
-                      size="sm"
-                      color="green"
-                      radius="xl"
-                      min={0}
-                      max={100}
-                      step={0.1}
-                      styles={{ root: { pointerEvents: 'none', width: '100%' } }}
-                    />
-                  )}
-                </Box>
-                <Text fw={600} fz="sm" className={styles.duration}>
-                  {isRecording
-                    ? formatTime(seconds)
-                    : formatTime(recordedDuration)}
-                </Text>
-              </Group>
-              {isRecording && (
-                <>
-                  <Progress
-                    value={progressValue}
-                    size="xs"
-                    color="green"
-                    radius="xl"
-                    mt="sm"
-                  />
-                  <Text className={styles.recordedSeconds} mt={4}>
-                    {seconds} / {VOICE_MAX_DURATION} soniya
-                  </Text>
-                </>
-              )}
-              {isRecorded && (
-                <>
-                  <Text className={styles.recordedSeconds} mt="xs">
-                    {recordedDuration} soniya yozildi
-                  </Text>
-                  <Group grow mt="md">
-                    <MantineButton
-                      variant="outline"
-                      color="gray"
-                      leftSection={<MdRefresh size={18} />}
-                      onClick={handleRecordAgain}
-                      radius="xl"
-                      h={36}
-                    >
-                      Qayta yozish
-                    </MantineButton>
-                    <Button
-                      color="green"
-                      leftSection={<MdSend size={18} />}
-                      onClick={handleSendTranscribe}
-                      radius="xl"
-                      h={36}
-                    >
-                      Matnga o'girish
-                    </Button>
-                  </Group>
-                </>
-              )}
-            </>
-          )}
-
-          {isTranscribing && (
-            <Stack align="center" gap="md" py="md">
-              <MdRefresh
-                className={styles.loadingSpinner}
-                size={rem(32)}
-                style={{ color: 'var(--mantine-color-green-6)' }}
-              />
-              <Text fw={500} c="dimmed">
-                Matnga o'girilmoqda...
-              </Text>
-            </Stack>
-          )}
+        {/* To'lqin */}
+        <Box className={styles.waveZone}>
+          <Box ref={waveHostRef} className={styles.waveHost}>
+            <SiriWavePlayer
+              waveRef={waveInstanceRef}
+              width={waveWidth}
+              height={WAVE_HEIGHT}
+              color="#22c55e"
+              amplitude={1}
+              lerpSpeed={0.07}
+              ranges={{
+                amplitude: [0.4, 5.5],
+                width: [1.2, 3],
+                speed: [0.06, 0.4],
+              }}
+              isActive
+            />
+          </Box>
         </Box>
 
-        {!isRecorded && !isRecording && !isTranscribing && (
-          <MantineButton
-            variant="outline"
-            onClick={onClose}
-            fullWidth
-            radius="xl"
-            h={36}
+        {/* Taymer */}
+        <Text className={styles.timer} component="p">
+          {formatTime(displaySeconds)}
+        </Text>
+
+        {/* Tugmalar — 1 qator: [Play] [Mic/Stop] [Send] */}
+        <Box className={styles.controls}>
+          {/* Chap: eshitish */}
+          <ActionIcon
+            className={`${styles.sideBtn} ${styles.sideBtnPlay}`}
+            variant="filled"
+            aria-label={isPlaying ? 'Pauza' : 'Eshitish'}
+            onClick={handlePlayPause}
+            disabled={!hasRecording || isRecording || isTranscribing}
           >
-            Bekor qilish
-          </MantineButton>
-        )}
-      </Stack>
+            {isPlaying ? <MdPause size={24} /> : <MdPlayArrow size={24} />}
+          </ActionIcon>
+
+          {/* O'rta: asosiy tugma */}
+          <ActionIcon
+            className={`${styles.recordBtn} ${isRecording ? styles.recordBtnRecording : ''}`}
+            variant="filled"
+            color={isRecording ? 'red' : 'green'}
+            onClick={handleRecordToggle}
+            disabled={isTranscribing}
+            aria-label={isRecording ? "Yozishni to'xtatish" : 'Yozishni boshlash'}
+          >
+            {isRecording ? <MdStop size={38} /> : <MdMic size={38} />}
+          </ActionIcon>
+
+          {/* O'ng: yuborish (hozircha o'chirilgan) */}
+          <ActionIcon
+            className={`${styles.sideBtn} ${styles.sideBtnSend}`}
+            variant="filled"
+            color="green"
+            aria-label="Yuborish"
+            disabled
+            onClick={() => void handleSendTranscribe()}
+          >
+            <MdSend size={22} />
+          </ActionIcon>
+        </Box>
+      </Box>
     </Modal>
   );
 }

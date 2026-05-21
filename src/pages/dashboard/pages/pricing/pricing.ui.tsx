@@ -27,7 +27,7 @@ import {
   openTelegramHelp,
   openTelegramPremium,
 } from '@/shared/lib/telegramNavigation';
-import { COLOR_MAP, PLANS, type Feature, type Plan } from './pricing.const';
+import { PLANS, type Feature, type Plan, type PlanColor } from './pricing.const';
 import styles from './pricing.module.css';
 
 /* ------------------------------------------------------------------ */
@@ -44,11 +44,7 @@ function FeatureRow({ text, included }: Feature) {
           color={included ? 'green' : 'gray'}
           style={{ marginTop: 1 }}
         >
-          {included ? (
-            <HiCheckCircle size={18} style={{ color: '#22c55e' }} />
-          ) : (
-            <HiOutlineXCircle size={18} style={{ color: '#cbd5e1' }} />
-          )}
+          {included ? <HiCheckCircle size={18} /> : <HiOutlineXCircle size={18} />}
         </ThemeIcon>
       }
     >
@@ -66,73 +62,56 @@ function FeatureRow({ text, included }: Feature) {
 /* ------------------------------------------------------------------ */
 /*  Plan card                                                            */
 /* ------------------------------------------------------------------ */
-function PlanCard({
-  plan,
-  current,
-}: {
-  plan: Plan;
-  current: boolean;
-}) {
-  const c = COLOR_MAP[plan.color];
+function planIconColor(color: PlanColor): PlanColor {
+  return color === 'gray' ? 'gray' : 'green';
+}
+
+function PlanCard({ plan, current }: { plan: Plan; current: boolean }) {
   const isFree = plan.id === 'free';
   const ctaLabel = current ? 'Hozirgi tarif' : plan.cta;
+  const accent: PlanColor = planIconColor(plan.color);
 
   return (
-    <Paper
-      radius="xl"
-      p="xl"
-      style={{
-        background: plan.gradient,
-        border: current
-          ? '2px solid var(--mantine-color-green-filled)'
-          : plan.highlight
-            ? `2px solid ${c.ring}`
-            : '1px solid var(--mantine-color-default-border)',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        boxShadow: current
-          ? '0 4px 20px rgba(34, 197, 94, 0.15)'
-          : plan.highlight
-            ? '0 8px 32px rgba(59,130,246,0.10)'
-            : '0 2px 8px rgba(0,0,0,0.04)',
-      }}
-    >
-      {current && (
-        <Badge
-          pos="absolute"
-          top={12}
-          right={12}
-          variant="filled"
-          color="green"
-          radius="md"
-          size="sm"
-          style={{ zIndex: 2, fontWeight: 700 }}
-        >
-          Hozirgi
-        </Badge>
-      )}
-
+    <Box className={plan.badge ? styles.planCardWrap : undefined} style={{ height: '100%' }}>
       {plan.badge && (
         <Badge
-          pos="absolute"
-          top={-12}
-          left="50%"
-          style={{
-            transform: 'translateX(-50%)',
-            background: c.badge,
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: 12,
-            padding: '3px 14px',
-            borderRadius: 999,
-            letterSpacing: 0.3,
-          }}
+          className={styles.planTopBadge}
+          variant="filled"
+          color="green"
+          radius="xl"
         >
           {plan.badge}
         </Badge>
       )}
+
+      <Paper
+        radius="xl"
+        p="xl"
+        withBorder
+        shadow="sm"
+        bg="var(--mantine-color-body)"
+        className={[
+          styles.planCard,
+          plan.highlight ? styles.planCardHighlight : '',
+          current ? styles.planCardCurrent : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
+        {current && (
+          <Badge
+            pos="absolute"
+            top={12}
+            right={12}
+            variant="filled"
+            color="green"
+            radius="md"
+            size="sm"
+            style={{ zIndex: 2, fontWeight: 700 }}
+          >
+            Hozirgi
+          </Badge>
+        )}
 
       {/* Header */}
       <Flex align="center" gap="sm" mb="xs" pr={current ? 72 : 0}>
@@ -140,10 +119,10 @@ function PlanCard({
           size={38}
           radius="xl"
           variant="light"
-          color={plan.color === 'gray' ? 'gray' : plan.color}
-          style={{ background: `${c.ring}80`, flexShrink: 0 }}
+          color={accent}
+          style={{ flexShrink: 0 }}
         >
-          <span style={{ color: c.icon }}>{plan.icon}</span>
+          {plan.icon}
         </ThemeIcon>
         <Box style={{ flex: 1, minWidth: 0 }}>
           <Text fw={700} fz={18} lh={1.2} lineClamp={2}>
@@ -195,9 +174,7 @@ function PlanCard({
               fw={600}
               c={current ? 'green.7' : 'dimmed'}
               style={
-                current
-                  ? undefined
-                  : { color: 'var(--mantine-color-dimmed)' }
+                current ? undefined : { color: 'var(--mantine-color-dimmed)' }
               }
             >
               {ctaLabel}
@@ -210,19 +187,11 @@ function PlanCard({
             radius="lg"
             disabled={current}
             variant={current ? 'light' : 'filled'}
-            color={
-              plan.color === 'green'
-                ? 'green'
-                : plan.color === 'blue'
-                  ? 'blue'
-                  : 'violet'
-            }
+            color="green"
             classNames={{
               root: [
                 styles.planCta,
-                current && plan.color === 'green' ? styles.planCtaGreen : '',
-                current && plan.color === 'blue' ? styles.planCtaBlue : '',
-                current && plan.color === 'violet' ? styles.planCtaViolet : '',
+                current ? styles.planCtaCurrent : '',
               ]
                 .filter(Boolean)
                 .join(' '),
@@ -230,21 +199,13 @@ function PlanCard({
             onClick={(e) => {
               if (!current) openTelegramPremium(e);
             }}
-            styles={
-              current
-                ? undefined
-                : {
-                    root: {
-                      boxShadow: `0 4px 14px -3px ${c.icon}55`,
-                    },
-                  }
-            }
           >
             {ctaLabel}
           </MantineButton>
         )}
       </Box>
-    </Paper>
+      </Paper>
+    </Box>
   );
 }
 
@@ -274,7 +235,7 @@ function UspsRow() {
           py={6}
           style={{
             borderRadius: 999,
-            background: 'light-dark(#f1f5f9, rgba(255,255,255,0.06))',
+            background: 'var(--mantine-color-default-hover)',
             border: '1px solid var(--mantine-color-default-border)',
           }}
         >
@@ -348,7 +309,7 @@ export function PricingView() {
 
   const visiblePlans = useMemo(
     () => (isMobile ? PLANS.filter((plan) => plan.id !== 'free') : PLANS),
-    [isMobile],
+    [isMobile]
   );
 
   return (
@@ -396,6 +357,8 @@ export function PricingView() {
               : 'repeat(4, 1fr)',
             gap: 20,
             alignItems: 'stretch',
+            overflow: 'visible',
+            paddingTop: 4,
           }}
         >
           {visiblePlans.map((plan) => (
@@ -407,38 +370,38 @@ export function PricingView() {
           ))}
         </Box>
 
-      {/* Sahifa eng pasti */}
-      <Flex
-        align="center"
-        justify="center"
-        gap="xs"
-        pt="xl"
-        pb="md"
-        wrap="wrap"
-      >
-        <HiShieldCheck size={16} color="#22c55e" style={{ flexShrink: 0 }} />
-        <Text size="xs" c="dimmed" ta="center" maw={520}>
-          To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
-          <Text
-            component="button"
-            type="button"
-            size="xs"
-            c="green"
-            style={{
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              background: 'none',
-              border: 'none',
-              padding: 0,
-              font: 'inherit',
-            }}
-            onClick={openTelegramHelp}
-          >
-            biz bilan bog'laning
+        {/* Sahifa eng pasti */}
+        <Flex
+          align="center"
+          justify="center"
+          gap="xs"
+          pt="xl"
+          pb="md"
+          wrap="wrap"
+        >
+          <HiShieldCheck size={16} color="#22c55e" style={{ flexShrink: 0 }} />
+          <Text size="xs" c="dimmed" ta="center" maw={520}>
+            To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
+            <Text
+              component="button"
+              type="button"
+              size="xs"
+              c="green"
+              style={{
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                font: 'inherit',
+              }}
+              onClick={openTelegramHelp}
+            >
+              biz bilan bog'laning
+            </Text>
+            .
           </Text>
-          .
-        </Text>
-      </Flex>
+        </Flex>
       </Stack>
     </Box>
   );
