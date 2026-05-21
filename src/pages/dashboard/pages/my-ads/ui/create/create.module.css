@@ -1,9 +1,9 @@
-.shell {
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
+/* Mobil fullscreen modal ichidagi layout */
+.shellInner {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0;
   background: var(--mantine-color-body);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
