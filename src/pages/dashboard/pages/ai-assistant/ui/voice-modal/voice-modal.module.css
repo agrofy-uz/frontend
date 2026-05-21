@@ -5,6 +5,15 @@
   padding: 16px;
 }
 
+.waveTrack {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .waveformBar {
   width: 30px;
   border-radius: 2px;

@@ -11,6 +11,7 @@ import {
   Button as MantineButton,
 } from '@mantine/core';
 import { Button } from '@/shared/ui/button';
+import { SiriWavePlayer, SiriWavePlayerDemo } from '@/shared/ui/siriwave-player';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MdMic, MdPlayArrow, MdPause, MdRefresh, MdSend } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
@@ -24,8 +25,6 @@ interface VoiceModalProps {
   onClose: () => void;
   onTranscribed: (text: string) => void;
 }
-
-const WAVEFORM_BARS = 24;
 
 function formatTime(sec: number) {
   const m = Math.floor(sec / 60);
@@ -46,17 +45,14 @@ export function VoiceModal({
   const [recordedDuration, setRecordedDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackProgress, setPlaybackProgress] = useState(0);
-  const [waveformHeights, setWaveformHeights] = useState<number[]>(
-    Array(WAVEFORM_BARS).fill(0.3)
-  );
+  const [waveWidth, setWaveWidth] = useState(240);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const blobUrlRef = useRef<string | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
+  const waveTrackRef = useRef<HTMLDivElement | null>(null);
 
   const isRecorded = recordedBlob != null;
 
@@ -70,10 +66,6 @@ export function VoiceModal({
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
     }
-    if (analyserRef.current && animationFrameRef.current != null) {
-      cancelAnimationFrame(animationFrameRef.current);
-    }
-    setWaveformHeights(Array(WAVEFORM_BARS).fill(0.3));
   }, [stream]);
 
   useEffect(() => {
@@ -96,22 +88,19 @@ export function VoiceModal({
     }
   }, [opened, stopRecordingLocally]);
 
-  const updateWaveform = useCallback(() => {
-    const analyser = analyserRef.current;
-    if (!analyser) return;
+  useEffect(() => {
+    const el = waveTrackRef.current;
+    if (!el || !isRecording) return undefined;
 
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(dataArray);
+    const syncWidth = () => {
+      setWaveWidth(Math.max(120, Math.floor(el.clientWidth)));
+    };
 
-    const step = Math.floor(dataArray.length / WAVEFORM_BARS);
-    const newHeights = Array.from({ length: WAVEFORM_BARS }, (_, i) => {
-      const idx = i * step;
-      const value = dataArray[idx] ?? 0;
-      return 0.25 + (value / 255) * 0.75;
-    });
-    setWaveformHeights(newHeights);
-    animationFrameRef.current = requestAnimationFrame(updateWaveform);
-  }, []);
+    syncWidth();
+    const ro = new ResizeObserver(syncWidth);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isRecording]);
 
   const startRecording = async () => {
     try {
@@ -119,15 +108,6 @@ export function VoiceModal({
         audio: true,
       });
       setStream(mediaStream);
-
-      const audioContext = new AudioContext();
-      const source = audioContext.createMediaStreamSource(mediaStream);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.8;
-      source.connect(analyser);
-      analyserRef.current = analyser;
-      updateWaveform();
 
       const mediaRecorder = new MediaRecorder(mediaStream);
       mediaRecorderRef.current = mediaRecorder;
@@ -234,10 +214,14 @@ export function VoiceModal({
           color: 'blue',
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'Transkripsiya qilishda xatolik yuz berdi';
       notifications.show({
         title: 'Xatolik',
-        message: err.message || 'Transkripsiya qilishda xatolik yuz berdi',
+        message,
         color: 'red',
       });
     } finally {
@@ -279,16 +263,21 @@ export function VoiceModal({
     >
       <Stack align="stretch" py="md" gap="xl">
         <Box className={styles.voiceStrip}>
-          {/* Hozircha: Tez kunda */}
-          <Stack align="center" gap="md" py="xl">
-            <Text fw={600} fz="lg" c="dimmed" ta="center">
-              Tez kunda
-            </Text>
-            <Text fz="sm" c="dimmed" ta="center">
-              Ovozli xabar xususiyati yaqinda qo‘shiladi
-            </Text>
-          </Stack>
-          {false && !isRecorded && !isRecording && (
+          {!isRecorded && !isRecording && !isTranscribing && (
+            <>
+              <SiriWavePlayerDemo />
+              <Stack align="center" gap="xs" pb="md">
+                <Text fw={600} fz="lg" c="dimmed" ta="center">
+                  Tez kunda
+                </Text>
+                <Text fz="sm" c="dimmed" ta="center">
+                  Ovozli xabar xususiyati yaqinda qo‘shiladi
+                </Text>
+              </Stack>
+            </>
+          )}
+
+          {!isRecorded && !isRecording && !isTranscribing && (
             <Stack align="center" gap="lg">
               <ActionIcon
                 color="green"
@@ -331,39 +320,30 @@ export function VoiceModal({
                     )}
                   </ActionIcon>
                 )}
-                <Group
-                  gap={4}
-                  wrap="nowrap"
-                  style={{ flex: 1, minWidth: 0 }}
-                  align="center"
-                >
+                <Box ref={waveTrackRef} className={styles.waveTrack}>
                   {isRecording ? (
-                    waveformHeights.map((h, i) => (
-                      <Box
-                        key={i}
-                        className={styles.waveformBar}
-                        style={{
-                          height: rem(36 * h),
-                          animationDelay: `${i * 0.03}s`,
-                        }}
-                      />
-                    ))
+                    <SiriWavePlayer
+                      width={waveWidth}
+                      height={48}
+                      speed={0.25}
+                      amplitude={1.2}
+                      color="#22c55e"
+                      isActive={isRecording}
+                    />
                   ) : (
-                    <Box style={{ flex: 1, minWidth: 0, width: '100%' }}>
-                      <Slider
-                        value={playbackProgress}
-                        onChange={() => {}}
-                        size="sm"
-                        color="green"
-                        radius="xl"
-                        min={0}
-                        max={100}
-                        step={0.1}
-                        styles={{ root: { pointerEvents: 'none' } }}
-                      />
-                    </Box>
+                    <Slider
+                      value={playbackProgress}
+                      onChange={() => {}}
+                      size="sm"
+                      color="green"
+                      radius="xl"
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      styles={{ root: { pointerEvents: 'none', width: '100%' } }}
+                    />
                   )}
-                </Group>
+                </Box>
                 <Text fw={600} fz="sm" className={styles.duration}>
                   {isRecording
                     ? formatTime(seconds)
