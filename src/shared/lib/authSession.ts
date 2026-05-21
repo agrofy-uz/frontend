@@ -151,15 +151,17 @@ export async function ensureFreshAccessToken(): Promise<void> {
 }
 
 let bootstrapPromise: Promise<void> | null = null;
+let refetchMePromise: Promise<void> | null = null;
 
-export function bootstrapAuthSession(): Promise<void> {
-  const initial = useAuthStore.getState();
-  if (!initial.isAuthenticated || !initial.accessToken) {
-    return Promise.resolve();
+/** `GET /auth/me` — premium va profil holatini yangilash */
+export async function refetchAuthMe(): Promise<void> {
+  const { isAuthenticated, accessToken } = useAuthStore.getState();
+  if (!isAuthenticated || !accessToken?.trim()) {
+    return;
   }
 
-  if (!bootstrapPromise) {
-    bootstrapPromise = (async () => {
+  if (!refetchMePromise) {
+    refetchMePromise = (async () => {
       const { getAuthMe } = await import(
         '@/shared/api/services/auth/auth.api'
       );
@@ -168,12 +170,7 @@ export function bootstrapAuthSession(): Promise<void> {
       );
 
       try {
-        const latest = useAuthStore.getState();
-        if (
-          isAccessTokenStale(latest.accessExpiresAt, latest.accessToken)
-        ) {
-          await refreshAccessToken();
-        }
+        await ensureFreshAccessToken();
       } catch (err) {
         if (isAuthErrorRequiringLogout(err)) {
           return;
@@ -191,6 +188,21 @@ export function bootstrapAuthSession(): Promise<void> {
         }
       }
     })().finally(() => {
+      refetchMePromise = null;
+    });
+  }
+
+  return refetchMePromise;
+}
+
+export function bootstrapAuthSession(): Promise<void> {
+  const initial = useAuthStore.getState();
+  if (!initial.isAuthenticated || !initial.accessToken) {
+    return Promise.resolve();
+  }
+
+  if (!bootstrapPromise) {
+    bootstrapPromise = refetchAuthMe().finally(() => {
       bootstrapPromise = null;
     });
   }
@@ -200,5 +212,6 @@ export function bootstrapAuthSession(): Promise<void> {
 
 export function resetSessionBootstrap(): void {
   bootstrapPromise = null;
+  refetchMePromise = null;
   refreshPromise = null;
 }

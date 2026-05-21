@@ -1,7 +1,8 @@
 import { Box, Flex, ActionIcon, Drawer } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { refetchAuthMe } from '@/shared/lib/authSession';
 import { BsLayoutSidebar } from 'react-icons/bs';
 import { SettingsModal } from '@/pages/dashboard/pages/settings';
 import { PricingModal } from '@/pages/dashboard/pages/pricing';
@@ -13,6 +14,7 @@ import { MobileDashboardDrawerContext } from './mobile-dashboard-drawer.context'
 import styles from './dashboard-layout.module.css';
 import { Helmet } from 'react-helmet-async';
 const DashboardLayout = () => {
+  const location = useLocation();
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const [mobileOpened, { open: openMobile, close: closeMobile }] =
     useDisclosure(false);
@@ -30,6 +32,11 @@ const DashboardLayout = () => {
 
     toggleDesktop();
   };
+
+  /** Har sahifa (route) o‘zgarganda `/auth/me` */
+  useEffect(() => {
+    void refetchAuthMe();
+  }, [location.pathname, location.search]);
 
   /** Mobil sidebar Drawer ochiq bo‘lsa — overlay scroll/touchni pricing ustida ushlab qoladi */
   useEffect(() => {
