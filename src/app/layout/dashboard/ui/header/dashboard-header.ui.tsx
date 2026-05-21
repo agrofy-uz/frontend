@@ -1,4 +1,4 @@
-import { Box, Flex, Text, UnstyledButton } from '@mantine/core';
+import { Box, Text, UnstyledButton } from '@mantine/core';
 import { useMediaQuery } from '@mantine/hooks';
 import { useTranslation } from 'react-i18next';
 import { HiLightningBolt } from 'react-icons/hi';
@@ -21,9 +21,11 @@ const DashboardHeader = () => {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const openPricingModal = usePricingModalStore((s) => s.open);
+  const isMobile = useMediaQuery('(max-width: 1000px)');
   const showServicesSearch = isServicesRoute(location.pathname);
   const showMarketSearch = isMarketRoute(location.pathname);
-  const isMobile = useMediaQuery('(max-width: 1000px)');
+  const showHeaderSearch =
+    !isMobile && (showServicesSearch || showMarketSearch);
   const showPremiumCta = !user?.premium;
 
   const getPageName = () => {
@@ -41,15 +43,8 @@ const DashboardHeader = () => {
   };
 
   return (
-    <Flex
-      align="center"
-      justify="space-between"
-      gap="md"
-      wrap="nowrap"
-      w="100%"
-      style={{ minWidth: 0 }}
-    >
-      <Box miw={0} style={{ flex: '1 1 auto' }}>
+    <Box className={styles.headerRoot}>
+      <Box className={styles.headerSide}>
         <Text
           fw={700}
           fz={isMobile ? 'md' : 'lg'}
@@ -60,51 +55,28 @@ const DashboardHeader = () => {
         </Text>
       </Box>
 
-      {showServicesSearch && !isMobile && (
-        <Box
-          miw={0}
-          style={{
-            flex: '1 1 auto',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            maxWidth: 'min(100%, 28rem)',
-          }}
-        >
-          <SearchInput />
+      {showHeaderSearch && (
+        <Box className={styles.headerSearchCenter}>
+          {showServicesSearch ? <SearchInput /> : <MarketSearchInput />}
         </Box>
       )}
 
-      {showMarketSearch && !isMobile && (
-        <Box
-          miw={0}
-          style={{
-            flex: '1 1 auto',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            maxWidth: 'min(100%, 28rem)',
-          }}
-        >
-          <MarketSearchInput />
-        </Box>
-      )}
-
-      {showPremiumCta && (
-        <UnstyledButton
-          type="button"
-          className={styles.premiumCta}
-          onClick={openPricingModal}
-          aria-label={t('header.getPremium')}
-          style={{ flexShrink: 0 }}
-        >
-          <HiLightningBolt size={14} aria-hidden />
-          <span className={styles.premiumCtaLabel}>
-            {t('header.getPremium')}
-          </span>
-        </UnstyledButton>
-      )}
-    </Flex>
+      <Box className={`${styles.headerSide} ${styles.headerSideEnd}`}>
+        {showPremiumCta && (
+          <UnstyledButton
+            type="button"
+            className={styles.premiumCta}
+            onClick={openPricingModal}
+            aria-label={t('header.getPremium')}
+          >
+            <HiLightningBolt size={14} aria-hidden />
+            <span className={styles.premiumCtaLabel}>
+              {t('header.getPremium')}
+            </span>
+          </UnstyledButton>
+        )}
+      </Box>
+    </Box>
   );
 };
 

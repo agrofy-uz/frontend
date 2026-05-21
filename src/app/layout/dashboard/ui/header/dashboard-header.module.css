@@ -1,3 +1,43 @@
+.headerRoot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: var(--mantine-spacing-md);
+}
+
+.headerSide {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.headerSideEnd {
+  justify-content: flex-end;
+}
+
+/* Header geometrik markazida */
+.headerSearchCenter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(28rem, calc(100% - 10rem));
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.headerSearchCenter > * {
+  pointer-events: auto;
+  width: 100%;
+}
+
 .premiumCta {
   display: inline-flex;
   align-items: center;
