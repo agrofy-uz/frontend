@@ -2,6 +2,7 @@ import { parseAiChatLimitedFromPayload } from '@/shared/lib/aiChatLimit';
 import { normalizePremiumPlanTierFromApi } from '@/shared/lib/premiumTier';
 import type { IUser } from '@/shared/store/authStore';
 import type { AuthMeResponse } from './auth.types';
+import { readListingLimitsFromMe } from '@/shared/lib/listingLimits';
 import { readMeBool, readMeField } from './authMePayload';
 
 /** `GET /auth/me` javobini `IUser` (store / UI) ko‘rinishiga o‘tkazadi */
@@ -49,6 +50,7 @@ export function mapAuthMeToUser(me: AuthMeResponse): IUser {
   const idRaw = readMeField(raw, 'id', 'Id');
 
   const chatLimit = parseAiChatLimitedFromPayload(raw);
+  const listingLimits = readListingLimitsFromMe(raw);
 
   return {
     id: String(idRaw ?? me.id),
@@ -71,5 +73,7 @@ export function mapAuthMeToUser(me: AuthMeResponse): IUser {
     ai_chat_limited_until: chatLimit?.active
       ? (chatLimit.limitedUntil ?? null)
       : null,
+    products_limit: listingLimits.productsLimit,
+    services_limit: listingLimits.servicesLimit,
   };
 }

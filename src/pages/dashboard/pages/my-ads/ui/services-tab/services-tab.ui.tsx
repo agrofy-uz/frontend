@@ -3,8 +3,10 @@ import { Box, Stack, Title } from '@mantine/core';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMediaQuery } from '@mantine/hooks';
 import { MdDeleteOutline } from 'react-icons/md';
+import { getAuthMe, mapAuthMeToUser } from '@/shared/api';
 import { deleteMyService, getMyServices } from '@/shared/api/services/my-ads';
 import type { MyServiceDto } from '@/shared/api/services/my-ads';
+import { useAuthStore } from '@/shared/store/authStore';
 import { Card } from '@/shared/ui/card';
 import { openNotification } from '@/shared/lib/notification';
 import { Confirmation } from '../confirmation';
@@ -19,6 +21,7 @@ type ServicesTabProps = {
 
 function ServicesTab({ onCreate, onEdit }: ServicesTabProps) {
   const queryClient = useQueryClient();
+  const updateUser = useAuthStore((s) => s.updateUser);
   const { data, isLoading } = useQuery({
     queryKey: ['my-services'],
     queryFn: getMyServices,
@@ -30,6 +33,12 @@ function ServicesTab({ onCreate, onEdit }: ServicesTabProps) {
     mutationFn: (id: string) => deleteMyService(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['my-services'] });
+      try {
+        const me = await getAuthMe();
+        updateUser(mapAuthMeToUser(me));
+      } catch {
+        /* limitlar keyingi /me da yangilanadi */
+      }
       openNotification({
         title: "E'lon o‘chirildi",
         type: 'success',

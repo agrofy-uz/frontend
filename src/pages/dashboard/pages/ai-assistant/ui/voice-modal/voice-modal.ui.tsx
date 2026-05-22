@@ -61,6 +61,7 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
   const [playbackAudio, setPlaybackAudio] = useState<HTMLAudioElement | null>(null);
   const blobUrlRef        = useRef<string | null>(null);
   const streamRef         = useRef<MediaStream | null>(null);
+  const openedRef         = useRef(opened);
 
   const hasRecording = recordedBlob != null;
   const displaySeconds = isRecording ? seconds : hasRecording ? recordedDuration : 0;
@@ -90,44 +91,109 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
   }, [opened]);
 
   useEffect(() => {
+    openedRef.current = opened;
+  }, [opened]);
+
+  useEffect(() => {
     streamRef.current = stream;
   }, [stream]);
 
-  // ── Modal ochildi/yopildi ─────────────────────────────────────────────────
-  const stopRecordingLocally = useCallback(() => {
-    setIsRecording(false);
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  const stopMediaStreamTracks = useCallback(() => {
     const active = streamRef.current;
     if (active) {
-      active.getTracks().forEach((t) => t.stop());
+      active.getTracks().forEach((t) => {
+        t.stop();
+        t.enabled = false;
+      });
       streamRef.current = null;
-      setStream(null);
+    }
+    setStream(null);
+  }, []);
+
+  const clearRecordingTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
   }, []);
 
+  /** Modal yopilganda — yozuvni bekor qilish, mikrofonni qo‘yib yuborish */
+  const releaseAllMedia = useCallback(() => {
+    clearRecordingTimer();
+
+    const rec = mediaRecorderRef.current;
+    if (rec && rec.state !== 'inactive') {
+      try {
+        rec.stop();
+      } catch {
+        /* allaqachon to‘xtagan */
+      }
+    }
+    mediaRecorderRef.current = null;
+    chunksRef.current = [];
+
+    stopMediaStreamTracks();
+    setIsRecording(false);
+  }, [clearRecordingTimer, stopMediaStreamTracks]);
+
+  const resetModalState = useCallback(() => {
+    releaseAllMedia();
+    setIsPlaying(false);
+    setSeconds(0);
+    secondsRef.current = 0;
+    setIsTranscribing(false);
+    setRecordedBlob(null);
+    setRecordedDuration(0);
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+    setPlaybackAudio(null);
+  }, [releaseAllMedia]);
+
+  const handleModalClose = useCallback(() => {
+    if (isTranscribing) return;
+    resetModalState();
+    onClose();
+  }, [isTranscribing, resetModalState, onClose]);
+
   useEffect(() => {
     if (!opened) {
-      stopRecordingLocally();
-      setIsPlaying(false);
-      setSeconds(0);
-      setIsTranscribing(false);
-      setRecordedBlob(null);
-      setRecordedDuration(0);
-      if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
-      setPlaybackAudio(null);
+      resetModalState();
       return undefined;
     }
 
     const audio = new Audio();
     audio.onended = () => {
       setIsPlaying(false);
-      if (blobUrlRef.current) { URL.revokeObjectURL(blobUrlRef.current); blobUrlRef.current = null; }
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
     };
     setPlaybackAudio(audio);
-    return () => { audio.pause(); audio.src = ''; setPlaybackAudio(null); };
-  }, [opened, stopRecordingLocally]);
+    return () => {
+      audio.pause();
+      audio.src = '';
+      setPlaybackAudio(null);
+    };
+  }, [opened, resetModalState]);
+
+  useEffect(() => () => {
+    releaseAllMedia();
+  }, [releaseAllMedia]);
 
   useEffect(() => { secondsRef.current = seconds; }, [seconds]);
+
+  const stopRecording = useCallback(() => {
+    clearRecordingTimer();
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    mediaRecorderRef.current = null;
+    stopMediaStreamTracks();
+    setIsRecording(false);
+  }, [clearRecordingTimer, stopMediaStreamTracks]);
 
   // ── Yozish ───────────────────────────────────────────────────────────────
   const startRecording = async () => {
@@ -137,6 +203,12 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
 
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      if (!openedRef.current) {
+        mediaStream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
       streamRef.current = mediaStream;
       setStream(mediaStream);
 
@@ -144,11 +216,18 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
       mediaRecorderRef.current = rec;
       chunksRef.current = [];
 
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
       rec.onstop = () => {
+        if (!openedRef.current) return;
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
         if (blob.size > VOICE_MAX_SIZE) {
-          notifications.show({ title: 'Xatolik', message: 'Fayl hajmi juda katta (maks 5MB)', color: 'red' });
+          notifications.show({
+            title: 'Xatolik',
+            message: 'Fayl hajmi juda katta (maks 5MB)',
+            color: 'red',
+          });
           return;
         }
         setRecordedBlob(blob);
@@ -161,8 +240,7 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
       timerRef.current = setInterval(() => {
         setSeconds((prev) => {
           if (prev >= VOICE_MAX_DURATION) {
-            if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
-            stopRecordingLocally();
+            stopRecording();
             return prev;
           }
           return prev + 1;
@@ -171,11 +249,6 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
     } catch {
       notifications.show({ title: 'Xatolik', message: "Mikrofonga ruxsat yo'q", color: 'red' });
     }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current?.state === 'recording') mediaRecorderRef.current.stop();
-    stopRecordingLocally();
   };
 
   const handleRecordToggle = () => {
@@ -216,7 +289,7 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
   return (
     <Modal
       opened={opened}
-      onClose={isTranscribing ? () => {} : onClose}
+      onClose={isTranscribing ? () => {} : handleModalClose}
       title="Ovozli xabar"
       centered
       size="sm"

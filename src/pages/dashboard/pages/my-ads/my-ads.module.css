@@ -2,11 +2,16 @@
   position: relative;
 }
 
-.fab {
+.fabWrap {
   position: fixed;
   right: 16px;
   bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   z-index: 90;
+  line-height: 0;
+}
+
+.fab {
+  position: static;
   width: 56px;
   height: 56px;
   min-width: 56px;

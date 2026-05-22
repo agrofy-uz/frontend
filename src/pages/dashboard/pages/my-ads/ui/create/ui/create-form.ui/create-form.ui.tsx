@@ -41,6 +41,7 @@ import {
   getServicesCategories,
 } from '@/shared/api/services/services';
 import type { ServiceDetailDto } from '@/shared/api/services/services';
+import { applyListingLimitsFromPayload } from '@/shared/lib/listingLimits';
 import { openNotification } from '@/shared/lib/notification';
 import { useAuthStore } from '@/shared/store/authStore';
 import {
@@ -387,14 +388,18 @@ export function CreateForm({
         } else {
           await updateMyService(payload.listingId, payload.formData);
         }
-      } else if (isProduct) {
-        await createMyProduct(payload.formData);
-      } else {
-        await createMyService(payload.formData);
+        return null;
       }
+      if (isProduct) {
+        return createMyProduct(payload.formData);
+      }
+      return createMyService(payload.formData);
     },
-    onSuccess: async (_data, variables) => {
+    onSuccess: async (data, variables) => {
       const isProduct = listingKind === 'products';
+      if (!variables.listingId && data != null) {
+        applyListingLimitsFromPayload(data);
+      }
       if (isProduct) {
         await queryClient.invalidateQueries({ queryKey: ['my-products'] });
         await queryClient.invalidateQueries({ queryKey: ['market'] });

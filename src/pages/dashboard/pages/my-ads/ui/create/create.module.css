@@ -47,6 +47,21 @@
   flex-direction: column;
 }
 
+.formShell {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* fullscreen: CreateForm ichidagi body + footer */
+.formShell > .body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .bodyScroll {
   flex: 1 1 auto;
   min-height: 0;

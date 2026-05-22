@@ -4,6 +4,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { getMyProducts, getMyServices } from '@/shared/api/services/my-ads';
+import { useAuthStore } from '@/shared/store/authStore';
 import { Segmented } from '@/shared/ui/segmented';
 import { Button } from '@/shared/ui/button';
 import { MdAdd } from 'react-icons/md';
@@ -24,6 +25,9 @@ function MyAds() {
     getInitialValueInEffect: true,
   });
 
+  const productsLimit = useAuthStore((s) => Boolean(s.user?.products_limit));
+  const servicesLimit = useAuthStore((s) => Boolean(s.user?.services_limit));
+
   const servicesQuery = useQuery({
     queryKey: ['my-services'],
     queryFn: getMyServices,
@@ -41,6 +45,11 @@ function MyAds() {
 
   const hasActiveItems =
     !activeListQuery.isLoading && activeItemCount > 0;
+
+  const createLimitReached =
+    activeTab === 'products' ? productsLimit : servicesLimit;
+
+  const createLimitBlocked = createLimitReached && !editDraft;
 
   /** Mobil: faqat pastdagi FAB (≥1 e’lon); tepada tugma yo‘q. */
   const showMobileFab = Boolean(isMobile) && hasActiveItems;
@@ -60,17 +69,49 @@ function MyAds() {
     const createType = searchParams.get('create');
     if (createType !== 'services' && createType !== 'products') return;
 
-    setActiveTab(createType);
-    setEditDraft(null);
-    setCreateOpened(true);
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.delete('create');
       return next;
     });
+
+    setActiveTab(createType);
+    setEditDraft(null);
+    setCreateOpened(true);
   }, [searchParams, setSearchParams]);
 
   const fabAriaLabel = useMemo(() => createLabel, [createLabel]);
+
+  const headerCreateButton = showHeaderCreateButton ? (
+    <Button
+      type="button"
+      w={isMobile ? '100%' : 'auto'}
+      variant="filled"
+      color="green"
+      h={isMobile ? 34 : 36}
+      leftSection={<MdAdd size={18} />}
+      onClick={openCreate}
+    >
+      {createLabel}
+    </Button>
+  ) : null;
+
+  const mobileFab = showMobileFab ? (
+    <span className={styles.fabWrap}>
+      <ActionIcon
+        type="button"
+        className={styles.fab}
+        variant="filled"
+        color="green"
+        size={56}
+        radius="xl"
+        aria-label={fabAriaLabel}
+        onClick={openCreate}
+      >
+        <MdAdd size={28} />
+      </ActionIcon>
+    </span>
+  ) : null;
 
   return (
     <Box className={styles.root}>
@@ -90,19 +131,7 @@ function MyAds() {
             { label: 'Mahsulotlar', value: 'products' },
           ]}
         />
-        {showHeaderCreateButton && (
-          <Button
-            type="button"
-            w={isMobile ? '100%' : 'auto'}
-            variant="filled"
-            color="green"
-            h={isMobile ? 34 : 36}
-            leftSection={<MdAdd size={18} />}
-            onClick={openCreate}
-          >
-            {createLabel}
-          </Button>
-        )}
+        {headerCreateButton}
       </Flex>
       {activeTab === 'services' ? (
         <ServicesTab
@@ -121,20 +150,7 @@ function MyAds() {
           }}
         />
       )}
-      {showMobileFab ? (
-        <ActionIcon
-          type="button"
-          className={styles.fab}
-          variant="filled"
-          color="green"
-          size={56}
-          radius="xl"
-          aria-label={fabAriaLabel}
-          onClick={openCreate}
-        >
-          <MdAdd size={28} />
-        </ActionIcon>
-      ) : null}
+      {mobileFab}
       <Create
         opened={createOpened}
         onClose={() => {
@@ -143,6 +159,7 @@ function MyAds() {
         }}
         initialType={activeTab}
         editDraft={editDraft}
+        limitBlocked={createLimitBlocked}
       />
     </Box>
   );

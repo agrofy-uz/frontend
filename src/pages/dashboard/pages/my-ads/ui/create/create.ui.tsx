@@ -3,6 +3,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { IoClose } from 'react-icons/io5';
 import { Modal } from '@/shared/ui/modal';
 import { CreateForm } from './ui/create-form.ui';
+import { CreateLimitOverlay } from './ui/create-limit-overlay/create-limit-overlay.ui';
 import type { MyProductDto, MyServiceDto } from '@/shared/api/services/my-ads';
 import { MY_ADS_MOBILE_MQ } from '../../my-ads.const';
 import styles from './create.module.css';
@@ -17,15 +18,24 @@ type CreateProps = {
   onClose: () => void;
   initialType: 'services' | 'products';
   editDraft: MyAdsEditDraft | null;
+  /** Yangi e’lon limiti — forma ko‘rinadi, ustida blur qatlam */
+  limitBlocked?: boolean;
 };
 
-function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
+function Create({
+  opened,
+  onClose,
+  initialType,
+  editDraft,
+  limitBlocked = false,
+}: CreateProps) {
   const isMobile = useMediaQuery(MY_ADS_MOBILE_MQ, false, {
     getInitialValueInEffect: true,
   });
 
   const isEditingListing = Boolean(editDraft);
   const listingKind = editDraft?.kind ?? initialType;
+  const showLimitOverlay = limitBlocked && !isEditingListing;
 
   const title = isEditingListing
     ? "E'lonni tahrirlash"
@@ -40,6 +50,18 @@ function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
     listingKind,
     onCancel: onClose,
   };
+
+  const formWithOverlay = (
+    <Box className={styles.formShell}>
+      <CreateForm
+        presentation={isMobile ? 'fullscreen' : 'modal'}
+        {...formProps}
+      />
+      {showLimitOverlay ? (
+        <CreateLimitOverlay kind={listingKind} onClose={onClose} />
+      ) : null}
+    </Box>
+  );
 
   const mobileShell = (
     <Box className={styles.shellInner}>
@@ -59,7 +81,7 @@ function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
           <IoClose size={24} />
         </ActionIcon>
       </Box>
-      <CreateForm presentation="fullscreen" {...formProps} />
+      <Box className={styles.body}>{formWithOverlay}</Box>
     </Box>
   );
 
@@ -90,7 +112,7 @@ function Create({ opened, onClose, initialType, editDraft }: CreateProps) {
 
   return (
     <Modal opened={opened} onClose={onClose} title={title} radius="md" centered>
-      <CreateForm presentation="modal" {...formProps} />
+      {formWithOverlay}
     </Modal>
   );
 }

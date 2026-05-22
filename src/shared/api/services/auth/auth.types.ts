@@ -48,6 +48,10 @@ export interface AuthMeResponse {
   aiChatLimited?: unknown;
   aiChatLimitedUntil?: string | null;
 
+  /** Tarif limiti — yangi e’lon yaratib bo‘lmaydi */
+  productsLimit?: boolean;
+  servicesLimit?: boolean;
+
   /** JWT access token */
   // NOTE: me javobida tokenlar bo'lmaydi, ular verify javobidan olinadi
 }

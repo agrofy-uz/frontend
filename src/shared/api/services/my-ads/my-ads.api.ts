@@ -100,18 +100,20 @@ export const deleteMyProduct = async (id: string): Promise<void> => {
   await API.delete(`/my-products/${id}`);
 };
 
-/** POST /api/my-services (multipart/form-data) */
-export const createMyService = async (formData: FormData): Promise<void> => {
-  await API.post('/my-services', formData, {
+/** POST /api/my-services (multipart/form-data) — javobda `servicesLimit` bo‘lishi mumkin */
+export const createMyService = async (formData: FormData): Promise<unknown> => {
+  const response = await API.post<unknown>('/my-services', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  return response.data;
 };
 
-/** POST /api/my-products (multipart/form-data) */
-export const createMyProduct = async (formData: FormData): Promise<void> => {
-  await API.post('/my-products', formData, {
+/** POST /api/my-products (multipart/form-data) — javobda `productsLimit` bo‘lishi mumkin */
+export const createMyProduct = async (formData: FormData): Promise<unknown> => {
+  const response = await API.post<unknown>('/my-products', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  return response.data;
 };
 
 /** PUT /api/my-services/:id (multipart/form-data) */

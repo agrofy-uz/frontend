@@ -21,6 +21,10 @@ export interface IUser {
   premium_plan_months?: number | null;
   /** `aiChatLimited` — shu vaqtgacha AI chat yuborish bloklangan (ISO) */
   ai_chat_limited_until?: string | null;
+  /** `productsLimit` — yangi mahsulot yaratib bo‘lmaydi */
+  products_limit?: boolean;
+  /** `servicesLimit` — yangi xizmat yaratib bo‘lmaydi */
+  services_limit?: boolean;
 }
 
 interface AuthState {
