@@ -2,6 +2,7 @@ import { Box, ActionIcon } from '@mantine/core';
 import { IoClose } from 'react-icons/io5';
 import { Modal } from '@/shared/ui/modal';
 import { PricingView } from './pricing.ui';
+import styles from './pricing.module.css';
 
 export type PricingModalProps = {
   opened: boolean;
@@ -62,16 +63,9 @@ export function PricingModal({ opened, onClose }: PricingModalProps) {
         </Box>
         <Box
           component="main"
-          style={{
-            flex: '1 1 auto',
-            minHeight: 0,
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            WebkitOverflowScrolling: 'touch',
-            overscrollBehavior: 'contain',
-            boxSizing: 'border-box',
-          }}
+          className={styles.scrollMain}
           px="xl"
+          pt="xs"
           pb="calc(var(--mantine-spacing-xl) + env(safe-area-inset-bottom, 0px))"
         >
           <PricingView />

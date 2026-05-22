@@ -8,7 +8,7 @@ import {
   NavLink,
 } from '@mantine/core';
 import { FaCog, FaSignOutAlt } from 'react-icons/fa';
-import { HiLightningBolt } from 'react-icons/hi';
+import { HiLightningBolt, HiOutlineSupport } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import { useMobileDashboardDrawer } from '@/app/layout/dashboard/mobile-dashboard-drawer.context';
 import { logoutAuth } from '@/shared/api';
@@ -16,6 +16,7 @@ import { useAuthStore } from '@/shared/store/authStore';
 import { useSettingsModalStore } from '@/shared/store/settingsModalStore';
 import { usePricingModalStore } from '@/shared/store/pricingModalStore';
 import { formatPhoneNumber } from '@/shared/lib/formatNumber';
+import { openTelegramHelp } from '@/shared/lib/telegramNavigation';
 import { localStorageHelper } from '@/shared/lib/localStorage';
 import styles from './drower.module.css';
 
@@ -72,6 +73,14 @@ function Drower({ opened, onClose, target }: DrowerProps) {
   const handleSettings = () => {
     openSettingsModal();
     onClose();
+  };
+
+  const handleHelp = (event: React.MouseEvent<HTMLElement>) => {
+    if (mobileDrawer?.isMobile) {
+      mobileDrawer.closeMobileDrawer();
+    }
+    onClose();
+    openTelegramHelp(event);
   };
 
   const handleLogout = async () => {
@@ -152,6 +161,16 @@ function Drower({ opened, onClose, target }: DrowerProps) {
               label="Sozlamalar"
               leftSection={<FaCog size={18} />}
               onClick={handleSettings}
+              className={styles.navLink}
+            />
+          </Box>
+
+          {/* Yordam — Telegram help (pricing dagi «biz bilan bog'laning») */}
+          <Box px="xs">
+            <NavLink
+              label="Yordam"
+              leftSection={<HiOutlineSupport size={18} />}
+              onClick={handleHelp}
               className={styles.navLink}
             />
           </Box>

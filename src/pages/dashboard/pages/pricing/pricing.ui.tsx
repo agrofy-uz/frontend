@@ -250,6 +250,44 @@ function UspsRow() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Kontent oxiridagi ishonch qatori                                     */
+/* ------------------------------------------------------------------ */
+function PricingTrustFooter() {
+  return (
+    <Flex
+      className={styles.trustFooter}
+      align="center"
+      justify="center"
+      gap="xs"
+      wrap="wrap"
+    >
+      <HiShieldCheck size={16} color="#22c55e" style={{ flexShrink: 0 }} />
+      <Text size="xs" c="dimmed" ta="center" maw={520}>
+        To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
+        <Text
+          component="button"
+          type="button"
+          size="xs"
+          c="green"
+          style={{
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            font: 'inherit',
+          }}
+          onClick={openTelegramHelp}
+        >
+          biz bilan bog'laning
+        </Text>
+        .
+      </Text>
+    </Flex>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main view                                                            */
 /* ------------------------------------------------------------------ */
 export function PricingView() {
@@ -314,12 +352,13 @@ export function PricingView() {
 
   return (
     <Box
+      className={styles.page}
       maw={1200}
       mx="auto"
       px={{ base: 0, sm: 'md' }}
-      style={{ boxSizing: 'border-box' }}
     >
-      <Stack gap="md">
+      <Box className={styles.pageContent}>
+        <Stack gap="md">
         {/* Hero text */}
         <Stack align="center" gap={8} mb="md">
           <Badge
@@ -369,40 +408,10 @@ export function PricingView() {
             />
           ))}
         </Box>
+        </Stack>
+      </Box>
 
-        {/* Sahifa eng pasti */}
-        <Flex
-          align="center"
-          justify="center"
-          gap="xs"
-          pt="xl"
-          pb="md"
-          wrap="wrap"
-        >
-          <HiShieldCheck size={16} color="#22c55e" style={{ flexShrink: 0 }} />
-          <Text size="xs" c="dimmed" ta="center" maw={520}>
-            To'lovlar xavfsiz. Istalgan vaqt bekor qilish mumkin. Savol bo'lsa -{' '}
-            <Text
-              component="button"
-              type="button"
-              size="xs"
-              c="green"
-              style={{
-                cursor: 'pointer',
-                textDecoration: 'underline',
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                font: 'inherit',
-              }}
-              onClick={openTelegramHelp}
-            >
-              biz bilan bog'laning
-            </Text>
-            .
-          </Text>
-        </Flex>
-      </Stack>
+      <PricingTrustFooter />
     </Box>
   );
 }
