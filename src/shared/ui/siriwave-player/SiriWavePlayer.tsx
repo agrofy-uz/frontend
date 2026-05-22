@@ -60,8 +60,8 @@ export function SiriWavePlayer({
       instanceRef.current = null;
       if (waveRef) waveRef.current = null;
     };
-  // amplitude/speed/isActive intentionally excluded — controlled via waveRef externally
-  }, [width, height, color, lerpSpeed, ranges]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ranges — reference emas, qiymat bo'yicha (parentda barqaror konstanta tavsiya)
+  }, [width, height, color, lerpSpeed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const wave = instanceRef.current;

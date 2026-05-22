@@ -22,6 +22,13 @@ import { useVoiceWaveLevel } from './use-voice-wave-level';
 import styles from './voice-modal.module.css';
 
 const WAVE_HEIGHT = 180;
+const WAVE_COLOR = '#22c55e';
+/** Inline object har renderda SiriWave ni qayta yaratardi — barqaror konstanta */
+const WAVE_RANGES = {
+  amplitude: [0.4, 5.5] as [number, number],
+  width: [1.2, 3] as [number, number],
+  speed: [0.06, 0.4] as [number, number],
+};
 
 export interface VoiceModalProps {
   opened: boolean;
@@ -53,6 +60,7 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
   const secondsRef        = useRef(0);
   const [playbackAudio, setPlaybackAudio] = useState<HTMLAudioElement | null>(null);
   const blobUrlRef        = useRef<string | null>(null);
+  const streamRef         = useRef<MediaStream | null>(null);
 
   const hasRecording = recordedBlob != null;
   const displaySeconds = isRecording ? seconds : hasRecording ? recordedDuration : 0;
@@ -71,19 +79,31 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
   useEffect(() => {
     const el = waveHostRef.current;
     if (!el) return undefined;
-    const sync = () => setWaveWidth(Math.max(260, el.clientWidth));
+    const sync = () => {
+      const w = Math.max(260, Math.round(el.clientWidth / 4) * 4);
+      setWaveWidth((prev) => (Math.abs(prev - w) < 8 ? prev : w));
+    };
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(el);
     return () => ro.disconnect();
   }, [opened]);
 
+  useEffect(() => {
+    streamRef.current = stream;
+  }, [stream]);
+
   // ── Modal ochildi/yopildi ─────────────────────────────────────────────────
   const stopRecordingLocally = useCallback(() => {
     setIsRecording(false);
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    if (stream) { stream.getTracks().forEach((t) => t.stop()); setStream(null); }
-  }, [stream]);
+    const active = streamRef.current;
+    if (active) {
+      active.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      setStream(null);
+    }
+  }, []);
 
   useEffect(() => {
     if (!opened) {
@@ -117,6 +137,7 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
 
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = mediaStream;
       setStream(mediaStream);
 
       const rec = new MediaRecorder(mediaStream);
@@ -217,14 +238,10 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
               waveRef={waveInstanceRef}
               width={waveWidth}
               height={WAVE_HEIGHT}
-              color="#22c55e"
+              color={WAVE_COLOR}
               amplitude={1}
               lerpSpeed={0.07}
-              ranges={{
-                amplitude: [0.4, 5.5],
-                width: [1.2, 3],
-                speed: [0.06, 0.4],
-              }}
+              ranges={WAVE_RANGES}
               isActive
             />
           </Box>
