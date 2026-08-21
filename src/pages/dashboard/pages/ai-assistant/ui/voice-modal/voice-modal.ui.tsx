@@ -15,8 +15,10 @@ import {
 } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
 import type SiriWave from 'siriwave';
+import { isAxiosError } from 'axios';
+import { localeToSttLanguage, transcribeAudio } from '@/shared/api';
+import { getCurrentLocale } from '@/shared/lib/language';
 import { SiriWavePlayer } from '@/shared/ui/siriwave-player';
-import { transcribeAudio } from '@/shared/api';
 import { VOICE_MAX_DURATION, VOICE_MAX_SIZE } from '../../ai-assistant.const';
 import { useVoiceWaveLevel } from './use-voice-wave-level';
 import styles from './voice-modal.module.css';
@@ -272,18 +274,44 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
   const handleSendTranscribe = async () => {
     if (!recordedBlob || isTranscribing) return;
     setIsTranscribing(true);
-    if (playbackAudio) { playbackAudio.pause(); setIsPlaying(false); }
+    if (playbackAudio) {
+      playbackAudio.pause();
+      setIsPlaying(false);
+    }
     try {
-      const res = await transcribeAudio(recordedBlob);
-      if (res.text?.trim()) { onTranscribed(res.text); onClose(); }
-      else notifications.show({ title: "Ma'lumot", message: 'Gap aniqlanmadi', color: 'blue' });
+      const res = await transcribeAudio({
+        audioFile: recordedBlob,
+        language: localeToSttLanguage(getCurrentLocale()),
+      });
+      if (res.text?.trim()) {
+        onTranscribed(res.text.trim());
+        resetModalState();
+        onClose();
+      } else {
+        notifications.show({
+          title: "Ma'lumot",
+          message: 'Gap aniqlanmadi',
+          color: 'blue',
+        });
+      }
     } catch (err: unknown) {
+      let message = 'Transkripsiya xatoligi';
+      if (isAxiosError(err)) {
+        const data = err.response?.data as
+          | { message?: string; error?: string }
+          | undefined;
+        message = data?.message ?? err.message ?? message;
+      } else if (err instanceof Error) {
+        message = err.message;
+      }
       notifications.show({
         title: 'Xatolik',
-        message: err instanceof Error ? err.message : 'Transkripsiya xatoligi',
+        message,
         color: 'red',
       });
-    } finally { setIsTranscribing(false); }
+    } finally {
+      setIsTranscribing(false);
+    }
   };
 
   return (
@@ -350,13 +378,13 @@ export function VoiceModal({ opened, onClose, onTranscribed }: VoiceModalProps) 
             {isRecording ? <MdStop size={38} /> : <MdMic size={38} />}
           </ActionIcon>
 
-          {/* O'ng: yuborish (hozircha o'chirilgan) */}
+          {/* O'ng: yuborish — STT */}
           <ActionIcon
             className={`${styles.sideBtn} ${styles.sideBtnSend}`}
             variant="filled"
             color="green"
-            aria-label="Yuborish"
-            disabled
+            aria-label="Matnga o'girish"
+            disabled={!hasRecording || isRecording || isTranscribing}
             onClick={() => void handleSendTranscribe()}
           >
             <MdSend size={22} />

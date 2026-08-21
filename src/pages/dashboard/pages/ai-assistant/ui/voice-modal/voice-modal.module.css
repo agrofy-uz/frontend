@@ -98,8 +98,16 @@ html[data-mantine-color-scheme='dark'] .sideBtnPlay:hover:not(:disabled) {
 }
 
 .sideBtnSend {
+  background: var(--mantine-color-green-6) !important;
+  color: #fff !important;
+}
+
+.sideBtnSend:hover:not(:disabled) {
+  background: var(--mantine-color-green-7) !important;
+}
+
+.sideBtnSend:disabled {
   opacity: 0.38;
-  pointer-events: none;
 }
 
 /* Asosiy tugma (mic / stop) — biroz kattaroq */

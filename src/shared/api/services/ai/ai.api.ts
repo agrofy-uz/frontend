@@ -298,21 +298,56 @@ export const sendMinimalResult = async (
   return response.data;
 };
 
-export const transcribeAudio = async (
-  audioFile: Blob,
-): Promise<{ text: string }> => {
-  const formData = new FormData();
-  const fixedBlob = new Blob([audioFile], { type: 'audio/webm' });
-  formData.append('audio', fixedBlob, 'audio.webm');
+export type SttLanguage = 'uz' | 'ru' | 'uz-ru';
 
-  const response = await API.post<{ text: string }>(
-    '/v1/stt/convert',
+export type TranscribeAudioParams = {
+  audioFile: Blob;
+  language?: SttLanguage;
+  fileName?: string;
+};
+
+/** Ilova tilini STT `language` parametriga moslaydi. */
+export function localeToSttLanguage(locale: string | undefined | null): SttLanguage {
+  const value = (locale ?? '').toLowerCase();
+  if (value === 'ru' || value.startsWith('ru')) return 'ru';
+  return 'uz';
+}
+
+/**
+ * `POST /api/ai/speech/transcribe` — ovozli yozuvni matnga o‘giradi.
+ * Backend UzbekVoice STT ga proksi qiladi.
+ */
+export const transcribeAudio = async ({
+  audioFile,
+  language = 'uz',
+  fileName,
+}: TranscribeAudioParams): Promise<{ text: string }> => {
+  const mime = audioFile.type || 'audio/webm';
+  const extension = mime.includes('mp4')
+    ? 'mp4'
+    : mime.includes('ogg')
+      ? 'ogg'
+      : mime.includes('wav')
+        ? 'wav'
+        : 'webm';
+  const name = fileName ?? `audio.${extension}`;
+  const fixedBlob = new Blob([audioFile], { type: mime });
+
+  const formData = new FormData();
+  formData.append('file', fixedBlob, name);
+  formData.append('language', language);
+
+  const response = await API.post<{ text?: string; Text?: string }>(
+    '/ai/speech/transcribe',
     formData,
     {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 120_000,
     },
   );
-  return response.data;
+
+  const text = String(response.data?.text ?? response.data?.Text ?? '').trim();
+  return { text };
 };
