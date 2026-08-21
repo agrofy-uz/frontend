@@ -115,18 +115,28 @@ export const sendChatMessage = async (
   chatId: string,
   data: SendChatMessageRequest,
   onDelta?: (accumulatedText: string) => void,
+  signal?: AbortSignal,
 ): Promise<SendChatMessageResponse> => {
   const url = normalizeApiPath(`/ai/chats/${chatId}/messages`);
 
-  const res = await fetchWithAuth(url, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'text/event-stream, application/json',
-    },
-    body: JSON.stringify(data),
-  });
+  let res: Response;
+  try {
+    res = await fetchWithAuth(url, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream, application/json',
+      },
+      body: JSON.stringify(data),
+      signal,
+    });
+  } catch (err) {
+    if (signal?.aborted || (err instanceof DOMException && err.name === 'AbortError')) {
+      return { role: 'assistant', text: '' };
+    }
+    throw err;
+  }
 
   if (res.status === 401) {
     useAuthStore.getState().logout();
@@ -188,20 +198,34 @@ export const sendChatMessage = async (
   const decoder = new TextDecoder();
   let buffer = '';
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split('\n\n');
-    buffer = parts.pop() ?? '';
-    for (const part of parts) {
-      if (part.trim()) {
-        fullText = processSseBlock(part, fullText, lastMeta, onDelta);
+  const onAbort = () => {
+    void reader.cancel().catch(() => undefined);
+  };
+  signal?.addEventListener('abort', onAbort, { once: true });
+
+  try {
+    while (true) {
+      if (signal?.aborted) break;
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() ?? '';
+      for (const part of parts) {
+        if (part.trim()) {
+          fullText = processSseBlock(part, fullText, lastMeta, onDelta);
+        }
       }
     }
-  }
-  if (buffer.trim()) {
-    fullText = processSseBlock(buffer, fullText, lastMeta, onDelta);
+    if (buffer.trim()) {
+      fullText = processSseBlock(buffer, fullText, lastMeta, onDelta);
+    }
+  } catch (err) {
+    if (!(signal?.aborted || (err instanceof DOMException && err.name === 'AbortError'))) {
+      throw err;
+    }
+  } finally {
+    signal?.removeEventListener('abort', onAbort);
   }
 
   return {
@@ -210,6 +234,21 @@ export const sendChatMessage = async (
     text: fullText,
     createdAt: lastMeta.createdAt,
     aiChatLimited: lastMeta.aiChatLimited,
+  };
+};
+
+/** POST /ai/chats/{chatId}/stop — serverda faol SSE/Mistral generatsiyani to‘xtatish */
+export const stopChatGeneration = async (
+  chatId: string,
+): Promise<{ chatId: string; stopped: boolean }> => {
+  const response = await API.post<{ chatId: string; stopped: boolean }>(
+    `/ai/chats/${chatId}/stop`,
+    {},
+  );
+  const d = response.data;
+  return {
+    chatId: d?.chatId ?? chatId,
+    stopped: Boolean(d?.stopped),
   };
 };
 

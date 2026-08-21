@@ -6,5 +6,6 @@ export {
   getChatMessages,
   sendChatMessage,
   sendMinimalResult,
+  stopChatGeneration,
   transcribeAudio,
 } from './ai.api';

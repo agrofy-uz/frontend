@@ -20,7 +20,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { BsMicMuteFill } from 'react-icons/bs';
 import { IoArrowUp, IoChevronDown } from 'react-icons/io5';
-import { MdContentCopy, MdEdit, MdCheck, MdClose } from 'react-icons/md';
+import { MdContentCopy, MdEdit, MdCheck, MdClose, MdStop } from 'react-icons/md';
 import { notifications } from '@mantine/notifications';
 import { useMediaQuery } from '@mantine/hooks';
 import styles from './ai-assistant.module.css';
@@ -28,6 +28,7 @@ import {
   createChat,
   getChatMessages,
   sendChatMessage,
+  stopChatGeneration,
   type ChatMessage,
 } from '@/shared/api';
 import { useAuthStore, useAuthStoreHydrated } from '@/shared/store/authStore';
@@ -81,6 +82,8 @@ function AiAssistant() {
   const scrollBottomAfterHistoryRef = useRef(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const streamAbortRef = useRef<AbortController | null>(null);
+  const streamingChatIdRef = useRef<string | null>(null);
 
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [draft, setDraft] = useState('');
@@ -224,6 +227,17 @@ function AiAssistant() {
     let cancelled = false;
 
     const initializeSession = async () => {
+      if (streamAbortRef.current) {
+        const activeChatId = streamingChatIdRef.current;
+        if (activeChatId) {
+          void stopChatGeneration(activeChatId).catch(() => undefined);
+        }
+        streamAbortRef.current.abort();
+        streamAbortRef.current = null;
+        streamingChatIdRef.current = null;
+        setIsLoading(false);
+      }
+
       setIsInitializing(true);
       setError(null);
       try {
@@ -354,6 +368,29 @@ function AiAssistant() {
     return () => cancelAnimationFrame(id);
   }, [messages, isLoading, scrollToBottom]);
 
+  const handleStopGenerating = useCallback(() => {
+    const chatId = streamingChatIdRef.current;
+    if (chatId && streamAbortRef.current) {
+      void stopChatGeneration(chatId).catch(() => undefined);
+    }
+    streamAbortRef.current?.abort();
+    streamAbortRef.current = null;
+    streamingChatIdRef.current = null;
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      const chatId = streamingChatIdRef.current;
+      if (chatId && streamAbortRef.current) {
+        void stopChatGeneration(chatId).catch(() => undefined);
+      }
+      streamAbortRef.current?.abort();
+      streamAbortRef.current = null;
+      streamingChatIdRef.current = null;
+    };
+  }, []);
+
   const handleSend = async () => {
     if (!draft.trim() || isLoading || !user?.id) return;
     if (isChatLimitActive) {
@@ -395,6 +432,10 @@ function AiAssistant() {
       },
     ]);
 
+    const abort = new AbortController();
+    streamAbortRef.current = abort;
+    streamingChatIdRef.current = chatId;
+
     try {
       const response = await sendChatMessage(
         chatId,
@@ -405,7 +446,8 @@ function AiAssistant() {
               m.id === assistantId ? { ...m, content: accumulated } : m
             )
           );
-        }
+        },
+        abort.signal,
       );
       const finalText = response.text?.trim() ?? '';
       setMessages((prev) => {
@@ -432,7 +474,15 @@ function AiAssistant() {
 
       applyAiChatLimitedFromPayload(response);
     } catch (err: unknown) {
-      if (err instanceof AiChatLimitError) {
+      if (abort.signal.aborted) {
+        setMessages((prev) => {
+          const assistant = prev.find((m) => m.id === assistantId);
+          if (!assistant?.content.trim()) {
+            return prev.filter((m) => m.id !== assistantId);
+          }
+          return prev;
+        });
+      } else if (err instanceof AiChatLimitError) {
         applyAiChatLimitedUntil(err.limitedUntil);
         const limitMsg = err.limitedUntil
           ? `${AI_CHAT_LIMIT_MESSAGE} ${formatAiChatLimitCountdown(err.limitedUntil)}`
@@ -468,6 +518,10 @@ function AiAssistant() {
         setMessages((prev) => prev.filter((m) => m.id !== assistantId));
       }
     } finally {
+      if (streamAbortRef.current === abort) {
+        streamAbortRef.current = null;
+        streamingChatIdRef.current = null;
+      }
       setIsLoading(false);
     }
   };
@@ -750,22 +804,35 @@ function AiAssistant() {
                   radius="xl"
                   variant="subtle"
                   aria-label="Ovoz"
-                  disabled={isChatLimitActive}
+                  disabled={isChatLimitActive || isLoading}
                   onClick={() => setVoiceModalOpened(true)}
                 >
                   <BsMicMuteFill size={18} />
                 </ActionIcon>
-                <ActionIcon
-                  className={styles.sendBtn}
-                  size="lg"
-                  radius="xl"
-                  variant="filled"
-                  aria-label="Yuborish"
-                  disabled={isChatLimitActive || !draft.trim() || isLoading}
-                  onClick={handleSend}
-                >
-                  <IoArrowUp size={18} />
-                </ActionIcon>
+                {isLoading ? (
+                  <ActionIcon
+                    className={styles.sendBtn}
+                    size="lg"
+                    radius="xl"
+                    variant="filled"
+                    aria-label="To‘xtatish"
+                    onClick={handleStopGenerating}
+                  >
+                    <MdStop size={18} />
+                  </ActionIcon>
+                ) : (
+                  <ActionIcon
+                    className={styles.sendBtn}
+                    size="lg"
+                    radius="xl"
+                    variant="filled"
+                    aria-label="Yuborish"
+                    disabled={isChatLimitActive || !draft.trim()}
+                    onClick={handleSend}
+                  >
+                    <IoArrowUp size={18} />
+                  </ActionIcon>
+                )}
               </Box>
             </Box>
           </div>
